@@ -1,0 +1,80 @@
+Copy this into your registration Google Sheet → Extensions → Apps Script:
+
+function getRegistrationData() {
+  const projectId = 'gaac-registration-2026';
+  const apiKey = 'AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLiaeDk6zY';
+  const url = `https://firestore.googleapis.com/v1/projects/${projectId}/databases/(default)/documents/registrations?key=${apiKey}`;
+
+  const res = UrlFetchApp.fetch(url);
+  const data = JSON.parse(res.getContentText());
+  const sheet = SpreadsheetApp.getActiveSheet();
+
+  sheet.getDataRange().clearContent();
+
+  // Headers
+  const headers = [
+    'Registration ID', 'Team Name', 'Status',
+    'Leader Name', 'Leader Email', 'Leader Country', 'Leader School', 'Leader DOB', 'Leader Grade',
+    'Member 2 Name', 'Member 2 Email', 'Member 2 Country', 'Member 2 School', 'Member 2 DOB', 'Member 2 Grade',
+    'Member 3 Name', 'Member 3 Email', 'Member 3 Country', 'Member 3 School', 'Member 3 DOB', 'Member 3 Grade',
+    'Referral Code', 'Referred By', 'Registered At (Egypt Time)', 'Password'
+  ];
+  sheet.appendRow(headers);
+
+  // Collect rows first to sort by newest first
+  const rows = [];
+
+  (data.documents || []).forEach(doc => {
+    const f = doc.fields || {};
+    const leader = f.leader?.mapValue?.fields || {};
+    const member2 = f.member2?.mapValue?.fields || {};
+    const member3 = f.member3?.mapValue?.fields || {};
+
+    // Convert timestamp to Egypt time zone
+    let egyptTime = '';
+    if (f.timestamp?.timestampValue) {
+      const date = new Date(f.timestamp.timestampValue);
+      egyptTime = Utilities.formatDate(date, 'Africa/Cairo', 'yyyy-MM-dd HH:mm:ss');
+    }
+
+    rows.push([
+      f.registrationId?.stringValue || '',
+      f.teamName?.stringValue || '',
+      f.status?.stringValue || '',
+      leader.name?.stringValue || '',
+      leader.email?.stringValue || '',
+      leader.country?.stringValue || '',
+      leader.school?.stringValue || '',
+      leader.dob?.stringValue || '',
+      leader.grade?.stringValue || '',
+      member2.name?.stringValue || '',
+      member2.email?.stringValue || '',
+      member2.country?.stringValue || '',
+      member2.school?.stringValue || '',
+      member2.dob?.stringValue || '',
+      member2.grade?.stringValue || '',
+      member3.name?.stringValue || '',
+      member3.email?.stringValue || '',
+      member3.country?.stringValue || '',
+      member3.school?.stringValue || '',
+      member3.dob?.stringValue || '',
+      member3.grade?.stringValue || '',
+      f.referralCode?.stringValue || '',
+      f.referredBy?.stringValue || '',
+      egyptTime,
+      f.password?.stringValue || ''
+    ]);
+  });
+
+  // Sort newest first (reverse chronological)
+  rows.sort((a, b) => {
+    if (a[23] > b[23]) return -1;
+    if (a[23] < b[23]) return 1;
+    return 0;
+  });
+
+  // Write all rows at once
+  if (rows.length > 0) {
+    sheet.getRange(2, 1, rows.length, headers.length).setValues(rows);
+  }
+}

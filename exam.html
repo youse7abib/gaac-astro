@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Round 1 Exam | GAAC</title>
+  <link rel="icon" href="GAAC Dark.jpg" type="image/jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <!-- MediaPipe Face Detection -->
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
+  <style>
+    .hidden { display: none !important; }
+    body { background: #00020a; overflow-x: hidden; cursor: auto !important; -webkit-user-select: none; user-select: none; }
+    a, button, input, select, textarea { cursor: pointer !important; }
+    @media print { body { display: none !important; } }
+    ::-webkit-media-controls { display: none !important; }
+
+    /* Toast Notification */
+    #exam-toast {
+      position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+      z-index: 99999; max-width: 500px; width: 90%;
+      padding: 14px 20px; border-radius: 12px;
+      background: rgba(10,14,23,0.95); border: 1px solid rgba(255,107,107,0.3);
+      backdrop-filter: blur(12px);
+      display: none; align-items: center; gap: 12px;
+      font-size: 0.85rem; color: #ff6b6b;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    #exam-toast.show { display: flex; animation: toastIn 0.3s ease; }
+    #exam-toast .toast-close {
+      margin-left: auto; background: none; border: none;
+      color: #ff6b6b; font-size: 1.2rem; cursor: pointer; padding: 0 4px;
+    }
+    @keyframes toastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+    @keyframes toastOut { from { opacity: 1; } to { opacity: 0; transform: translateX(-50%) translateY(-20px); } }
+    .exam-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 24px; background: rgba(0,2,10,0.95); border-bottom: 1px solid rgba(38,183,255,0.12);
+      backdrop-filter: blur(12px);
+    }
+    .exam-bar .logo-sm { height: 32px; }
+    .exam-bar .timer { font-family: 'Orbitron', monospace; font-size: 1.4rem; font-weight: 700; color: var(--blue-light); letter-spacing: 0.06em; }
+    .exam-bar .timer.warning { color: #ff6b6b; animation: pulse 1s ease-in-out infinite; }
+    .exam-bar .progress-text { font-size: 0.82rem; color: var(--muted); }
+    .exam-layout { display: flex; margin-top: 60px; min-height: calc(100vh - 60px); }
+    .exam-sidebar {
+      width: 90px; flex-shrink: 0; background: rgba(2,8,20,0.6); border-right: 1px solid rgba(38,183,255,0.08);
+      padding: 16px 10px; overflow-y: auto; position: sticky; top: 60px; height: calc(100vh - 60px);
+    }
+    .exam-sidebar .palette-title { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 12px; }
+    .question-palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .palette-dot {
+      width: 100%; aspect-ratio: 1; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.7rem; font-weight: 600;
+      cursor: pointer; transition: all 200ms; display: flex; align-items: center; justify-content: center;
+    }
+    .palette-dot:hover { border-color: var(--blue-light); }
+    .palette-dot.answered { background: rgba(8,120,255,0.25); border-color: var(--blue); color: var(--white); }
+    .palette-dot.flagged { border-color: #ff6b6b; box-shadow: 0 0 8px rgba(255,107,107,0.3); }
+    .palette-dot.answered.flagged { background: rgba(8,120,255,0.25); border-color: #ff6b6b; }
+    .exam-main { flex: 1; padding: 28px 32px; max-width: 900px; margin: 0 auto; width: 100%; }
+    .question-card {
+      background: rgba(10,14,23,0.6); border: 1px solid rgba(38,183,255,0.1); border-radius: 14px;
+      padding: 24px; margin-bottom: 20px; backdrop-filter: blur(8px); transition: border-color 300ms;
+    }
+    .question-card:focus-within { border-color: var(--blue-light); }
+    .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; }
+    .q-number { font-family: 'Orbitron', monospace; font-size: 0.75rem; color: var(--blue-light); font-weight: 700; letter-spacing: 0.04em; }
+    .q-flag-btn { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; padding: 4px; transition: color 200ms; }
+    .q-flag-btn:hover { color: #ff6b6b; }
+    .q-flag-btn.flagged { color: #ff6b6b; }
+    .q-text { color: var(--text); font-size: 0.95rem; line-height: 1.7; margin-bottom: 18px; }
+    .q-options { display: grid; gap: 10px; }
+    .q-option {
+      display: flex; align-items: center; gap: 12px; padding: 12px 16px;
+      border: 1px solid rgba(255,255,255,0.08); border-radius: 10px;
+      cursor: pointer; transition: all 200ms; background: rgba(255,255,255,0.02);
+    }
+    .q-option:hover { border-color: rgba(38,183,255,0.3); background: rgba(38,183,255,0.04); }
+    .q-option.selected { border-color: var(--blue); background: rgba(8,120,255,0.12); }
+    .q-option input { display: none; }
+    .opt-letter {
+      width: 28px; height: 28px; border-radius: 50%; background: rgba(255,255,255,0.06);
+      display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.82rem;
+      color: var(--silver); flex-shrink: 0;
+    }
+    .q-option.selected .opt-letter { background: var(--blue); color: var(--white); }
+    .opt-text { color: var(--text); font-size: 0.9rem; }
+    .exam-footer-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; justify-content: center; padding: 12px 24px;
+      background: rgba(0,2,10,0.95); border-top: 1px solid rgba(38,183,255,0.12);
+      backdrop-filter: blur(12px);
+    }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.8);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .modal-box { background: #0a0e17; border: 1px solid rgba(38,183,255,0.15); border-radius: 16px; padding: 32px; max-width: 440px; width: 90%; text-align: center; }
+    .modal-box h2 { margin-bottom: 12px; }
+    .modal-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
+    .modal-box .modal-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
+    .submitted-state { display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 999; background: #00020a; text-align: center; padding: 40px; animation: fadeIn 0.4s ease; }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    .submitted-state h1 { margin-bottom: 12px; }
+    .submitted-state p { color: var(--muted); font-size: 1rem; }
+    .exam-loading { display: flex; align-items: center; justify-content: center; min-height: 80vh; color: var(--muted); }
+    @media (max-width: 768px) {
+      .exam-sidebar { display: none; }
+      .exam-main { padding: 16px; }
+      .exam-bar { padding: 8px 12px; }
+      .exam-bar .timer { font-size: 1.1rem; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="exam-bar">
+    <img class="logo-sm" src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" />
+    <div style="text-align:center;">
+      <div class="timer" id="timer-display">60:00</div>
+      <div class="progress-text"><span id="answered-count">0</span> / <span id="total-count">40</span> answered</div>
+    </div>
+    <button class="button primary" id="btn-submit" style="padding:0 18px;min-height:38px;font-size:0.8rem;">Submit</button>
+  </div>
+
+  <!-- Layout -->
+  <div class="exam-layout">
+    <div class="exam-sidebar">
+      <div class="palette-title">Questions</div>
+      <div class="question-palette" id="question-palette"></div>
+    </div>
+    <div class="exam-main" id="exam-content">
+      <div id="questions-container"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="exam-footer-bar">
+    <span style="color:var(--muted);font-size:0.78rem;">GAAC Round 1 : Individual Qualification</span>
+  </div>
+
+  <!-- Pre-Exam Verification -->
+  <div id="verify-modal" class="modal-overlay">
+    <div class="modal-box" style="max-width:500px;">
+      <h2>Exam <span class="text-blue">Requirements</span></h2>
+      <p style="margin-bottom:16px;">You must enable the following to start:</p>
+      <div id="verify-status" style="text-align:left;margin:0 0 20px;">
+        <div id="v-fullscreen" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
+          <span id="v-fs-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Fullscreen Mode
+        </div>
+        <div id="v-camera" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
+          <span id="v-cam-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Camera Access
+        </div>
+        <div id="v-screenshare" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
+          <span id="v-ss-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Screen Sharing
+        </div>
+      </div>
+      <button class="button primary" id="btn-start-exam" style="width:100%;">Start Exam</button>
+      <p id="verify-error" style="margin-top:12px;font-size:0.82rem;color:var(--error,#ff4757);display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Submit Modal -->
+  <div id="submit-modal" class="modal-overlay hidden">
+    <div class="modal-box">
+      <h2>Submit Exam?</h2>
+      <p>Once submitted, you cannot change your answers.</p>
+      <p id="unanswered-warning" style="color:#ff6b6b;"></p>
+      <div class="modal-actions">
+        <button class="button secondary" id="btn-cancel-submit" onclick="document.getElementById('submit-modal').classList.add('hidden')">Cancel</button>
+        <button class="button primary" id="btn-confirm-submit">Confirm Submit</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  <div id="exam-loading" class="exam-loading hidden"><p>Processing submission...</p></div>
+
+  <!-- Submitted State -->
+  <div id="exam-submitted" class="submitted-state hidden">
+    <div>
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--blue-light)" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <h1>Exam Submitted</h1>
+      <p>Your responses have been recorded successfully.</p>
+      <p style="margin-top: 20px; font-size: 0.85rem;">You may now close this window.</p>
+    </div>
+  </div>
+
+  <!-- Disconnect Overlay -->
+  <div id="disconnect-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:480px;">
+      <h2><span style="color:#ff6b6b;">&#9888;</span> <span id="disconnect-title">Connection Lost</span></h2>
+      <p id="disconnect-msg">A requirement was lost. The exam timer is paused.</p>
+      <div id="disconnect-status" style="text-align:left;margin:16px 0;">
+        <div style="padding:10px 14px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
+          <span id="d-icon" style="width:16px;height:16px;border-radius:50%;background:#ef4444;flex-shrink:0;"></span>
+          <span id="d-label">Fullscreen Mode</span>
+        </div>
+      </div>
+      <button class="button primary" id="btn-reenable" style="width:100%;">Re-enable</button>
+      <p id="disconnect-error" style="margin-top:12px;font-size:0.82rem;color:var(--error,#ff4757);display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div id="exam-toast">
+    <span id="toast-msg"></span>
+    <button class="toast-close" onclick="document.getElementById('exam-toast').classList.remove('show')">&times;</button>
+  </div>
+
+  <script type="module" src="js/exam-app.js"></script>
+</body>
+</html>

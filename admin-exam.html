@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin : Exam Monitor | GAAC</title>
+  <link rel="icon" href="GAAC Dark.jpg" type="image/jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .admin-header { text-align: center; padding: 24px 20px 0; }
+    .admin-header h1 { font-size: 1.4rem; }
+    .admin-controls { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; padding: 20px 20px 0; }
+    .admin-controls input, .admin-controls select { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); color: var(--text); font-size: 0.85rem; }
+    .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding: 24px 20px 40px; max-width: 1400px; margin: 0 auto; }
+    .team-card { border: 1px solid rgba(38,183,255,0.1); border-radius: 14px; padding: 20px; background: rgba(10,14,23,0.6); backdrop-filter: blur(8px); }
+    .team-card h3 { font-size: 0.95rem; margin-bottom: 4px; }
+    .team-card .team-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; }
+    .team-card .status-badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .status-badge.registered { background: rgba(8,120,255,0.15); color: var(--blue-light); }
+    .status-badge.in-progress { background: rgba(0,229,255,0.12); color: var(--cyan); }
+        .status-badge.submitted { background: rgba(0,200,80,0.12); color: #00c850; }
+        .status-badge.scored { background: rgba(0,200,80,0.12); color: #00c850; }
+    .status-badge.disqualified { background: rgba(255,71,87,0.15); color: #ff4757; }
+    .team-card .event-count { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
+    .team-card .event-count .severe { color: #ff6b6b; font-weight: 700; }
+    .team-card .card-actions { margin-top: 12px; display: flex; gap: 8px; }
+    .team-card .card-actions button { font-size: 0.75rem; padding: 4px 12px; min-height: 30px; }
+    .team-card.flagged { border-color: rgba(255,107,107,0.4); }
+    .event-modal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; padding: 20px; }
+    .event-modal-content { background: #0a0e17; border: 1px solid var(--line); border-radius: 16px; padding: 28px; max-width: 700px; width: 100%; max-height: 80vh; overflow-y: auto; }
+    .event-modal-content h2 { margin-bottom: 16px; }
+    .event-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
+    .event-table th { text-align: left; padding: 8px 12px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
+    .event-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+    .event-table .sev-severe { color: #ff6b6b; }
+    .event-table .sev-warning { color: var(--muted); }
+    .empty-state { text-align: center; padding: 60px; color: var(--muted); }
+    .stats-summary { display: flex; justify-content: center; gap: 32px; padding: 16px 20px 0; flex-wrap: wrap; }
+    .stats-summary .stat-item { text-align: center; }
+    .stats-summary .stat-item .num { font-family: 'Orbitron', monospace; font-size: 1.6rem; font-weight: 700; color: var(--blue-light); }
+    .stats-summary .stat-item .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    .hidden { display: none !important; }
+    @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
+
+    /* Tabs */
+    .tab-bar { display: flex; justify-content: center; gap: 4px; padding: 20px 20px 0; }
+    .tab-btn { padding: 8px 24px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 200ms; }
+    .tab-btn:hover { border-color: var(--blue-light); color: var(--text); }
+    .tab-btn.active { background: rgba(38,183,255,0.12); border-color: var(--blue); color: var(--blue-light); }
+
+    /* Leaderboard */
+    .lb-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px; overflow-x: auto; }
+    .lb-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+    .lb-table th { text-align: left; padding: 10px 14px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
+    .lb-table td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); white-space: nowrap; }
+    .lb-table tr:hover td { background: rgba(38,183,255,0.04); }
+    .lb-rank { font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.9rem; }
+    .lb-rank.gold { color: #ffd700; }
+    .lb-rank.silver { color: #c0c0c0; }
+    .lb-rank.bronze { color: #cd7f32; }
+    .lb-score { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--blue-light); }
+    .lb-dq-btn { padding: 4px 14px; border-radius: 6px; border: 1px solid rgba(255,71,87,0.3); background: rgba(255,71,87,0.08); color: #ff4757; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 200ms; }
+    .lb-dq-btn:hover { background: rgba(255,71,87,0.2); }
+    .lb-dq-btn.dq-active { background: rgba(255,71,87,0.2); border-color: #ff4757; }
+    .lb-row-dq td { opacity: 0.4; text-decoration: line-through; }
+
+    .results-summary { display: flex; justify-content: center; gap: 32px; padding: 0 20px 20px; flex-wrap: wrap; }
+    .results-summary .stat-item { text-align: center; }
+    .results-summary .stat-item .num { font-family: 'Orbitron', monospace; font-size: 1.3rem; font-weight: 700; color: var(--blue-light); }
+    .results-summary .stat-item .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+  </style>
+</head>
+<body class="page-home">
+  <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <a class="brand-lockup" href="index.html" aria-label="GAAC home">
+      <img class="brand-logo club-logo" src="Club_Logo_Black_BG-removebg-preview.png" alt="STEM Astronomy Club logo" />
+      <span class="brand-divider" aria-hidden="true"></span>
+      <img class="brand-logo gaac-logo" src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+    </a>
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="index.html">Home</a>
+      <a href="exam-login.html">Exam Login</a>
+      <span style="color:var(--blue-light);font-size:0.8rem;font-weight:700;letter-spacing:0.04em;">ADMIN</span>
+    </nav>
+  </header>
+
+  <main>
+    <div class="admin-header">
+      <p class="eyebrow">Admin Panel</p>
+      <h1>Exam <span class="text-blue">Monitor</span></h1>
+      <p style="color:var(--muted);font-size:0.85rem;">Round 1 : Individual Qualification</p>
+    </div>
+
+    <div id="admin-login-form">
+      <div style="max-width:360px;margin:40px auto;padding:24px;border:1px solid var(--line);border-radius:16px;text-align:center;">
+        <h2 style="font-size:1.1rem;margin-bottom:20px;">Admin <span class="text-blue">Login</span></h2>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="admin-email" style="font-size:0.85rem;">Admin Email</label>
+          <input type="email" id="admin-email" placeholder="admin@stemastronomyclub.org" style="width:100%;" />
+        </div>
+        <div class="form-group" style="margin-bottom:16px;">
+          <label for="admin-password" style="font-size:0.85rem;">Password</label>
+          <input type="password" id="admin-password" placeholder="Password" style="width:100%;" />
+        </div>
+        <p id="admin-login-error" style="color:#ff4757;font-size:0.82rem;display:none;"></p>
+        <button class="button primary" id="btn-admin-login" style="width:100%;">Sign In</button>
+      </div>
+    </div>
+
+    <div id="admin-dashboard" class="hidden">
+      <!-- Tab Bar -->
+      <div class="tab-bar">
+        <button class="tab-btn active" data-tab="dashboard">Dashboard</button>
+        <button class="tab-btn" data-tab="leaderboard">Leaderboard</button>
+      </div>
+
+      <!-- Dashboard Tab -->
+      <div id="tab-dashboard">
+        <div class="stats-summary" id="stats-summary"></div>
+        <div class="admin-controls">
+          <input type="text" id="search-team" placeholder="Search team ID or name..." />
+          <select id="filter-status">
+            <option value="all">All Status</option>
+            <option value="in-progress">In Progress</option>
+            <option value="submitted">Submitted</option>
+            <option value="registered">Not Started</option>
+          </select>
+          <button class="button secondary" id="btn-refresh" style="min-height:38px;font-size:0.8rem;">Refresh</button>
+        </div>
+        <div id="teams-grid" class="admin-grid"></div>
+        <div id="seed-warning" style="max-width:500px;margin:20px auto;padding:16px 20px;border:1px solid rgba(255,183,77,0.3);border-radius:12px;background:rgba(255,183,77,0.06);text-align:center;display:none;">
+          <p style="color:#ffb74d;font-size:0.85rem;margin-bottom:12px;">Questions not found. Click to upload.</p>
+          <button class="button primary" id="btn-seed-questions" style="font-size:0.85rem;">Upload 40 Questions</button>
+          <p id="seed-status" style="font-size:0.8rem;color:var(--muted);margin-top:8px;display:none;"></p>
+        </div>
+      </div>
+
+      <!-- Leaderboard Tab -->
+      <div id="tab-leaderboard" class="hidden">
+        <div class="results-summary" id="results-summary"></div>
+        <div style="text-align:center;padding:8px 20px 0;">
+          <button class="button secondary" id="btn-refresh-results" style="font-size:0.8rem;">Refresh Leaderboard</button>
+        </div>
+        <div class="lb-wrapper" id="lb-wrapper">
+          <div class="empty-state">Loading leaderboard...</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Event Modal -->
+    <div id="event-modal" class="event-modal hidden">
+      <div class="event-modal-content">
+        <h2>Event Log: <span id="modal-team-name"></span></h2>
+        <div id="modal-events-body"></div>
+        <button class="button secondary" id="btn-close-modal" style="margin-top:16px;">Close</button>
+      </div>
+    </div>
+  </main>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, query, where, orderBy, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
+      authDomain: "gaac-registration-2026.firebaseapp.com",
+      projectId: "gaac-registration-2026",
+      storageBucket: "gaac-registration-2026.firebasestorage.app",
+      messagingSenderId: "542838311094",
+      appId: "1:542838311094:web:6104e2ed0d1cafa976be17",
+      measurementId: "G-CEB6Z0RF5E"
+    };
+
+    const app = initializeApp(firebaseConfig, 'admin-exam');
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    let unsubscribe = null;
+
+    // Admin check
+    const isAdmin = async (uid) => {
+      try {
+        const docSnap = await getDoc(doc(db, 'admins', uid));
+        return docSnap.exists() && docSnap.data().isAdmin === true;
+      } catch { return false; }
+    };
+
+    // Login
+    document.getElementById('btn-admin-login').addEventListener('click', async () => {
+      const email = document.getElementById('admin-email').value.trim();
+      const password = document.getElementById('admin-password').value.trim();
+      const errorEl = document.getElementById('admin-login-error');
+      errorEl.style.display = 'none';
+
+      try {
+        const cred = await signInWithEmailAndPassword(auth, email, password);
+        const admin = await isAdmin(cred.user.uid);
+        if (!admin) {
+          await auth.signOut();
+          errorEl.textContent = 'Not authorized as admin.';
+          errorEl.style.display = 'block';
+          return;
+        }
+        document.getElementById('admin-login-form').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        startMonitoring();
+      } catch (e) {
+        errorEl.textContent = e.message || 'Login failed.';
+        errorEl.style.display = 'block';
+      }
+    });
+
+    // ----- Tab Switching -----
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        btn.classList.add('active');
+        const tab = btn.dataset.tab;
+        document.getElementById('tab-dashboard').classList.toggle('hidden', tab !== 'dashboard');
+        document.getElementById('tab-leaderboard').classList.toggle('hidden', tab !== 'leaderboard');
+        if (tab === 'dashboard') loadDashboardStats();
+        if (tab === 'leaderboard') loadLeaderboard();
+      });
+    });
+
+    // ----- Dashboard (default view) -----
+    const startMonitoring = () => {
+      loadDashboardStats();
+    };
+
+    const loadDashboardStats = async () => {
+      try {
+        const [registrationsSnap, teamsSnap] = await Promise.all([
+          getDocs(collection(db, 'registrations')),
+          getDocs(collection(db, 'teams'))
+        ]);
+
+        let totalReg = registrationsSnap.size;
+        let inProgress = 0, submitted = 0, disqualified = 0;
+
+        const teamsLookup = {};
+        teamsSnap.docs.forEach(d => { teamsLookup[d.id] = d.data(); });
+
+        // Count from teams parent docs + exam subcollections
+        await Promise.all(registrationsSnap.docs.map(async (regDoc) => {
+          const teamId = regDoc.id;
+          const summary = teamsLookup[teamId];
+
+          if (summary) {
+            if (summary.disqualified) disqualified++;
+            if (summary.examStatus === 'scored' || summary.examScore != null) submitted++;
+            else if (summary.examStatus === 'in-progress') inProgress++;
+            return;
+          }
+
+          // No parent doc — check exam subcollection
+          try {
+            const snap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
+            if (!snap.exists()) return;
+            const status = snap.data().status;
+            if (status === 'submitted' || snap.data().scored) submitted++;
+            else if (status === 'in-progress') inProgress++;
+          } catch {}
+        }));
+
+        document.getElementById('stats-summary').innerHTML = `
+          <div class="stat-item"><div class="num">${totalReg}</div><div class="label">Registered</div></div>
+          <div class="stat-item"><div class="num" style="color:#ffb74d;">${inProgress}</div><div class="label">In Progress</div></div>
+          <div class="stat-item"><div class="num" style="color:#00c850;">${submitted}</div><div class="label">Submitted</div></div>
+          <div class="stat-item"><div class="num" style="color:#ff4757;">${disqualified}</div><div class="label">Disqualified</div></div>
+        `;
+      } catch (e) {
+        document.getElementById('stats-summary').innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+      }
+    };
+
+    // Check if questions exist
+    (async () => {
+      try {
+        const qSnap = await getDocs(query(collection(db, 'round1', 'round1', 'questions'), orderBy('order')));
+        if (qSnap.empty) document.getElementById('seed-warning').style.display = 'block';
+      } catch { document.getElementById('seed-warning').style.display = 'block'; }
+    })();
+
+    const loadTeams = async () => {
+      const search = document.getElementById('search-team').value.toLowerCase();
+      const filter = document.getElementById('filter-status').value;
+      const grid = document.getElementById('teams-grid');
+      grid.innerHTML = '<div class="empty-state">Loading teams...</div>';
+
+      try {
+        // Batch reads: fetch all registrations + all team summaries in parallel
+        const [registrationsSnap, teamsSnap] = await Promise.all([
+          getDocs(collection(db, 'registrations')),
+          getDocs(collection(db, 'teams'))
+        ]);
+
+        // Build team summary map
+        const teamMap = {};
+        teamsSnap.forEach(doc => {
+          teamMap[doc.id] = doc.data();
+        });
+
+        // For teams not in the summary, check exam subcollection for in-progress status
+        // Batch check in chunks to avoid too many individual reads
+        const missingTeamIds = [];
+        registrationsSnap.docs.forEach(regDoc => {
+          const teamId = regDoc.id;
+          if (!teamMap[teamId]) missingTeamIds.push(teamId);
+        });
+
+        // Check exam subcollection for missing teams (limit to reduce reads)
+        const examStatusMap = {};
+        const checkChunks = missingTeamIds.slice(0, 500);
+        await Promise.all(checkChunks.map(async (teamId) => {
+          try {
+            const examSnap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
+            if (examSnap.exists()) {
+              const examData = examSnap.data();
+              examStatusMap[teamId] = {
+                status: examData.status || 'registered',
+                eventCount: examData.eventCount || 0,
+                severeEventCount: examData.severeEventCount || 0,
+                disqualified: examData.disqualified || false,
+                examScore: examData.score,
+                examStatus: examData.status
+              };
+            }
+          } catch (e) { /* skip */ }
+        }));
+
+        // Merge exam status into team map
+        for (const [teamId, data] of Object.entries(examStatusMap)) {
+          teamMap[teamId] = { ...teamMap[teamId], ...data };
+        }
+
+        const teams = [];
+
+        registrationsSnap.docs.forEach((regDoc) => {
+          const regData = regDoc.data();
+          const teamId = regDoc.id;
+          const teamData = teamMap[teamId] || {};
+
+          const examStatus = teamData.status || teamData.examStatus || 'registered';
+          const displayStatus = examStatus === 'scored' ? 'submitted' : examStatus;
+
+          if (filter !== 'all' && displayStatus !== filter) return;
+
+          const nameMatch = teamId.includes(search) || (regData.teamName || '').toLowerCase().includes(search);
+          if (search && !nameMatch) return;
+
+          teams.push({
+            teamId,
+            regData,
+            examData: teamData,
+            eventCount: teamData.eventCount || 0,
+            severeCount: teamData.severeEventCount || 0,
+            status: displayStatus
+          });
+        });
+
+        renderTeams(teams);
+      } catch (e) {
+        grid.innerHTML = `<div class="empty-state">Error loading data: ${e.message}</div>`;
+      }
+    };
+
+    const renderTeams = (teams) => {
+      const grid = document.getElementById('teams-grid');
+      if (teams.length === 0) { grid.innerHTML = '<div class="empty-state">No teams found.</div>'; return; }
+
+      grid.innerHTML = teams.map(t => {
+        const leader = t.regData.leader || {};
+        const flagged = t.severeCount > 3 || t.eventCount > 20;
+        const dq = t.examData?.disqualified ? 'disqualified' : '';
+        const examScore = t.examData?.examScore != null ? `${t.examData.examScore}%` : '';
+        const statusClass = dq || t.status;
+        return `
+          <div class="team-card ${flagged ? 'flagged' : ''} ${dq ? 'lb-row-dq' : ''}">
+            <h3>${t.regData.teamName || 'Unknown'}</h3>
+            <div class="team-meta">${leader.name || ''} &middot; ${t.teamId}</div>
+            <div><span class="status-badge ${statusClass}">${statusClass}</span> ${examScore ? `<span style="margin-left:8px;font-family:Orbitron,monospace;color:var(--blue-light);font-size:0.8rem;">${examScore}</span>` : ''}</div>
+            <div class="event-count">
+              Events: ${t.eventCount} ${t.severeCount > 0 ? `<span class="severe">(${t.severeCount} severe)</span>` : ''}
+            </div>
+            <div class="card-actions">
+              <button class="button secondary" data-team="${t.teamId}" data-name="${t.regData.teamName}" onclick="viewEvents(this)">Events</button>
+              <button class="button secondary" data-team="${t.teamId}" onclick="viewTeamDetails(this)">Details</button>
+              ${t.status === 'in-progress' ? `<button class="button secondary" style="border-color:#ff6b6b;color:#ff6b6b;" data-team="${t.teamId}" onclick="terminateExam(this)">Terminate</button>` : ''}
+              <button class="${dq ? 'lb-dq-btn dq-active' : 'lb-dq-btn'}" data-team="${t.teamId}" data-dq="${!!t.examData?.disqualified}" onclick="toggleDisqualify(this)">${dq ? 'Reinstate' : 'DQ'}</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    };
+
+    const continuousTypes = new Set(['fullscreen-exit', 'tab-hidden', 'window-blur']);
+    const fmtDuration = (secs, evtTimestamp, evtType) => {
+      if (secs != null) {
+        const h = Math.floor(secs / 3600);
+        const m = Math.floor((secs % 3600) / 60);
+        const s = secs % 60;
+        let str = '';
+        if (h > 0) str += `${h}h `;
+        if (m > 0 || h > 0) str += `${m}m `;
+        str += `${s.toFixed(1)}s`;
+        return str;
+      }
+      if (continuousTypes.has(evtType) && evtTimestamp) {
+        const elapsed = (Date.now() - new Date(evtTimestamp).getTime()) / 1000;
+        if (elapsed < 300) {
+          const h = Math.floor(elapsed / 3600);
+          const m = Math.floor((elapsed % 3600) / 60);
+          const s = elapsed % 60;
+          let str = '';
+          if (h > 0) str += `${h}h `;
+          if (m > 0 || h > 0) str += `${m}m `;
+          str += `${s.toFixed(1)}s (active)`;
+          return str;
+        }
+      }
+      return '—';
+    };
+
+    window.viewEvents = async (btn) => {
+      const teamId = btn.dataset.team;
+      const name = btn.dataset.name;
+      document.getElementById('modal-team-name').textContent = name;
+      const body = document.getElementById('modal-events-body');
+
+      try {
+        const eventsSnap = await getDocs(
+          query(collection(db, 'teams', teamId, 'events'), orderBy('timestamp', 'desc'))
+        );
+        if (eventsSnap.empty) {
+          body.innerHTML = '<p style="color:var(--muted);padding:12px;">No events recorded.</p>';
+        } else {
+          let html = '<table class="event-table"><thead><tr><th>Start Time</th><th>End Time</th><th>Duration</th><th>Type</th><th>Severity</th></tr></thead><tbody>';
+          eventsSnap.forEach(d => {
+            const evt = d.data();
+            const start = new Date(evt.timestamp);
+            const endTime = evt.actualSecs != null ? new Date(start.getTime() + evt.actualSecs * 1000) : null;
+            html += `<tr>
+              <td style="font-size:0.75rem;color:var(--muted);">${start.toLocaleString()}</td>
+              <td style="font-size:0.75rem;color:var(--muted);">${endTime ? endTime.toLocaleString() : 'Active'}</td>
+              <td style="font-family:var(--font-orbitron,monospace);font-size:0.75rem;color:var(--blue-light);">${fmtDuration(evt.actualSecs, evt.timestamp, evt.type)}</td>
+              <td>${evt.type}</td>
+              <td class="sev-${evt.severity}">${evt.severity}</td>
+            </tr>`;
+          });
+          html += '</tbody></table>';
+          body.innerHTML = html;
+        }
+      } catch (e) {
+        body.innerHTML = '<p style="color:#ff6b6b;">Error loading events.</p>';
+      }
+      document.getElementById('event-modal').classList.remove('hidden');
+    };
+
+    window.viewTeamDetails = async (btn) => {
+      const teamId = btn.dataset.team;
+      try {
+        const regSnap = await getDoc(doc(db, 'registrations', teamId));
+        const examSnap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
+        if (!regSnap.exists()) { alert('Team not found.'); return; }
+        const regData = regSnap.data();
+        const examData = examSnap.exists() ? examSnap.data() : {};
+
+        const members = [regData.leader];
+        if (regData.member2) members.push(regData.member2);
+        if (regData.member3) members.push(regData.member3);
+
+        let html = `<div style="padding:16px;"><table class="event-table" style="margin-bottom:16px;">
+          <tr><th style="width:140px;">Team ID</th><td>${teamId}</td></tr>
+          <tr><th>Team Name</th><td>${regData.teamName || '—'}</td></tr>
+          <tr><th>Status</th><td>${examData.status || 'registered'}</td></tr>
+          <tr><th>Score</th><td>${examData.score != null ? examData.score + '%' : '—'}</td></tr>
+          <tr><th>Correct</th><td>${examData.correctCount != null ? examData.correctCount + '/' + examData.totalQuestions : '—'}</td></tr>
+          <tr><th>Disqualified</th><td>${examData.disqualified ? 'Yes' : 'No'}</td></tr>
+          <tr><th>Events</th><td>${examData.eventCount || 0} (${examData.severeEventCount || 0} severe)</td></tr>
+          <tr><th>Submitted At</th><td>${examData.submittedAt ? new Date(examData.submittedAt).toLocaleString() : '—'}</td></tr>
+        </table>`;
+
+        html += '<h3 style="margin-bottom:8px;">Members</h3><table class="event-table" style="margin-bottom:16px;">';
+        html += '<tr><th>Role</th><th>Name</th><th>Email</th><th>Country</th><th>School</th></tr>';
+        members.forEach((m, i) => {
+          if (!m) return;
+          html += `<tr><td>${i === 0 ? 'Leader' : 'Member ' + (i+1)}</td><td>${m.name || ''}</td><td>${m.email || ''}</td><td>${m.country || ''}</td><td>${m.school || ''}</td></tr>`;
+        });
+        html += '</table>';
+
+        if (examData.answers) {
+          const answered = Object.keys(examData.answers).length;
+          html += `<p style="color:var(--muted);font-size:0.82rem;">Answers: ${answered} of ${examData.totalQuestions || '?'} questions answered.</p>`;
+        }
+
+        html += '</div>';
+
+        document.getElementById('modal-team-name').textContent = regData.teamName || teamId;
+        document.getElementById('modal-events-body').innerHTML = html;
+        document.getElementById('event-modal').classList.remove('hidden');
+      } catch (e) {
+        alert('Failed to load details: ' + e.message);
+      }
+    };
+
+    window.terminateExam = async (btn) => {
+      if (!confirm('Terminate this exam? The submission will be forced.')) return;
+      const teamId = btn.dataset.team;
+      try {
+        await updateDoc(doc(db, 'teams', teamId, 'exam', 'round1'), {
+          status: 'submitted',
+          submittedAt: new Date().toISOString(),
+          terminated: true
+        });
+        loadTeams();
+      } catch (e) {
+        alert('Failed to terminate: ' + e.message);
+      }
+    };
+
+    // ----- Seed Questions (one-click from browser) -----
+    const SEED_QUESTIONS = [
+      { text: "What is the closest star to Earth?", options: ["Proxima Centauri", "Alpha Centauri A", "The Sun", "Barnard's Star"], correctAnswer: "C" },
+      { text: "How long does it take for light from the Sun to reach Earth?", options: ["About 4 minutes", "About 8 minutes", "About 12 minutes", "About 15 minutes"], correctAnswer: "B" },
+      { text: "Which planet is known as the Red Planet?", options: ["Venus", "Jupiter", "Mars", "Saturn"], correctAnswer: "C" },
+      { text: "What is the largest planet in our solar system?", options: ["Saturn", "Neptune", "Jupiter", "Uranus"], correctAnswer: "C" },
+      { text: "What is a galaxy?", options: ["A single star", "A system of stars, gas, and dust bound by gravity", "A planet's moon", "An asteroid belt"], correctAnswer: "B" },
+      { text: "What is the name of our galaxy?", options: ["Andromeda", "Milky Way", "Triangulum", "Sombrero"], correctAnswer: "B" },
+      { text: "What causes a solar eclipse?", options: ["The Moon passes between Earth and the Sun", "Earth passes between the Sun and the Moon", "The Sun passes between Earth and the Moon", "A planet crosses in front of the Sun"], correctAnswer: "A" },
+      { text: "Which planet has the most moons?", options: ["Jupiter", "Saturn", "Uranus", "Neptune"], correctAnswer: "B" },
+      { text: "What is a light-year?", options: ["The time light takes to travel from the Sun to Earth", "The distance light travels in one year", "The time it takes for a star to complete one orbit", "The brightness of a star"], correctAnswer: "B" },
+      { text: "What type of celestial body is Halley's Comet?", options: ["Asteroid", "Meteor", "Comet", "Dwarf planet"], correctAnswer: "C" },
+      { text: "Which planet is closest to the Sun?", options: ["Venus", "Mercury", "Earth", "Mars"], correctAnswer: "B" },
+      { text: "What is the Great Red Spot on Jupiter?", options: ["A mountain", "A volcano", "A storm", "A crater"], correctAnswer: "C" },
+      { text: "What force keeps planets in orbit around the Sun?", options: ["Magnetism", "Gravity", "Inertia", "Solar wind"], correctAnswer: "B" },
+      { text: "Which of these is a dwarf planet?", options: ["Europa", "Titan", "Pluto", "Ganymede"], correctAnswer: "C" },
+      { text: "What is the speed of light in a vacuum?", options: ["300,000 km/s", "150,000 km/s", "500,000 km/s", "1,000,000 km/s"], correctAnswer: "A" },
+      { text: "Which planet is known for its prominent ring system?", options: ["Jupiter", "Uranus", "Neptune", "Saturn"], correctAnswer: "D" },
+      { text: "What is the name of the first artificial satellite launched into space?", options: ["Explorer 1", "Sputnik 1", "Vanguard 1", "Apollo 11"], correctAnswer: "B" },
+      { text: "What is the phenomenon where a star explodes at the end of its life cycle?", options: ["Nova", "Supernova", "Pulsar", "Black hole"], correctAnswer: "B" },
+      { text: "Which planet rotates on its side?", options: ["Neptune", "Uranus", "Saturn", "Mars"], correctAnswer: "B" },
+      { text: "What is the largest moon in the solar system?", options: ["Titan", "Europa", "Ganymede", "Callisto"], correctAnswer: "C" },
+      { text: "What is the asteroid belt located between?", options: ["Earth and Mars", "Mars and Jupiter", "Jupiter and Saturn", "Saturn and Uranus"], correctAnswer: "B" },
+      { text: "What type of star is the Sun classified as?", options: ["Red giant", "White dwarf", "Yellow dwarf", "Blue supergiant"], correctAnswer: "C" },
+      { text: "What is the name of the brightest star in the night sky?", options: ["Polaris", "Sirius", "Betelgeuse", "Vega"], correctAnswer: "B" },
+      { text: "What is the term for a group of stars forming a recognizable pattern?", options: ["Galaxy", "Cluster", "Constellation", "Nebula"], correctAnswer: "C" },
+      { text: "Which Apollo mission first landed humans on the Moon?", options: ["Apollo 11", "Apollo 12", "Apollo 13", "Apollo 14"], correctAnswer: "A" },
+      { text: "What is the name of the boundary around a black hole beyond which nothing can escape?", options: ["Event horizon", "Singularity", "Accretion disk", "Photon sphere"], correctAnswer: "A" },
+      { text: "Which planet has the highest surface temperature?", options: ["Mercury", "Venus", "Mars", "Jupiter"], correctAnswer: "B" },
+      { text: "What is the study of the universe called?", options: ["Astrology", "Cosmology", "Meteorology", "Geology"], correctAnswer: "B" },
+      { text: "What is the name of the telescope that replaced the Hubble Space Telescope?", options: ["James Webb Space Telescope", "Kepler Space Telescope", "Chandra X-ray Observatory", "Spitzer Space Telescope"], correctAnswer: "A" },
+      { text: "What causes the phases of the Moon?", options: ["Earth's shadow on the Moon", "The Moon's orbit around Earth", "The Sun's varying brightness", "Clouds in Earth's atmosphere"], correctAnswer: "B" },
+      { text: "What is the name of the closest galaxy to the Milky Way?", options: ["Andromeda Galaxy", "Triangulum Galaxy", "Whirlpool Galaxy", "Sombrero Galaxy"], correctAnswer: "A" },
+      { text: "Which element is most abundant in the universe?", options: ["Oxygen", "Carbon", "Hydrogen", "Helium"], correctAnswer: "C" },
+      { text: "What is the name of the NASA rover that landed on Mars in 2021?", options: ["Curiosity", "Perseverance", "Opportunity", "Spirit"], correctAnswer: "B" },
+      { text: "What is a nebula?", options: ["A type of star", "A cloud of gas and dust in space", "A small galaxy", "An asteroid"], correctAnswer: "B" },
+      { text: "How many planets are in our solar system?", options: ["7", "8", "9", "10"], correctAnswer: "B" },
+      { text: "What is the name of the phenomenon where light from distant galaxies is shifted to longer wavelengths?", options: ["Blue shift", "Red shift", "Doppler shift", "Gravitational lensing"], correctAnswer: "B" },
+      { text: "Which planet has the strongest magnetic field?", options: ["Earth", "Jupiter", "Saturn", "Neptune"], correctAnswer: "B" },
+      { text: "What is the name of the first human to walk in space?", options: ["Yuri Gagarin", "Neil Armstrong", "Alexei Leonov", "Buzz Aldrin"], correctAnswer: "C" },
+      { text: "What is the cosmic microwave background radiation?", options: ["Heat from the Sun", "Afterglow of the Big Bang", "Light from distant stars", "Radiation from black holes"], correctAnswer: "B" },
+      { text: "What is the approximate age of the universe?", options: ["4.6 billion years", "10 billion years", "13.8 billion years", "20 billion years"], correctAnswer: "C" },
+    ];
+
+    const seedQuestionsToFirestore = async () => {
+      const statusEl = document.getElementById('seed-status');
+      statusEl.style.display = 'block';
+      statusEl.textContent = 'Uploading 40 questions...';
+      try {
+        const fb = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
+        const b = fb.writeBatch(db);
+        SEED_QUESTIONS.forEach((q, i) => {
+          const ref = fb.doc(fb.collection(db, 'round1', 'round1', 'questions'), `q${i + 1}`);
+          b.set(ref, { text: q.text, options: q.options, order: i + 1 });
+          const aRef = fb.doc(fb.collection(db, 'round1', 'round1', 'answerKeys'), `q${i + 1}`);
+          b.set(aRef, { correctAnswer: q.correctAnswer, order: i + 1 });
+        });
+        await b.commit();
+        statusEl.textContent = 'All 40 questions uploaded successfully!';
+        statusEl.style.color = '#00c850';
+        document.getElementById('seed-warning').style.borderColor = 'rgba(0,200,80,0.3)';
+        cachedQuestions = null;
+        cachedAnswerKeys = null;
+        loadLeaderboard();
+      } catch (e) {
+        statusEl.textContent = 'Error: ' + e.message;
+        statusEl.style.color = '#ff4757';
+      }
+    };
+
+    // ----- Seed Questions -----
+    document.getElementById('btn-seed-questions').addEventListener('click', seedQuestionsToFirestore);
+
+    // ----- Results / Leaderboard -----
+    let cachedQuestions = null;
+    let cachedAnswerKeys = null;
+
+    const fetchAnswerKeys = async () => {
+      if (cachedAnswerKeys) return cachedAnswerKeys;
+      const aSnap = await getDocs(query(collection(db, 'round1', 'round1', 'answerKeys'), orderBy('order')));
+      if (aSnap.empty) return {};
+      const keys = {};
+      aSnap.forEach(d => { keys[d.id] = d.data(); });
+      cachedAnswerKeys = keys;
+      return keys;
+    };
+
+    const fetchQuestions = async () => {
+      if (cachedQuestions) return cachedQuestions;
+      const qSnap = await getDocs(query(collection(db, 'round1', 'round1', 'questions'), orderBy('order')));
+      if (qSnap.empty) {
+        document.getElementById('seed-warning').style.display = 'block';
+        return {};
+      }
+      document.getElementById('seed-warning').style.display = 'none';
+      const qs = {};
+      qSnap.forEach(d => { qs[d.id] = d.data(); });
+      cachedQuestions = qs;
+      return qs;
+    };
+
+    const loadLeaderboard = async () => {
+      const wrapper = document.getElementById('lb-wrapper');
+      wrapper.innerHTML = '<div class="empty-state">Loading leaderboard...</div>';
+
+      try {
+        const [registrationsSnap, teamsSnap, answerKeys] = await Promise.all([
+          getDocs(collection(db, 'registrations')),
+          getDocs(collection(db, 'teams')),
+          fetchAnswerKeys()
+        ]);
+
+        console.log('[leaderboard] registrations:', registrationsSnap.size);
+        console.log('[leaderboard] teams docs:', teamsSnap.size);
+        console.log('[leaderboard] answerKeys:', Object.keys(answerKeys).length);
+
+        const teamNameMap = {};
+        registrationsSnap.docs.forEach(d => {
+          teamNameMap[d.id] = d.data().teamName || d.id;
+        });
+
+        // Build lookup from teams parent doc
+        const teamsLookup = {};
+        teamsSnap.docs.forEach(d => { teamsLookup[d.id] = d.data(); });
+
+        const entries = [];
+
+        // Iterate over all registered teams (source of truth)
+        for (const regDoc of registrationsSnap.docs) {
+          const teamId = regDoc.id;
+          const summary = teamsLookup[teamId];
+
+          if (summary && (summary.examStatus === 'scored' || summary.examScore != null)) {
+            entries.push({
+              teamId,
+              teamName: teamNameMap[teamId] || teamId,
+              score: summary.examScore != null ? summary.examScore : -1,
+              correct: summary.correctCount || 0,
+              total: summary.totalQuestions || 0,
+              disqualified: summary.disqualified || false,
+              examData: summary
+            });
+            continue;
+          }
+
+          // No parent score — check exam subcollection
+          try {
+            const examSnap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
+            if (!examSnap.exists()) continue;
+            const examData = examSnap.data();
+            console.log('[leaderboard] team', teamId, 'status:', examData.status, 'scored:', examData.scored, 'questions:', Object.keys(examData.answers || {}).length);
+            if (examData.status !== 'submitted') continue;
+
+            // Cloud function may have scored the exam doc
+            if (examData.scored && examData.score != null) {
+              entries.push({
+                teamId,
+                teamName: teamNameMap[teamId] || teamId,
+                score: examData.score,
+                correct: examData.correctCount || 0,
+                total: examData.totalQuestions || 0,
+                disqualified: examData.disqualified || false,
+                examData
+              });
+              continue;
+            }
+
+            // Manual scoring
+            const answers = examData.answers || {};
+            const questionOrder = examData.questionOrder || [];
+            const hasAnswerKeys = Object.keys(answerKeys).length > 0;
+
+            if (hasAnswerKeys && questionOrder.length > 0) {
+              let correct = 0;
+              const total = questionOrder.length;
+              Object.entries(answers).forEach(([idx, answer]) => {
+                const qId = questionOrder[parseInt(idx)];
+                if (answerKeys[qId] && answerKeys[qId].correctAnswer === answer) correct++;
+              });
+              const score = Math.round((correct / total) * 100);
+              entries.push({
+                teamId,
+                teamName: teamNameMap[teamId] || teamId,
+                score,
+                correct,
+                total,
+                disqualified: examData.disqualified || false,
+                examData
+              });
+            } else {
+              // Show as submitted but pending score
+              entries.push({
+                teamId,
+                teamName: teamNameMap[teamId] || teamId,
+                score: -1,
+                correct: 0,
+                total: 0,
+                disqualified: examData.disqualified || false,
+                examData
+              });
+            }
+          } catch (e) {
+            console.warn('Failed to score team:', teamId, e);
+          }
+        }
+
+        entries.sort((a, b) => {
+          if (a.score === -1 && b.score === -1) return 0;
+          if (a.score === -1) return 1;
+          if (b.score === -1) return -1;
+          return b.score - a.score;
+        });
+
+        renderLeaderboard(entries);
+        renderResultsSummary(entries);
+      } catch (e) {
+        wrapper.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`;
+      }
+    };
+
+    const renderLeaderboard = (entries) => {
+      const wrapper = document.getElementById('lb-wrapper');
+      if (entries.length === 0) {
+        wrapper.innerHTML = '<div class="empty-state">No submissions yet.</div>';
+        return;
+      }
+
+      let rank = 0, prevScore = null;
+      let html = '<table class="lb-table"><thead><tr><th>Rank</th><th>Team</th><th>Score</th><th>Correct</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+
+      entries.forEach((e, i) => {
+        if (e.score !== prevScore) rank = i + 1;
+        prevScore = e.score;
+
+        let rankClass = '';
+        if (!e.disqualified && e.score >= 0) {
+          if (rank === 1) rankClass = 'gold';
+          else if (rank === 2) rankClass = 'silver';
+          else if (rank === 3) rankClass = 'bronze';
+        }
+
+        const scoreDisplay = e.score === -1 ? 'Pending' : `${e.score}%`;
+        const correctDisplay = e.score === -1 ? '—' : `${e.correct}/${e.total}`;
+        const statusText = e.disqualified ? 'Disqualified' : (e.score >= 0 ? 'Scored' : 'Pending');
+        const rowClass = e.disqualified ? 'lb-row-dq' : '';
+        const dqBtnClass = e.disqualified ? 'lb-dq-btn dq-active' : 'lb-dq-btn';
+        const dqLabel = e.disqualified ? 'Reinstate' : 'Disqualify';
+
+        html += `<tr class="${rowClass}">
+          <td><span class="lb-rank ${rankClass}">${e.disqualified ? '—' : '#' + rank}</span></td>
+          <td><strong>${e.teamName}</strong><br><span style="font-size:0.75rem;color:var(--muted)">${e.teamId}</span></td>
+          <td><span class="lb-score">${scoreDisplay}</span></td>
+          <td>${correctDisplay}</td>
+          <td><span class="status-badge ${e.disqualified ? 'disqualified' : 'submitted'}">${statusText}</span></td>
+          <td><button class="${dqBtnClass}" data-team="${e.teamId}" data-dq="${e.disqualified}" onclick="toggleDisqualify(this)">${dqLabel}</button></td>
+        </tr>`;
+      });
+
+      html += '</tbody></table>';
+      wrapper.innerHTML = html;
+    };
+
+    const renderResultsSummary = (entries) => {
+      const total = entries.length;
+      const submitted = entries.filter(e => e.score >= 0);
+      const passed = entries.filter(e => e.score >= 0 && !e.disqualified);
+      const dq = entries.filter(e => e.disqualified).length;
+      const avgScore = submitted.length > 0 ? Math.round(submitted.reduce((s, e) => s + e.score, 0) / submitted.length) : 0;
+
+      document.getElementById('results-summary').innerHTML = `
+        <div class="stat-item"><div class="num">${total}</div><div class="label">Submitted</div></div>
+        <div class="stat-item"><div class="num">${avgScore}%</div><div class="label">Avg Score</div></div>
+        <div class="stat-item"><div class="num" style="color:${dq > 0 ? '#ff4757' : 'var(--blue-light)'}">${dq}</div><div class="label">Disqualified</div></div>
+      `;
+    };
+
+    window.toggleDisqualify = async (btn) => {
+      const teamId = btn.dataset.team;
+      const currentlyDq = btn.dataset.dq === 'true';
+      if (!confirm(`${currentlyDq ? 'Reinstate' : 'Disqualify'} team "${teamId}"?`)) return;
+
+      try {
+        await Promise.all([
+          setDoc(doc(db, 'teams', teamId), { disqualified: !currentlyDq }, { merge: true }),
+          setDoc(doc(db, 'teams', teamId, 'exam', 'round1'), { disqualified: !currentlyDq }, { merge: true })
+        ]);
+        loadLeaderboard();
+      } catch (e) {
+        alert('Failed: ' + (e.message || e));
+      }
+    };
+
+    const closeModal = () => document.getElementById('event-modal').classList.add('hidden');
+    document.getElementById('btn-close-modal').addEventListener('click', closeModal);
+    document.getElementById('event-modal').addEventListener('click', (e) => {
+      if (e.target === e.currentTarget) closeModal();
+    });
+    document.getElementById('btn-refresh').addEventListener('click', loadTeams);
+    document.getElementById('btn-refresh-results').addEventListener('click', loadLeaderboard);
+    document.getElementById('search-team').addEventListener('input', loadTeams);
+    document.getElementById('filter-status').addEventListener('change', loadTeams);
+  </script>
+</body>
+</html>

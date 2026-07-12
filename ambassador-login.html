@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ambassador Login | GAAC</title>
+    <link rel="icon" href="GAAC Dark.jpg" type="image/jpeg" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="registration.css" />
+  </head>
+  <body class="page-register">
+    <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand-lockup" href="index.html">
+        <img class="brand-logo club-logo" src="Club_Logo_Black_BG-removebg-preview.png" alt="STEM Astronomy Club logo" />
+        <span class="brand-divider" aria-hidden="true"></span>
+        <img class="brand-logo gaac-logo" src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+      </a>
+      <button class="nav-toggle" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="ambassador.html" class="active">Ambassador</a>
+      </nav>
+      <a class="nav-cta header-cta" href="ambassador-register.html">Apply Now</a>
+    </header>
+
+    <main>
+      <section class="subhero page-shell">
+        <div class="reveal">
+          <p class="eyebrow">Ambassador Program</p>
+          <h1>Welcome <span class="text-blue">Back</span>.</h1>
+          <p>Login to your dashboard to track your impact.</p>
+        </div>
+      </section>
+
+      <section class="page-shell compact">
+        <div class="registration-card reveal delay-1" style="max-width: 500px;">
+          <form id="ambassador-login-form" class="registration-form" novalidate>
+            <div class="form-section">
+              <h2>Login</h2>
+              <div class="form-group" style="margin-bottom: 24px;">
+                <label for="login-email">Email Address</label>
+                <input type="email" id="login-email" name="email" required />
+                <span class="error-msg" id="error-login-email"></span>
+              </div>
+              <div class="form-group">
+                <label for="login-password">Password</label>
+                <input type="password" id="login-password" name="password" required />
+                <span class="error-msg" id="error-login-password"></span>
+              </div>
+            </div>
+
+            <div class="form-actions">
+              <div id="login-alert" class="form-alert hidden"></div>
+              <button type="submit" id="login-submit-btn" class="button primary submit-btn">
+                <span class="btn-text">Login</span>
+                <span class="btn-loader hidden"></span>
+              </button>
+            </div>
+            
+            <p style="text-align: center; margin-top: 20px; color: var(--silver);">
+              Don't have an account? <a href="ambassador-register.html" style="color: var(--blue);">Apply here</a>.
+            </p>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBZP5nwK9-C5HOJK6JEkMK4vylH9vkoKss",
+        authDomain: "gaac-ambassador.firebaseapp.com",
+        projectId: "gaac-ambassador",
+        storageBucket: "gaac-ambassador.firebasestorage.app",
+        messagingSenderId: "863700343765",
+        appId: "1:863700343765:web:444d6dccd503c8967ffb5c",
+        measurementId: "G-0F3CBV292K"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+
+      const form = document.getElementById('ambassador-login-form');
+      const submitBtn = document.getElementById('login-submit-btn');
+      const btnText = submitBtn.querySelector('.btn-text');
+      const btnLoader = submitBtn.querySelector('.btn-loader');
+      const loginAlert = document.getElementById('login-alert');
+
+      const showAlert = (msg, isError = true) => {
+        loginAlert.textContent = msg;
+        loginAlert.className = `form-alert ${isError ? 'error' : 'success'}`;
+        loginAlert.classList.remove('hidden');
+      };
+      const hideAlert = () => loginAlert.classList.add('hidden');
+      const setLoading = (isLoading) => {
+        submitBtn.disabled = isLoading;
+        btnText.classList.toggle('hidden', isLoading);
+        btnLoader.classList.toggle('hidden', !isLoading);
+      };
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+
+        let isFormValid = true;
+        Array.from(form.elements).forEach(el => {
+          if (el.tagName === 'INPUT') {
+            if (!el.checkValidity()) {
+              isFormValid = false;
+              el.classList.add('error');
+            }
+          }
+        });
+        if (!isFormValid) return;
+
+        setLoading(true);
+        try {
+          const data = new FormData(form);
+          await signInWithEmailAndPassword(auth, data.get('email').trim().toLowerCase(), data.get('password'));
+          window.location.href = 'ambassador-dashboard.html';
+        } catch (error) {
+          console.error('Login Error:', error);
+          if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+            showAlert('Invalid email or password.');
+          } else {
+            showAlert(error.message || 'Login failed. Please try again.');
+          }
+        } finally {
+          setLoading(false);
+        }
+      });
+    </script>
+  </body>
+</html>

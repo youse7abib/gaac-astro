@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Ambassador Registration | GAAC</title>
+    <link rel="icon" href="GAAC Dark.jpg" type="image/jpeg" />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="registration.css" />
+  </head>
+  <body class="page-register">
+    <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand-lockup" href="index.html">
+        <img class="brand-logo club-logo" src="Club_Logo_Black_BG-removebg-preview.png" alt="STEM Astronomy Club logo" />
+        <span class="brand-divider" aria-hidden="true"></span>
+        <img class="brand-logo gaac-logo" src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+      </a>
+      <button class="nav-toggle" type="button">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav">
+        <a href="index.html">Home</a>
+        <a href="ambassador.html" class="active">Ambassador</a>
+      </nav>
+      <a class="nav-cta header-cta" href="ambassador-login.html">Login</a>
+    </header>
+
+    <main>
+      <section class="subhero page-shell">
+        <div class="reveal">
+          <p class="eyebrow">Ambassador Program</p>
+          <h1>Join the <span class="text-blue">Mission</span>.</h1>
+          <p>Register as an ambassador to help grow the GAAC community.</p>
+        </div>
+      </section>
+
+      <section class="page-shell compact">
+        <div class="registration-card reveal delay-1">
+          <form id="ambassador-register-form" class="registration-form" novalidate>
+            <div class="form-section">
+              <h2>Ambassador Application</h2>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="fullName">Full Name <span class="required">*</span></label>
+                  <input type="text" id="fullName" name="fullName" required />
+                  <span class="error-msg" id="error-fullName"></span>
+                </div>
+                <div class="form-group">
+                  <label for="email">Email Address <span class="required">*</span></label>
+                  <input type="email" id="email" name="email" required />
+                  <span class="error-msg" id="error-email"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="password">Password <span class="required">*</span></label>
+                  <input type="password" id="password" name="password" required minlength="6" />
+                  <span class="error-msg" id="error-password"></span>
+                </div>
+                <div class="form-group">
+                  <label for="phone">Phone Number <span class="required">*</span></label>
+                  <input type="tel" id="phone" name="phone" required />
+                  <span class="error-msg" id="error-phone"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="country">Country <span class="required">*</span></label>
+                  <input type="text" id="country" name="country" list="country-list" required autocomplete="off" />
+                  <span class="error-msg" id="error-country"></span>
+                </div>
+                <div class="form-group">
+                  <label for="school">School or University <span class="required">*</span></label>
+                  <input type="text" id="school" name="school" required />
+                  <span class="error-msg" id="error-school"></span>
+                </div>
+              </div>
+            </div>
+
+            <datalist id="country-list"></datalist>
+
+            <div class="form-actions">
+              <div id="form-alert" class="form-alert hidden"></div>
+              <button type="submit" id="submit-btn" class="button primary submit-btn">
+                <span class="btn-text">Apply Now</span>
+                <span class="btn-loader hidden"></span>
+              </button>
+            </div>
+            
+            <p style="text-align: center; margin-top: 20px; color: var(--silver);">
+              Already an ambassador? <a href="ambassador-login.html" style="color: var(--blue);">Login here</a>.
+            </p>
+          </form>
+
+          <div id="success-state" class="success-state hidden">
+            <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h2>Application Successful!</h2>
+            <p>Welcome to the GAAC Ambassador Program.</p>
+            <a href="ambassador-dashboard.html" class="button primary" style="margin-top: 24px;">Go to Dashboard</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyBZP5nwK9-C5HOJK6JEkMK4vylH9vkoKss",
+        authDomain: "gaac-ambassador.firebaseapp.com",
+        projectId: "gaac-ambassador",
+        storageBucket: "gaac-ambassador.firebasestorage.app",
+        messagingSenderId: "863700343765",
+        appId: "1:863700343765:web:444d6dccd503c8967ffb5c",
+        measurementId: "G-0F3CBV292K"
+      };
+
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
+
+      const countries = [
+        "Afghanistan", "Albania", "Algeria", "Andorra", "Angola", "Antigua and Barbuda", "Argentina", "Armenia", "Australia", "Austria", "Azerbaijan", "Bahamas", "Bahrain", "Bangladesh", "Barbados", "Belarus", "Belgium", "Belize", "Benin", "Bhutan", "Bolivia", "Bosnia and Herzegovina", "Botswana", "Brazil", "Brunei", "Bulgaria", "Burkina Faso", "Burundi", "Côte d'Ivoire", "Cabo Verde", "Cambodia", "Cameroon", "Canada", "Central African Republic", "Chad", "Chile", "China", "Colombia", "Comoros", "Congo", "Costa Rica", "Croatia", "Cuba", "Cyprus", "Czechia", "Denmark", "Djibouti", "Dominica", "Dominican Republic", "Ecuador", "Egypt", "El Salvador", "Equatorial Guinea", "Eritrea", "Estonia", "Eswatini", "Ethiopia", "Fiji", "Finland", "France", "Gabon", "Gambia", "Georgia", "Germany", "Ghana", "Greece", "Grenada", "Guatemala", "Guinea", "Guinea-Bissau", "Guyana", "Haiti", "Holy See", "Honduras", "Hungary", "Iceland", "India", "Indonesia", "Iran", "Iraq", "Ireland", "Israel", "Italy", "Jamaica", "Japan", "Jordan", "Kazakhstan", "Kenya", "Kiribati", "Kuwait", "Kyrgyzstan", "Laos", "Latvia", "Lebanon", "Lesotho", "Liberia", "Libya", "Liechtenstein", "Lithuania", "Luxembourg", "Madagascar", "Malawi", "Malaysia", "Maldives", "Mali", "Malta", "Marshall Islands", "Mauritania", "Mauritius", "Mexico", "Micronesia", "Moldova", "Monaco", "Mongolia", "Montenegro", "Morocco", "Mozambique", "Myanmar", "Namibia", "Nauru", "Nepal", "Netherlands", "New Zealand", "Nicaragua", "Niger", "Nigeria", "North Korea", "North Macedonia", "Norway", "Oman", "Pakistan", "Palau", "Palestine State", "Panama", "Papua New Guinea", "Paraguay", "Peru", "Philippines", "Poland", "Portugal", "Qatar", "Romania", "Russia", "Rwanda", "Saint Kitts and Nevis", "Saint Lucia", "Saint Vincent and the Grenadines", "Samoa", "San Marino", "Sao Tome and Principe", "Saudi Arabia", "Senegal", "Serbia", "Seychelles", "Sierra Leone", "Singapore", "Slovakia", "Slovenia", "Solomon Islands", "Somalia", "South Africa", "South Korea", "South Sudan", "Spain", "Sri Lanka", "Sudan", "Suriname", "Sweden", "Switzerland", "Syria", "Taiwan", "Tajikistan", "Tanzania", "Thailand", "Timor-Leste", "Togo", "Tonga", "Trinidad and Tobago", "Tunisia", "Turkey", "Turkmenistan", "Tuvalu", "Uganda", "Ukraine", "United Arab Emirates", "United Kingdom", "United States", "Uruguay", "Uzbekistan", "Vanuatu", "Vatican City", "Venezuela", "Vietnam", "Yemen", "Zambia", "Zimbabwe"
+      ];
+      const dataList = document.getElementById('country-list');
+      if (dataList) {
+        countries.forEach(c => {
+          const opt = document.createElement('option');
+          opt.value = c;
+          dataList.appendChild(opt);
+        });
+      }
+
+      const form = document.getElementById('ambassador-register-form');
+      const submitBtn = document.getElementById('submit-btn');
+      const btnText = submitBtn.querySelector('.btn-text');
+      const btnLoader = submitBtn.querySelector('.btn-loader');
+      const formAlert = document.getElementById('form-alert');
+      const successState = document.getElementById('success-state');
+
+      const showAlert = (msg, isError = true) => {
+        formAlert.textContent = msg;
+        formAlert.className = `form-alert ${isError ? 'error' : 'success'}`;
+        formAlert.classList.remove('hidden');
+      };
+      const hideAlert = () => formAlert.classList.add('hidden');
+
+      const setLoading = (isLoading) => {
+        submitBtn.disabled = isLoading;
+        btnText.classList.toggle('hidden', isLoading);
+        btnLoader.classList.toggle('hidden', !isLoading);
+      };
+
+      form.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        hideAlert();
+        document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');
+        document.querySelectorAll('.error').forEach(el => el.classList.remove('error'));
+
+        let isFormValid = true;
+        Array.from(form.elements).forEach(el => {
+          if (el.tagName === 'INPUT' || el.tagName === 'SELECT') {
+            if (!el.checkValidity()) {
+              isFormValid = false;
+              el.classList.add('error');
+              const errorSpan = document.getElementById(`error-${el.id}`);
+              if (errorSpan) {
+                if (el.validity.valueMissing) errorSpan.textContent = 'This is a required question';
+                else if (el.validity.patternMismatch) errorSpan.textContent = el.title || 'Invalid format';
+                else if (el.validity.typeMismatch) errorSpan.textContent = 'Invalid format';
+                else errorSpan.textContent = el.validationMessage;
+              }
+            }
+          }
+        });
+
+        if (!isFormValid) {
+          showAlert('Please fix the errors in the form before submitting.');
+          const firstError = document.querySelector('.error');
+          if (firstError) firstError.scrollIntoView({ behavior: 'smooth', block: 'center' });
+          return;
+        }
+
+        setLoading(true);
+        try {
+          const data = new FormData(form);
+          const email = data.get('email').trim().toLowerCase();
+          const password = data.get('password');
+
+          const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+
+          await setDoc(doc(db, 'ambassadors', userCredential.user.uid), {
+            fullName: data.get('fullName').trim(),
+            email: email,
+            phone: data.get('phone').trim(),
+            country: data.get('country').trim(),
+            school: data.get('school').trim(),
+            points: 0,
+            successfulRegistrations: 0,
+            referralCode: String(Math.floor(Math.random() * 999) + 1).padStart(3, '0'),
+            createdAt: new Date().toISOString()
+          });
+
+          form.classList.add('hidden');
+          successState.classList.remove('hidden');
+        } catch (error) {
+          console.error('Registration Error:', error);
+          if (error.code === 'auth/email-already-in-use') {
+            showAlert('This email is already registered. Please login instead.');
+          } else {
+            showAlert(error.message || 'An error occurred. Please try again.');
+          }
+        } finally {
+          setLoading(false);
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Register your team for the Global Astronomy & Astrophysics Challenge." />
+    <title>Register | GAAC</title>
+    <link rel="icon" href="GAAC Dark.jpg" type="image/jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="registration.css" />
+    <style>
+      .register-hero {
+        text-align: center;
+        padding: 48px 0 12px;
+      }
+      .progress-bar {
+        display: flex;
+        justify-content: center;
+        gap: 0;
+        margin: 32px auto 0;
+        max-width: 600px;
+        position: relative;
+      }
+      .progress-step {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 16px;
+        font-size: 0.75rem;
+        font-weight: 600;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        position: relative;
+        flex: 1;
+        justify-content: center;
+      }
+      .progress-step .step-num {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: 2px solid var(--muted);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--font-orbitron);
+        font-size: 0.7rem;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+      }
+      .progress-step.active .step-num {
+        border-color: var(--blue);
+        background: var(--blue);
+        color: var(--white);
+        box-shadow: 0 0 12px rgba(8,120,255,0.4);
+      }
+      .progress-step.active {
+        color: var(--white);
+      }
+      .progress-step.done .step-num {
+        border-color: #2ed573;
+        background: #2ed573;
+        color: var(--white);
+      }
+      .progress-step.done {
+        color: #2ed573;
+      }
+
+      .registration-card {
+        position: relative;
+        overflow: visible;
+      }
+      .registration-card::before {
+        content: '';
+        position: absolute;
+        inset: -1px;
+        border-radius: 17px;
+        background: linear-gradient(135deg, rgba(38,183,255,0.15), transparent 40%, transparent 60%, rgba(38,183,255,0.08));
+        z-index: -1;
+        pointer-events: none;
+      }
+      .form-section h2 {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .section-icon {
+        width: 32px;
+        height: 32px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, rgba(8,120,255,0.2), rgba(0,229,255,0.05));
+        border: 1px solid rgba(38,183,255,0.2);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+      }
+      .section-icon svg {
+        width: 16px;
+        height: 16px;
+        color: var(--blue-light);
+      }
+      .input-highlight {
+        position: relative;
+      }
+      .form-group input:focus,
+      .form-group select:focus {
+        border-color: var(--blue);
+        box-shadow: 0 0 0 3px rgba(38,183,255,0.15), 0 0 20px rgba(8,120,255,0.08);
+        transform: translateY(-1px);
+      }
+      .form-group input, .form-group select {
+        transition: all 0.25s ease;
+      }
+      .submit-btn {
+        background: linear-gradient(135deg, var(--blue), var(--blue-light));
+        border: none;
+        position: relative;
+        overflow: hidden;
+      }
+      .submit-btn::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(135deg, var(--blue-light), var(--cyan));
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      .submit-btn:hover::before {
+        opacity: 1;
+      }
+      .submit-btn .btn-text, .submit-btn .btn-loader {
+        position: relative;
+        z-index: 1;
+      }
+      .submit-btn:not(:disabled):hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 40px rgba(8,120,255,0.45);
+      }
+    </style>
+  </head>
+  <body class="page-register">
+    <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand-lockup" href="index.html" aria-label="GAAC home">
+        <img class="brand-logo club-logo" src="Club_Logo_Black_BG-removebg-preview.png" alt="STEM Astronomy Club logo" />
+        <span class="brand-divider" aria-hidden="true"></span>
+        <img class="brand-logo gaac-logo" src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index.html">Home</a>
+        <a href="syllabus.html">Syllabus</a>
+        <a href="timeline.html">Timeline</a>
+        <a href="partners.html">Partners</a>
+        <a href="ambassador.html">Ambassador</a>
+      </nav>
+      <a class="nav-cta header-cta active" href="register.html">Register</a>
+    </header>
+
+    <main>
+      <section class="page-shell compact" style="padding-bottom: 0;">
+        <div class="register-hero reveal">
+          <p class="eyebrow">Registration</p>
+          <h1>Secure Your <span class="text-blue">Spot</span>.</h1>
+          <p style="color: var(--silver); max-width: 500px; margin: 8px auto 0;">Complete the form below to register your team for GAAC 2026. Each team may include up to 3 members.</p>
+        </div>
+
+        <div id="progress-bar" class="progress-bar reveal delay-1">
+          <div class="progress-step active">
+            <span class="step-num">1</span>
+            <span>Team</span>
+          </div>
+          <div class="progress-step">
+            <span class="step-num">2</span>
+            <span>Leader</span>
+          </div>
+          <div class="progress-step">
+            <span class="step-num">3</span>
+            <span>Members</span>
+          </div>
+          <div class="progress-step">
+            <span class="step-num">4</span>
+            <span>Review</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-shell compact" style="padding-top: 24px;">
+        <div id="registration-container" class="registration-card reveal delay-2">
+          <form id="gaac-registration-form" class="registration-form" novalidate>
+            <!-- TEAM INFO -->
+            <div class="form-section" data-step="1">
+              <h2>
+                <span class="section-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                </span>
+                Team Information
+              </h2>
+              <div class="form-group">
+                <label for="teamName">Team Name <span class="required">*</span></label>
+                <input type="text" id="teamName" name="teamName" placeholder="Enter your team name" required maxlength="50" />
+                <span class="error-msg" id="error-teamName"></span>
+              </div>
+            </div>
+
+            <!-- LEADER INFO -->
+            <div class="form-section" data-step="2">
+              <h2>
+                <span class="section-icon">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                </span>
+                Team Leader <span class="required">*</span>
+              </h2>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="leaderName">Full Name</label>
+                  <input type="text" id="leaderName" name="leaderName" placeholder="First and Last Name" required />
+                  <span class="error-msg" id="error-leaderName"></span>
+                </div>
+                <div class="form-group">
+                  <label for="leaderEmail">Email Address</label>
+                  <input type="email" id="leaderEmail" name="leaderEmail" placeholder="email@example.com" pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" title="Must be a valid email address with @" required />
+                  <span class="error-msg" id="error-leaderEmail"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="leaderCountry">Country</label>
+                  <input type="text" id="leaderCountry" name="leaderCountry" list="country-list" placeholder="Start typing a country..." required autocomplete="off" />
+                  <span class="error-msg" id="error-leaderCountry"></span>
+                </div>
+                <div class="form-group">
+                  <label for="leaderSchool">School or University</label>
+                  <input type="text" id="leaderSchool" name="leaderSchool" placeholder="Enter school name" required />
+                  <span class="error-msg" id="error-leaderSchool"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="leaderDob">Date of Birth</label>
+                  <input type="date" id="leaderDob" name="leaderDob" required />
+                  <span class="error-msg" id="error-leaderDob"></span>
+                </div>
+                <div class="form-group">
+                  <label for="leaderGrade">Grade</label>
+                  <select id="leaderGrade" name="leaderGrade" required>
+                    <option value="" disabled selected>Select grade</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                  </select>
+                  <span class="error-msg" id="error-leaderGrade"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="add-member-container" data-step="3">
+              <button type="button" id="btn-add-member-2" class="add-member-btn">
+                <span class="plus-icon">+</span> Add Team Member 2
+              </button>
+            </div>
+
+            <!-- MEMBER 2 INFO -->
+            <div id="section-member-2" class="form-section optional-section hidden" data-step="3">
+              <div class="section-header">
+                <h2>
+                  <span class="section-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  </span>
+                  Member 2
+                </h2>
+                <button type="button" class="remove-member-btn" id="btn-remove-member-2">Remove</button>
+              </div>
+              <p class="section-desc">If you enter any detail, all fields become required.</p>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="member2Name">Full Name</label>
+                  <input type="text" id="member2Name" name="member2Name" placeholder="First and Last Name" />
+                  <span class="error-msg" id="error-member2Name"></span>
+                </div>
+                <div class="form-group">
+                  <label for="member2Email">Email Address</label>
+                  <input type="email" id="member2Email" name="member2Email" placeholder="email@example.com" pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" title="Must be a valid email address with @" />
+                  <span class="error-msg" id="error-member2Email"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="member2Country">Country</label>
+                  <input type="text" id="member2Country" name="member2Country" list="country-list" placeholder="Start typing a country..." autocomplete="off" />
+                  <span class="error-msg" id="error-member2Country"></span>
+                </div>
+                <div class="form-group">
+                  <label for="member2School">School or University</label>
+                  <input type="text" id="member2School" name="member2School" placeholder="Enter school name" />
+                  <span class="error-msg" id="error-member2School"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="member2Dob">Date of Birth</label>
+                  <input type="date" id="member2Dob" name="member2Dob" />
+                  <span class="error-msg" id="error-member2Dob"></span>
+                </div>
+                <div class="form-group">
+                  <label for="member2Grade">Grade</label>
+                  <select id="member2Grade" name="member2Grade">
+                    <option value="" disabled selected>Select grade</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                  </select>
+                  <span class="error-msg" id="error-member2Grade"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="add-member-container" id="container-add-member-3">
+              <button type="button" id="btn-add-member-3" class="add-member-btn hidden">
+                <span class="plus-icon">+</span> Add Team Member 3
+              </button>
+            </div>
+
+            <!-- MEMBER 3 INFO -->
+            <div id="section-member-3" class="form-section optional-section hidden" data-step="3">
+              <div class="section-header">
+                <h2>
+                  <span class="section-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>
+                  </span>
+                  Member 3
+                </h2>
+                <button type="button" class="remove-member-btn" id="btn-remove-member-3">Remove</button>
+              </div>
+              <p class="section-desc">If you enter any detail, all fields become required.</p>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="member3Name">Full Name</label>
+                  <input type="text" id="member3Name" name="member3Name" placeholder="First and Last Name" />
+                  <span class="error-msg" id="error-member3Name"></span>
+                </div>
+                <div class="form-group">
+                  <label for="member3Email">Email Address</label>
+                  <input type="email" id="member3Email" name="member3Email" placeholder="email@example.com" pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" title="Must be a valid email address with @" />
+                  <span class="error-msg" id="error-member3Email"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="member3Country">Country</label>
+                  <input type="text" id="member3Country" name="member3Country" list="country-list" placeholder="Start typing a country..." autocomplete="off" />
+                  <span class="error-msg" id="error-member3Country"></span>
+                </div>
+                <div class="form-group">
+                  <label for="member3School">School or University</label>
+                  <input type="text" id="member3School" name="member3School" placeholder="Enter school name" />
+                  <span class="error-msg" id="error-member3School"></span>
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group">
+                  <label for="member3Dob">Date of Birth</label>
+                  <input type="date" id="member3Dob" name="member3Dob" />
+                  <span class="error-msg" id="error-member3Dob"></span>
+                </div>
+                <div class="form-group">
+                  <label for="member3Grade">Grade</label>
+                  <select id="member3Grade" name="member3Grade">
+                    <option value="" disabled selected>Select grade</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                  </select>
+                  <span class="error-msg" id="error-member3Grade"></span>
+                </div>
+              </div>
+            </div>
+
+            <!-- DATALIST FOR COUNTRIES -->
+            <datalist id="country-list"></datalist>
+
+            <!-- SUBMIT AND ALERTS -->
+            <div class="form-actions" data-step="4">
+              <div id="form-alert" class="form-alert hidden"></div>
+              <button type="submit" id="submit-btn" class="button primary submit-btn">
+                <span class="btn-text">Submit Registration</span>
+                <span class="btn-loader hidden"></span>
+              </button>
+
+            </div>
+          </form>
+
+          <!-- SUCCESS STATE -->
+          <div id="success-state" class="success-state hidden">
+            <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h2>Registration Successful!</h2>
+            <p>Registration successful! Please check your email for your login credentials.</p>
+            <a href="index.html" class="button primary" style="margin-top:24px;">Return to Home</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <img src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+        <p>Global Astronomy &amp; Astrophysics Challenge, organized by STEM Astronomy Club.</p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <a href="index.html">Home</a>
+        <a href="syllabus.html">Syllabus</a>
+        <a href="timeline.html">Timeline</a>
+        <a href="partners.html">Partners</a>
+        <a href="ambassador.html">Ambassador</a>
+      </nav>
+      <a class="footer-email" href="mailto:gaac@stemastronomyclub.org">gaac@stemastronomyclub.org</a>
+      <p class="copyright">Copyright 2026 Global Astronomy &amp; Astrophysics Challenge.</p>
+    </footer>
+
+    <script src="script.js"></script>
+    <script type="module" src="registration.js"></script>
+    <script>
+      // Progress bar tracker
+      const sections = document.querySelectorAll('.form-section[data-step]');
+      const addContainers = document.querySelectorAll('.add-member-container');
+      const steps = document.querySelectorAll('.progress-step');
+      function updateProgress() {
+        let filled = 0;
+        const teamName = document.getElementById('teamName');
+        if (teamName && teamName.value.trim()) filled = 1;
+        const leaderName = document.getElementById('leaderName');
+        if (leaderName && leaderName.value.trim()) filled = 2;
+        const member2 = document.getElementById('section-member-2');
+        const member3 = document.getElementById('section-member-3');
+        if (member2 && !member2.classList.contains('hidden')) filled = 3;
+        else if (member3 && !member3.classList.contains('hidden')) filled = 3;
+        steps.forEach((s, i) => {
+          s.classList.toggle('active', i === filled);
+          s.classList.toggle('done', i < filled);
+        });
+      }
+      document.querySelectorAll('#gaac-registration-form input, #gaac-registration-form select').forEach(el => {
+        el.addEventListener('input', updateProgress);
+        el.addEventListener('change', updateProgress);
+      });
+      document.querySelectorAll('.add-member-btn, .remove-member-btn').forEach(btn => {
+        btn.addEventListener('click', () => setTimeout(updateProgress, 100));
+      });
+    </script>
+  </body>
+</html>

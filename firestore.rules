@@ -1,0 +1,164 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // ================================================================
+    // HELPER FUNCTIONS
+    // ================================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isAdmin() {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+    }
+
+    function isTeamMember(teamId) {
+      return isAuthenticated()
+        && exists(/databases/$(database)/documents/teamMembers/$(request.auth.uid))
+        && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.teamId == teamId;
+    }
+
+    function isOwnUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // ================================================================
+    // 1) SETTINGS
+    // ================================================================
+    match /settings/counter {
+      allow read: if true;
+      allow write: if true;
+    }
+
+    // Competition control flags (open/close registration, rounds)
+    match /settings/competition {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // ================================================================
+    // 2) REGISTERED TEAMS (duplicate prevention)
+    // ================================================================
+    match /registeredTeams/{teamName} {
+      allow read: if true;
+      allow create: if !exists(/databases/$(database)/documents/registeredTeams/$(teamName));
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // ================================================================
+    // 3) REGISTERED EMAILS (duplicate prevention)
+    // ================================================================
+    match /registeredEmails/{email} {
+      allow read: if true;
+      allow create: if !exists(/databases/$(database)/documents/registeredEmails/$(email));
+      allow delete: if isAdmin();
+      allow update: if false;
+    }
+
+    // ================================================================
+    // 4) REGISTRATIONS (team data, readable by auth users)
+    // ================================================================
+    match /registrations/{regId} {
+      allow read: if true;
+      allow create: if !exists(/databases/$(database)/documents/registrations/$(regId));
+      allow delete: if isAdmin();
+      allow update: if isAdmin();
+    }
+
+    // ================================================================
+    // 5) MAIL (Trigger Email Extension)
+    // ================================================================
+    match /mail/{mailId} {
+      allow create: if request.resource.data.keys().hasAll(['to', 'message']);
+      allow read, write: if isAdmin();
+    }
+
+    // ================================================================
+    // 6) EXAM QUESTIONS — client can read questions (without answers)
+    //    Answer keys are in a SEPARATE subcollection (admin-only)
+    // ================================================================
+    match /round1/{examId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+
+      match /questions/{questionId} {
+        // Questions: text and options only (NO correctAnswer)
+        allow read: if isAuthenticated();
+        allow write: if isAdmin();
+        // Validate that correctAnswer is NOT in question docs
+        allow create, update: if isAdmin()
+          && !request.resource.data.keys().hasAny(['correctAnswer']);
+      }
+
+      // Answer keys: strictly admin-only read
+      match /answerKeys/{questionId} {
+        allow read: if isAdmin();
+        allow write: if isAdmin();
+      }
+    }
+
+    // ================================================================
+    // 7) TEAMS — exam data, events
+    // ================================================================
+    match /teams/{teamId} {
+      // Team summary doc: own team or admin
+      allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
+      allow create: if isAuthenticated() && isTeamMember(teamId);
+      allow update: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
+      allow delete: if false;
+
+      // Exam subcollection
+      match /exam/{examId} {
+        allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
+        allow create: if isAuthenticated() && isTeamMember(teamId);
+        // Allow update for own team or admin
+        // - Client cannot set scoring fields (reserved for Cloud Function)
+        // - Once submitted, only admins can modify further
+        allow update: if isAuthenticated()
+          && (isTeamMember(teamId) || isAdmin())
+          && !request.resource.data.keys().hasAny([
+            'scored', 'score', 'correctCount', 'incorrectCount',
+            'unansweredCount', 'totalQuestions', 'passed', 'details', 'scoredAt'
+          ])
+          && (resource.data.status != 'submitted' || isAdmin());
+        allow delete: if false;
+      }
+
+      // Events subcollection
+      match /events/{eventId} {
+        allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
+        allow create: if isAuthenticated() && isTeamMember(teamId);
+        allow update: if false;
+        allow delete: if false;
+      }
+    }
+
+    // ================================================================
+    // 8) ADMINS
+    // ================================================================
+    match /admins/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
+    // ================================================================
+    // 9) TEAM MEMBERSHIP MAPPING
+    // ================================================================
+    match /teamMembers/{userId} {
+      allow read: if isAuthenticated();
+      allow write: if isOwnUser(userId);
+      allow delete: if false;
+    }
+
+    // ================================================================
+    // DENY ALL OTHER ACCESS
+    // ================================================================
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

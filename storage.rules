@@ -1,0 +1,22 @@
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    // Exam evidence snapshots — user can only upload to their own folder
+    // Path: snapshots/round1/{teamId}/{userId}/{fileName}
+    match /snapshots/round1/{teamId}/{userId}/{fileName} {
+      allow create: if request.auth != null
+        && request.auth.uid == userId
+        && firestore.exists(/databases/(default)/documents/teamMembers/$(userId))
+        && firestore.get(/databases/(default)/documents/teamMembers/$(userId)).data.teamId == teamId;
+      allow read: if request.auth != null
+        && firestore.exists(/databases/(default)/documents/admins/$(request.auth.uid))
+        && firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+      allow delete: if false;
+    }
+
+    // Public assets
+    match /{allPaths=**} {
+      allow read: if true;
+    }
+  }
+}
