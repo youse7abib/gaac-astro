@@ -101,24 +101,18 @@ const referralCode = urlParams.get('ref');
 let validAmbassadorId = null;
 
 if (referralCode && ambDb) {
-  console.log('[referral] Found ref in URL:', referralCode);
   (async () => {
     try {
       const q = query(collection(ambDb, 'ambassadors'), where('referralCode', '==', referralCode));
       const querySnapshot = await getDocs(q);
-      console.log('[referral] Query returned:', querySnapshot.size, 'docs');
       if (!querySnapshot.empty) {
         validAmbassadorId = querySnapshot.docs[0].id;
-        console.log('[referral] Valid! Ambassador ID:', validAmbassadorId);
-      } else {
-        console.warn('[referral] No ambassador found with code:', referralCode);
+        console.log('Valid referral code:', referralCode);
       }
     } catch (e) {
-      console.error('[referral] Error validating referral code:', e);
+      console.error('Error validating referral code:', e);
     }
   })();
-} else {
-  console.warn('[referral] Skipped — referralCode:', referralCode, 'ambDb:', !!ambDb);
 }
 
 // Form Submission
@@ -409,13 +403,20 @@ form.addEventListener('submit', async (e) => {
     gaacRegistrationForm.classList.add('hidden');
     successState.classList.remove('hidden');
 
-    // Award ambassador points — write to registration project's ambassadorPoints collection
-    if (validAmbassadorId) {
+    // Award ambassador points in the gaac-ambassador project
+    if (validAmbassadorId && ambDb) {
       try {
-        await setDoc(doc(db, 'ambassadorPoints', validAmbassadorId), {
-          points: increment(10),
-          successfulRegistrations: increment(1)
-        }, { merge: true });
+        const configRef = doc(db, 'settings', 'referrals');
+        const configSnap = await getDocs(collection(db, 'settings'));
+        let pointsToAdd = 10;
+        if (!configSnap.empty) {
+          const configData = configSnap.docs.find(d => d.id === 'referrals')?.data();
+          pointsToAdd = configData?.pointsPerRegistration || 10;
+        }
+        await updateDoc(doc(ambDb, 'ambassadors', validAmbassadorId), {
+          successfulRegistrations: increment(1),
+          points: increment(pointsToAdd)
+        });
       } catch (e) {
         console.error("Failed to award ambassador points:", e);
       }

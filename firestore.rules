@@ -138,16 +138,7 @@ service cloud.firestore {
     }
 
     // ================================================================
-    // 8) AMBASSADOR POINTS (written by Cloud Function, read by ambassador dashboard + leaderboard)
-    // ================================================================
-    match /ambassadorPoints/{ambassadorId} {
-      allow read: if true;
-      allow create, update: if request.auth != null;
-      allow delete: if false;
-    }
-
-    // ================================================================
-    // 9) ADMINS
+    // 8) ADMINS
     // ================================================================
     match /admins/{userId} {
       allow read: if isAuthenticated();

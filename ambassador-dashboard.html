@@ -68,6 +68,7 @@
       </button>
       <nav class="site-nav">
         <a href="index.html">Home</a>
+        <a href="leaderboard.html">Leaderboard</a>
       </nav>
       <button id="btn-logout" class="button secondary" style="padding: 8px 16px;">Logout</button>
     </header>
@@ -102,13 +103,13 @@
           <div class="referral-box">
             <div>
               <p style="color: var(--silver); margin-bottom: 8px; font-size: 0.9rem;">Your Unique Referral Link</p>
-              <div class="ref-link" id="referral-link">gaac.stemastronomyclub.org/register?ref=...</div>
+              <div class="ref-link" id="referral-link">register.html?ref=...</div>
             </div>
             <button id="btn-copy-link" class="button primary" style="white-space: nowrap;">Copy Link</button>
           </div>
           
-          <div id="admin-banner" hidden style="margin-top: 40px; padding: 16px; background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.4); border-radius: 8px; text-align: center;">
-            <p style="margin:0;">You have Admin privileges. <a href="admin-exam.html" style="color: #ff4757; text-decoration: underline; font-weight: bold;">Go to Admin Dashboard</a></p>
+          <div id="admin-banner" class="hidden" style="margin-top: 40px; padding: 16px; background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.4); border-radius: 8px; text-align: center;">
+            <p style="margin:0;">You have Admin privileges. <a href="admin-dashboard.html" style="color: #ff4757; text-decoration: underline; font-weight: bold;">Go to Admin Dashboard</a></p>
           </div>
         </div>
       </section>
@@ -120,7 +121,7 @@
       import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
       import { getFirestore, doc, getDoc, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      const ambassadorConfig = {
+      const firebaseConfig = {
         apiKey: "AIzaSyBZP5nwK9-C5HOJK6JEkMK4vylH9vkoKss",
         authDomain: "gaac-ambassador.firebaseapp.com",
         projectId: "gaac-ambassador",
@@ -130,21 +131,9 @@
         measurementId: "G-0F3CBV292K"
       };
 
-      const registrationConfig = {
-        apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
-        authDomain: "gaac-registration-2026.firebaseapp.com",
-        projectId: "gaac-registration-2026",
-        storageBucket: "gaac-registration-2026.firebasestorage.app",
-        messagingSenderId: "542838311094",
-        appId: "1:542838311094:web:6104e2ed0d1cafa976be17",
-        measurementId: "G-CEB6Z0RF5E"
-      };
-
-      const ambApp = initializeApp(ambassadorConfig);
-      const regApp = initializeApp(registrationConfig, 'registration');
-      const auth = getAuth(ambApp);
-      const ambDb = getFirestore(ambApp);
-      const regDb = getFirestore(regApp);
+      const app = initializeApp(firebaseConfig);
+      const auth = getAuth(app);
+      const db = getFirestore(app);
 
       const loadingState = document.getElementById('loading-state');
       const dashContent = document.getElementById('dashboard-content');
@@ -155,7 +144,6 @@
       const referralLink = document.getElementById('referral-link');
       const btnCopy = document.getElementById('btn-copy-link');
       const btnLogout = document.getElementById('btn-logout');
-      const adminBanner = document.getElementById('admin-banner');
 
       onAuthStateChanged(auth, async (user) => {
         if (!user) {
@@ -164,26 +152,22 @@
         }
 
         try {
-          const [ambSnap, pointsSnap] = await Promise.all([
-            getDoc(doc(ambDb, 'ambassadors', user.uid)),
-            getDoc(doc(regDb, 'ambassadorPoints', user.uid))
-          ]);
-          if (!ambSnap.exists()) {
+          const docSnap = await getDoc(doc(db, 'ambassadors', user.uid));
+          if (!docSnap.exists()) {
             loadingState.innerHTML = '<p>Ambassador profile not found.</p>';
             return;
           }
 
-          const data = ambSnap.data();
-          const pts = pointsSnap.exists() ? pointsSnap.data() : { points: 0, successfulRegistrations: 0 };
+          const data = docSnap.data();
           userGreeting.textContent = `Welcome, ${data.fullName || 'Ambassador'}`;
-          statPoints.textContent = pts.points || 0;
-          statReferrals.textContent = pts.successfulRegistrations || 0;
+          statPoints.textContent = data.points || 0;
+          statReferrals.textContent = data.successfulRegistrations || 0;
 
           const refCode = data.referralCode || ('GAAC-' + user.uid.substring(0, 3));
-          const regUrl = `https://gaac.stemastronomyclub.org/register?ref=${refCode}`;
+          const regUrl = `register.html?ref=${refCode}`;
           referralLink.textContent = regUrl;
 
-          const q = query(collection(regDb, 'ambassadorPoints'), orderBy('points', 'desc'));
+          const q = query(collection(db, 'ambassadors'), orderBy('points', 'desc'));
           const snap = await getDocs(q);
           let rank = 1;
           for (const d of snap.docs) {
@@ -191,10 +175,6 @@
             rank++;
           }
           statRank.textContent = `#${rank}`;
-
-          if (data.isAdmin && adminBanner) {
-            adminBanner.removeAttribute('hidden');
-          }
 
           loadingState.classList.add('hidden');
           dashContent.classList.remove('hidden');

@@ -1,15 +1,8 @@
 const functions = require('firebase-functions');
 const admin = require('firebase-admin');
-
 admin.initializeApp();
 
 const db = admin.firestore();
-
-// Second Firebase app targeting the ambassador project (for awarding points)
-// Requires the registration project's default service account to have
-// "Cloud Datastore User" role in gaac-ambassador project's IAM
-// Ambassador points collection is stored in the REGISTRATION project (no cross-project IAM needed)
-const ambassadorPointsCol = () => db.collection('ambassadorPoints');
 
 /**
  * Triggered when a team's exam status changes to 'submitted'.
@@ -312,6 +305,3 @@ exports.exportData = functions.https.onCall(async (data, context) => {
 
   return { data: csv, format: 'csv', rowCount: rows.length };
 });
-
-// Ambassador points are awarded client-side from registration.js
-// (Cloud Functions require Blaze plan — see awardAmbassadorPoints in git history)
