@@ -420,10 +420,10 @@ form.addEventListener('submit', async (e) => {
           const configData = configSnap.docs.find(d => d.id === 'referrals')?.data();
           pointsToAdd = configData?.pointsPerRegistration || 10;
         }
-        await updateDoc(doc(ambDb, 'ambassadors', validAmbassadorId), {
+        await setDoc(doc(ambDb, 'ambassadors', validAmbassadorId), {
           successfulRegistrations: increment(1),
           points: increment(pointsToAdd)
-        });
+        }, { merge: true });
         console.log('[points] Success! Added', pointsToAdd, 'points');
       } catch (e) {
         console.error("[points] Failed to award ambassador points:", e);
