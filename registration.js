@@ -409,28 +409,7 @@ form.addEventListener('submit', async (e) => {
     gaacRegistrationForm.classList.add('hidden');
     successState.classList.remove('hidden');
 
-    // Award ambassador points in the gaac-ambassador project
-    if (validAmbassadorId && ambDb) {
-      console.log('[points] Awarding points to ambassador:', validAmbassadorId);
-      try {
-        const configRef = doc(db, 'settings', 'referrals');
-        const configSnap = await getDocs(collection(db, 'settings'));
-        let pointsToAdd = 10;
-        if (!configSnap.empty) {
-          const configData = configSnap.docs.find(d => d.id === 'referrals')?.data();
-          pointsToAdd = configData?.pointsPerRegistration || 10;
-        }
-        await setDoc(doc(ambDb, 'ambassadors', validAmbassadorId), {
-          successfulRegistrations: increment(1),
-          points: increment(pointsToAdd)
-        }, { merge: true });
-        console.log('[points] Success! Added', pointsToAdd, 'points');
-      } catch (e) {
-        console.error("[points] Failed to award ambassador points:", e);
-      }
-    } else {
-      console.warn('[points] Skipped — validAmbassadorId:', validAmbassadorId, 'ambDb:', !!ambDb);
-    }
+    // Ambassador points are awarded server-side via Cloud Function (awardAmbassadorPoints)
     
   } catch (error) {
     console.error("Registration Error:", error);
