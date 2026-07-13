@@ -91,6 +91,27 @@
         padding: 40px;
         color: var(--muted);
       }
+
+      .ambassador-content { display: block; }
+      .ambassador-content.hidden-content { display: none; }
+      .ambassador-content.visible-content { display: block; }
+      .coming-soon-banner {
+        display: none;
+        text-align: center;
+        padding: 80px 20px;
+      }
+      .coming-soon-banner.visible-banner { display: block; }
+      .coming-soon-banner h2 {
+        font-size: clamp(1.6rem, 4vw, 2.8rem);
+        letter-spacing: 0.08em;
+      }
+      .coming-soon-banner p {
+        color: var(--muted);
+        margin-top: 12px;
+        max-width: 400px;
+        margin-left: auto;
+        margin-right: auto;
+      }
     </style>
   </head>
   <body class="page-ambassador">
@@ -116,6 +137,13 @@
     </header>
 
     <main>
+      <div class="coming-soon-banner visible-banner" id="coming-soon">
+        <p class="eyebrow">Coming Soon</p>
+        <h2>Ambassador <span class="text-blue">Program</span></h2>
+        <p>The GAAC Ambassador Program is launching soon. Stay tuned!</p>
+      </div>
+
+      <div class="ambassador-content hidden-content" id="real-content">
       <section class="page-shell" style="padding-top: 40px; padding-bottom: 0;">
         <div class="reveal" style="text-align: center; max-width: 600px; margin: 0 auto;">
           <p class="eyebrow">Ambassador Program</p>
@@ -232,6 +260,7 @@
           </div>
         </div>
       </section>
+      </div>
     </main>
 
     <footer class="site-footer">
@@ -269,6 +298,12 @@
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
+
+      // Always show Coming Soon for now
+      const comingSoon = document.getElementById('coming-soon');
+      const realContent = document.getElementById('real-content');
+      comingSoon.classList.add('visible-banner');
+      realContent.classList.add('hidden-content');
 
       // --- LEADERBOARD ---
       async function loadLeaderboard() {
