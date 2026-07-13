@@ -313,28 +313,5 @@ exports.exportData = functions.https.onCall(async (data, context) => {
   return { data: csv, format: 'csv', rowCount: rows.length };
 });
 
-/**
- * Award points to an ambassador when a registration with a referral is created.
- * Reads referredBy from the new registration doc and increments the ambassador's
- * successfulRegistrations and points in the registration project's ambassadorPoints collection.
- * The ambassador dashboard reads from this collection (initializes registration project's Firestore).
- */
-exports.awardAmbassadorPoints = functions.firestore
-  .document('registrations/{regId}')
-  .onCreate(async (snap, context) => {
-    const data = snap.data();
-    const ambassadorId = data.referredBy;
-    if (!ambassadorId) return;
-
-    try {
-      const pointsToAdd = 10;
-      const ref = db.collection('ambassadorPoints').doc(ambassadorId);
-      await ref.set({
-        successfulRegistrations: admin.firestore.FieldValue.increment(1),
-        points: admin.firestore.FieldValue.increment(pointsToAdd)
-      }, { merge: true });
-      console.log(`Awarded ${pointsToAdd} points to ambassador ${ambassadorId} for registration ${context.params.regId}`);
-    } catch (error) {
-      console.error(`Failed to award ambassador points for registration ${context.params.regId}:`, error);
-    }
-  });
+// Ambassador points are awarded client-side from registration.js
+// (Cloud Functions require Blaze plan — see awardAmbassadorPoints in git history)

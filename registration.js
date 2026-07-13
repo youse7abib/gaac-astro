@@ -409,7 +409,17 @@ form.addEventListener('submit', async (e) => {
     gaacRegistrationForm.classList.add('hidden');
     successState.classList.remove('hidden');
 
-    // Ambassador points are awarded server-side via Cloud Function (awardAmbassadorPoints)
+    // Award ambassador points — write to registration project's ambassadorPoints collection
+    if (validAmbassadorId) {
+      try {
+        await setDoc(doc(db, 'ambassadorPoints', validAmbassadorId), {
+          points: increment(10),
+          successfulRegistrations: increment(1)
+        }, { merge: true });
+      } catch (e) {
+        console.error("Failed to award ambassador points:", e);
+      }
+    }
     
   } catch (error) {
     console.error("Registration Error:", error);
