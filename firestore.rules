@@ -138,7 +138,17 @@ service cloud.firestore {
     }
 
     // ================================================================
-    // 8) ADMINS
+    // 8) AMBASSADOR POINTS (written by Cloud Function, read by ambassador dashboard + leaderboard)
+    // ================================================================
+    match /ambassadorPoints/{ambassadorId} {
+      allow read: if true;
+      allow write: if false;  // only Cloud Function (Admin SDK) can write
+      allow create: if false;
+      allow delete: if false;
+    }
+
+    // ================================================================
+    // 9) ADMINS
     // ================================================================
     match /admins/{userId} {
       allow read: if isAuthenticated();

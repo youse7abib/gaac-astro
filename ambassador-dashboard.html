@@ -120,7 +120,7 @@
       import { getAuth, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
       import { getFirestore, doc, getDoc, collection, query, orderBy, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      const firebaseConfig = {
+      const ambassadorConfig = {
         apiKey: "AIzaSyBZP5nwK9-C5HOJK6JEkMK4vylH9vkoKss",
         authDomain: "gaac-ambassador.firebaseapp.com",
         projectId: "gaac-ambassador",
@@ -130,9 +130,21 @@
         measurementId: "G-0F3CBV292K"
       };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+      const registrationConfig = {
+        apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
+        authDomain: "gaac-registration-2026.firebaseapp.com",
+        projectId: "gaac-registration-2026",
+        storageBucket: "gaac-registration-2026.firebasestorage.app",
+        messagingSenderId: "542838311094",
+        appId: "1:542838311094:web:6104e2ed0d1cafa976be17",
+        measurementId: "G-CEB6Z0RF5E"
+      };
+
+      const ambApp = initializeApp(ambassadorConfig);
+      const regApp = initializeApp(registrationConfig, 'registration');
+      const auth = getAuth(ambApp);
+      const ambDb = getFirestore(ambApp);
+      const regDb = getFirestore(regApp);
 
       const loadingState = document.getElementById('loading-state');
       const dashContent = document.getElementById('dashboard-content');
@@ -152,22 +164,26 @@
         }
 
         try {
-          const docSnap = await getDoc(doc(db, 'ambassadors', user.uid));
-          if (!docSnap.exists()) {
+          const [ambSnap, pointsSnap] = await Promise.all([
+            getDoc(doc(ambDb, 'ambassadors', user.uid)),
+            getDoc(doc(regDb, 'ambassadorPoints', user.uid))
+          ]);
+          if (!ambSnap.exists()) {
             loadingState.innerHTML = '<p>Ambassador profile not found.</p>';
             return;
           }
 
-          const data = docSnap.data();
+          const data = ambSnap.data();
+          const pts = pointsSnap.exists() ? pointsSnap.data() : { points: 0, successfulRegistrations: 0 };
           userGreeting.textContent = `Welcome, ${data.fullName || 'Ambassador'}`;
-          statPoints.textContent = data.points || 0;
-          statReferrals.textContent = data.successfulRegistrations || 0;
+          statPoints.textContent = pts.points || 0;
+          statReferrals.textContent = pts.successfulRegistrations || 0;
 
           const refCode = data.referralCode || ('GAAC-' + user.uid.substring(0, 3));
           const regUrl = `https://gaac.stemastronomyclub.org/register?ref=${refCode}`;
           referralLink.textContent = regUrl;
 
-          const q = query(collection(db, 'ambassadors'), orderBy('points', 'desc'));
+          const q = query(collection(regDb, 'ambassadorPoints'), orderBy('points', 'desc'));
           const snap = await getDocs(q);
           let rank = 1;
           for (const d of snap.docs) {

@@ -8,10 +8,8 @@ const db = admin.firestore();
 // Second Firebase app targeting the ambassador project (for awarding points)
 // Requires the registration project's default service account to have
 // "Cloud Datastore User" role in gaac-ambassador project's IAM
-const ambAdmin = admin.initializeApp({
-  projectId: 'gaac-ambassador'
-}, 'ambassador');
-const ambDb = ambAdmin.firestore();
+// Ambassador points collection is stored in the REGISTRATION project (no cross-project IAM needed)
+const ambassadorPointsCol = () => db.collection('ambassadorPoints');
 
 /**
  * Triggered when a team's exam status changes to 'submitted'.
@@ -318,7 +316,8 @@ exports.exportData = functions.https.onCall(async (data, context) => {
 /**
  * Award points to an ambassador when a registration with a referral is created.
  * Reads referredBy from the new registration doc and increments the ambassador's
- * successfulRegistrations and points in the gaac-ambassador Firestore.
+ * successfulRegistrations and points in the registration project's ambassadorPoints collection.
+ * The ambassador dashboard reads from this collection (initializes registration project's Firestore).
  */
 exports.awardAmbassadorPoints = functions.firestore
   .document('registrations/{regId}')
@@ -329,10 +328,11 @@ exports.awardAmbassadorPoints = functions.firestore
 
     try {
       const pointsToAdd = 10;
-      await ambDb.collection('ambassadors').doc(ambassadorId).update({
+      const ref = db.collection('ambassadorPoints').doc(ambassadorId);
+      await ref.set({
         successfulRegistrations: admin.firestore.FieldValue.increment(1),
         points: admin.firestore.FieldValue.increment(pointsToAdd)
-      });
+      }, { merge: true });
       console.log(`Awarded ${pointsToAdd} points to ambassador ${ambassadorId} for registration ${context.params.regId}`);
     } catch (error) {
       console.error(`Failed to award ambassador points for registration ${context.params.regId}:`, error);

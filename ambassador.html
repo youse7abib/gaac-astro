@@ -257,8 +257,8 @@
       import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
       import { getFirestore, doc, setDoc, collection, query, orderBy, limit, getDocs } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-      const firebaseConfig = {
-        apiKey: "AIzaSyBZP5nwK9-C5HOJK6JEkMK4vylH9vkoKss",
+      const ambassadorConfig = {
+        apiKey: "AIzaSyBZP5nwK9-C5HOJK6JEKmk4vylH9vkoKss",
         authDomain: "gaac-ambassador.firebaseapp.com",
         projectId: "gaac-ambassador",
         storageBucket: "gaac-ambassador.firebasestorage.app",
@@ -267,9 +267,21 @@
         measurementId: "G-0F3CBV292K"
       };
 
-      const app = initializeApp(firebaseConfig);
-      const auth = getAuth(app);
-      const db = getFirestore(app);
+      const registrationConfig = {
+        apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
+        authDomain: "gaac-registration-2026.firebaseapp.com",
+        projectId: "gaac-registration-2026",
+        storageBucket: "gaac-registration-2026.firebasestorage.app",
+        messagingSenderId: "542838311094",
+        appId: "1:542838311094:web:6104e2ed0d1cafa976be17",
+        measurementId: "G-CEB6Z0RF5E"
+      };
+
+      const ambApp = initializeApp(ambassadorConfig);
+      const regApp = initializeApp(registrationConfig, 'registration');
+      const auth = getAuth(ambApp);
+      const ambDb = getFirestore(ambApp);
+      const regDb = getFirestore(regApp);
 
       // --- LEADERBOARD ---
       const countryToCode = {"Afghanistan":"AF","Albania":"AL","Algeria":"DZ","Andorra":"AD","Angola":"AO","Antigua and Barbuda":"AG","Argentina":"AR","Armenia":"AM","Australia":"AU","Austria":"AT","Azerbaijan":"AZ","Bahamas":"BS","Bahrain":"BH","Bangladesh":"BD","Barbados":"BB","Belarus":"BY","Belgium":"BE","Belize":"BZ","Benin":"BJ","Bhutan":"BT","Bolivia":"BO","Bosnia and Herzegovina":"BA","Botswana":"BW","Brazil":"BR","Brunei":"BN","Bulgaria":"BG","Burkina Faso":"BF","Burundi":"BI","Côte d'Ivoire":"CI","Cabo Verde":"CV","Cambodia":"KH","Cameroon":"CM","Canada":"CA","Central African Republic":"CF","Chad":"TD","Chile":"CL","China":"CN","Colombia":"CO","Comoros":"KM","Congo":"CG","Costa Rica":"CR","Croatia":"HR","Cuba":"CU","Cyprus":"CY","Czechia":"CZ","Denmark":"DK","Djibouti":"DJ","Dominica":"DM","Dominican Republic":"DO","Ecuador":"EC","Egypt":"EG","El Salvador":"SV","Equatorial Guinea":"GQ","Eritrea":"ER","Estonia":"EE","Eswatini":"SZ","Ethiopia":"ET","Fiji":"FJ","Finland":"FI","France":"FR","Gabon":"GA","Gambia":"GM","Georgia":"GE","Germany":"DE","Ghana":"GH","Greece":"GR","Grenada":"GD","Guatemala":"GT","Guinea":"GN","Guinea-Bissau":"GW","Guyana":"GY","Haiti":"HT","Honduras":"HN","Hungary":"HU","Iceland":"IS","India":"IN","Indonesia":"ID","Iran":"IR","Iraq":"IQ","Ireland":"IE","Israel":"IL","Italy":"IT","Jamaica":"JM","Japan":"JP","Jordan":"JO","Kazakhstan":"KZ","Kenya":"KE","Kiribati":"KI","Kuwait":"KW","Kyrgyzstan":"KG","Laos":"LA","Latvia":"LV","Lebanon":"LB","Lesotho":"LS","Liberia":"LR","Libya":"LY","Liechtenstein":"LI","Lithuania":"LT","Luxembourg":"LU","Madagascar":"MG","Malawi":"MW","Malaysia":"MY","Maldives":"MV","Mali":"ML","Malta":"MT","Marshall Islands":"MH","Mauritania":"MR","Mauritius":"MU","Mexico":"MX","Micronesia":"FM","Moldova":"MD","Monaco":"MC","Mongolia":"MN","Montenegro":"ME","Morocco":"MA","Mozambique":"MZ","Myanmar":"MM","Namibia":"NA","Nauru":"NR","Nepal":"NP","Netherlands":"NL","New Zealand":"NZ","Nicaragua":"NI","Niger":"NE","Nigeria":"NG","North Korea":"KP","North Macedonia":"MK","Norway":"NO","Oman":"OM","Pakistan":"PK","Palau":"PW","Palestine State":"PS","Panama":"PA","Papua New Guinea":"PG","Paraguay":"PY","Peru":"PE","Philippines":"PH","Poland":"PL","Portugal":"PT","Qatar":"QA","Romania":"RO","Russia":"RU","Rwanda":"RW","Saint Kitts and Nevis":"KN","Saint Lucia":"LC","Saint Vincent and the Grenadines":"VC","Samoa":"WS","San Marino":"SM","Sao Tome and Principe":"ST","Saudi Arabia":"SA","Senegal":"SN","Serbia":"RS","Seychelles":"SC","Sierra Leone":"SL","Singapore":"SG","Slovakia":"SK","Slovenia":"SI","Solomon Islands":"SB","Somalia":"SO","South Africa":"ZA","South Korea":"KR","South Sudan":"SS","Spain":"ES","Sri Lanka":"LK","Sudan":"SD","Suriname":"SR","Sweden":"SE","Switzerland":"CH","Syria":"SY","Tajikistan":"TJ","Tanzania":"TZ","Thailand":"TH","Timor-Leste":"TL","Togo":"TG","Tonga":"TO","Trinidad and Tobago":"TT","Tunisia":"TN","Turkey":"TR","Turkmenistan":"TM","Tuvalu":"TV","Uganda":"UG","Ukraine":"UA","United Arab Emirates":"AE","United Kingdom":"GB","United States":"US","Uruguay":"UY","Uzbekistan":"UZ","Vanuatu":"VU","Vatican City":"VA","Venezuela":"VE","Vietnam":"VN","Yemen":"YE","Zambia":"ZM","Zimbabwe":"ZW"};
@@ -283,30 +295,40 @@
         const tbody = document.getElementById('lb-body');
 
         try {
-          const q = query(collection(db, 'ambassadors'), orderBy('points', 'desc'), limit(50));
-          const snapshot = await getDocs(q);
+          const pointsQ = query(collection(regDb, 'ambassadorPoints'), orderBy('points', 'desc'), limit(50));
+          const pointsSnap = await getDocs(pointsQ);
           loader.classList.add('hidden');
-          if (snapshot.empty) {
+          if (pointsSnap.empty) {
             empty.classList.remove('hidden');
             return;
           }
           content.classList.remove('hidden');
           let rank = 1;
-          snapshot.forEach(doc => {
-            const data = doc.data();
+          for (const d of pointsSnap.docs) {
+            const pts = d.data();
+            let fullName = 'Ambassador', country = '', school = '';
+            try {
+              const ambSnap = await getDoc(doc(ambDb, 'ambassadors', d.id));
+              if (ambSnap.exists()) {
+                const a = ambSnap.data();
+                fullName = a.fullName || a.name || 'Ambassador';
+                country = a.country || '';
+                school = a.school || '';
+              }
+            } catch (_) {}
             const tr = document.createElement('tr');
             if (rank <= 3) tr.className = `rank-${rank}`;
-            const flag = data.country ? flagEmoji(data.country) : '';
+            const flag = country ? flagEmoji(country) : '';
             tr.innerHTML = `
               <td class="rank-num">#${rank}</td>
-              <td>${data.fullName || data.name || 'Unknown'}</td>
-              <td style="color: var(--muted);">${flag ? flag + ' ' : ''}${data.country || '--'}</td>
-              <td style="font-size:0.85rem;color:var(--muted)">${data.school || '--'}</td>
-              <td class="points-col">${data.points || 0} pts</td>
+              <td>${fullName}</td>
+              <td style="color: var(--muted);">${flag ? flag + ' ' : ''}${country || '--'}</td>
+              <td style="font-size:0.85rem;color:var(--muted)">${school || '--'}</td>
+              <td class="points-col">${pts.points || 0} pts</td>
             `;
             tbody.appendChild(tr);
             rank++;
-          });
+          }
         } catch (e) {
           console.error("Leaderboard error:", e);
           loader.classList.add('hidden');
@@ -387,17 +409,30 @@
           const userCredential = await createUserWithEmailAndPassword(auth, email, password);
           const referralCode = 'GAAC-' + String(Math.floor(Math.random() * 999) + 1).padStart(3, '0');
 
-          await setDoc(doc(db, 'ambassadors', userCredential.user.uid), {
-            fullName: data.get('fullName').trim(),
-            email: email,
+          const uid = userCredential.user.uid;
+          const fullName = data.get('fullName').trim();
+          const country = data.get('country').trim();
+          const school = data.get('school').trim();
+
+          await setDoc(doc(ambDb, 'ambassadors', uid), {
+            fullName,
+            email,
             phone: data.get('phone').trim(),
-            country: data.get('country').trim(),
-            school: data.get('school').trim(),
+            country,
+            school,
             points: 0,
             successfulRegistrations: 0,
-            referralCode: referralCode,
+            referralCode,
             createdAt: new Date().toISOString()
           });
+
+          // Also save profile to registration project so ambassadorPoints leaderboard works
+          try {
+            await setDoc(doc(regDb, 'ambassadorPoints', uid), {
+              fullName, country, school,
+              points: 0, successfulRegistrations: 0
+            });
+          } catch (_) {}
 
           form.classList.add('hidden');
           const regUrl = `https://gaac.stemastronomyclub.org/register?ref=${referralCode}`;
