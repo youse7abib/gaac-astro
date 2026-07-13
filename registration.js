@@ -101,18 +101,24 @@ const referralCode = urlParams.get('ref');
 let validAmbassadorId = null;
 
 if (referralCode && ambDb) {
+  console.log('[referral] Found ref in URL:', referralCode);
   (async () => {
     try {
       const q = query(collection(ambDb, 'ambassadors'), where('referralCode', '==', referralCode));
       const querySnapshot = await getDocs(q);
+      console.log('[referral] Query returned:', querySnapshot.size, 'docs');
       if (!querySnapshot.empty) {
         validAmbassadorId = querySnapshot.docs[0].id;
-        console.log('Valid referral code:', referralCode);
+        console.log('[referral] Valid! Ambassador ID:', validAmbassadorId);
+      } else {
+        console.warn('[referral] No ambassador found with code:', referralCode);
       }
     } catch (e) {
-      console.error('Error validating referral code:', e);
+      console.error('[referral] Error validating referral code:', e);
     }
   })();
+} else {
+  console.warn('[referral] Skipped — referralCode:', referralCode, 'ambDb:', !!ambDb);
 }
 
 // Form Submission
@@ -405,6 +411,7 @@ form.addEventListener('submit', async (e) => {
 
     // Award ambassador points in the gaac-ambassador project
     if (validAmbassadorId && ambDb) {
+      console.log('[points] Awarding points to ambassador:', validAmbassadorId);
       try {
         const configRef = doc(db, 'settings', 'referrals');
         const configSnap = await getDocs(collection(db, 'settings'));
@@ -417,9 +424,12 @@ form.addEventListener('submit', async (e) => {
           successfulRegistrations: increment(1),
           points: increment(pointsToAdd)
         });
+        console.log('[points] Success! Added', pointsToAdd, 'points');
       } catch (e) {
-        console.error("Failed to award ambassador points:", e);
+        console.error("[points] Failed to award ambassador points:", e);
       }
+    } else {
+      console.warn('[points] Skipped — validAmbassadorId:', validAmbassadorId, 'ambDb:', !!ambDb);
     }
     
   } catch (error) {
