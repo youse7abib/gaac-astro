@@ -365,7 +365,7 @@ form.addEventListener('submit', async (e) => {
                       </table>
                       <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(38,183,255,0.15),transparent);margin:20px 0 24px;"></div>
                       <p style="color:#aec8e0;font-size:0.85rem;line-height:1.6;margin:0 0 4px;">Keep this email for your records. Use your Registration ID and the password above to log in at the Exam Portal.</p>
-                      <p style="color:#7a9bb5;font-size:0.82rem;line-height:1.5;margin:0;">If you have any questions, contact us at <a href="mailto:gaac@stemastronomyclub.org" style="color:#26b7ff;text-decoration:none;">gaac@stemastronomyclub.org</a></p>
+                      <p style="color:#7a9bb5;font-size:0.82rem;line-height:1.5;margin:0;">If you have any questions, contact us at <a href="mailto:astronomyclub64@gmail.com" style="color:#26b7ff;text-decoration:none;">astronomyclub64@gmail.com</a><br><a href="mailto:gaac@stemastronomyclub.org" style="color:#26b7ff;text-decoration:none;">gaac@stemastronomyclub.org</a></p>
                     </td></tr>
                     <tr><td align="center" style="padding-top:28px;">
                       <p style="color:#4a6a80;font-size:0.75rem;margin:0;">STEM Astronomy Club — Global Astronomy &amp; Astrophysics Challenge</p>
@@ -424,7 +424,12 @@ form.addEventListener('submit', async (e) => {
     
   } catch (error) {
     console.error("Registration Error:", error);
-    showAlert(error.message || "An error occurred during registration. Please try again.");
+    const msg = error.message || '';
+    if (/quota|429|RESOURCE_EXHAUSTED/i.test(msg)) {
+      showAlert("Registration is temporarily unavailable due to a technical issue. We're actively working on a fix and expect service to resume shortly. Please try again later.");
+    } else {
+      showAlert(msg || "An error occurred during registration. Please try again.");
+    }
   } finally {
     setLoading(false);
   }
