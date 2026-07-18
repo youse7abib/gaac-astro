@@ -13,7 +13,7 @@
     <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
 
     <header class="site-header">
-      <a class="brand-lockup" href="index.html">
+      <a class="brand-lockup" href="index">
         <img class="brand-logo club-logo" src="Club_Logo_Black_BG-removebg-preview.png" alt="STEM Astronomy Club logo" />
         <span class="brand-divider" aria-hidden="true"></span>
         <img class="brand-logo gaac-logo" src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
@@ -22,20 +22,13 @@
         <span></span><span></span><span></span>
       </button>
       <nav class="site-nav">
-        <a href="index.html">Home</a>
-        <a href="ambassador.html" class="active">Ambassador</a>
+        <a href="index">Home</a>
+        <a href="ambassador" class="active">Ambassador</a>
       </nav>
-      <a class="nav-cta header-cta" href="ambassador-register.html">Apply Now</a>
+      <a class="nav-cta header-cta" href="ambassador-register">Apply Now</a>
     </header>
 
     <main>
-      <section class="page-shell" style="text-align:center; padding: 80px 20px;">
-        <p class="eyebrow">Coming Soon</p>
-        <h1>Ambassador <span class="text-blue">Program</span>.</h1>
-        <p style="color: var(--muted); margin-top: 12px;">The ambassador program is launching soon. Stay tuned!</p>
-      </section>
-
-      <div style="display:none;">
       <section class="subhero page-shell">
         <div class="reveal">
           <p class="eyebrow">Ambassador Program</p>
@@ -70,12 +63,11 @@
             </div>
             
             <p style="text-align: center; margin-top: 20px; color: var(--silver);">
-              Don't have an account? <a href="ambassador-register.html" style="color: var(--blue);">Apply here</a>.
+              Don't have an account? <a href="ambassador-register" style="color: var(--blue);">Apply here</a>.
             </p>
           </form>
         </div>
       </section>
-      </div>
     </main>
 
     <script src="script.js"></script>
@@ -133,7 +125,7 @@
         try {
           const data = new FormData(form);
           await signInWithEmailAndPassword(auth, data.get('email').trim().toLowerCase(), data.get('password'));
-          window.location.href = 'ambassador-dashboard.html';
+          window.location.href = 'ambassador-dashboard';
         } catch (error) {
           console.error('Login Error:', error);
           if (error.code === 'auth/user-not-found' || error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {

@@ -92,33 +92,13 @@
         color: var(--muted);
       }
 
-      .ambassador-content { display: block; }
-      .ambassador-content.hidden-content { display: none; }
-      .ambassador-content.visible-content { display: block; }
-      .coming-soon-banner {
-        display: none;
-        text-align: center;
-        padding: 80px 20px;
-      }
-      .coming-soon-banner.visible-banner { display: block; }
-      .coming-soon-banner h2 {
-        font-size: clamp(1.6rem, 4vw, 2.8rem);
-        letter-spacing: 0.08em;
-      }
-      .coming-soon-banner p {
-        color: var(--muted);
-        margin-top: 12px;
-        max-width: 400px;
-        margin-left: auto;
-        margin-right: auto;
-      }
     </style>
   </head>
   <body class="page-ambassador">
     <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
 
     <header class="site-header">
-      <a class="brand-lockup" href="index.html" aria-label="GAAC home">
+      <a class="brand-lockup" href="index" aria-label="GAAC home">
         <img class="brand-logo club-logo" src="Club_Logo_Black_BG-removebg-preview.png" alt="STEM Astronomy Club logo" />
         <span class="brand-divider" aria-hidden="true"></span>
         <img class="brand-logo gaac-logo" src="GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
@@ -127,23 +107,16 @@
         <span></span><span></span><span></span>
       </button>
       <nav class="site-nav" aria-label="Primary navigation">
-        <a href="index.html">Home</a>
-        <a href="syllabus.html">Syllabus</a>
-        <a href="timeline.html">Timeline</a>
-        <a href="partners.html">Partners</a>
-        <a class="active" href="ambassador.html">Ambassador</a>
+        <a href="index">Home</a>
+        <a href="syllabus">Syllabus</a>
+        <a href="timeline">Timeline</a>
+        <a href="partners">Partners</a>
+        <a class="active" href="ambassador">Ambassador</a>
       </nav>
-      <a class="nav-cta header-cta" href="register.html">Register</a>
+      <a class="nav-cta header-cta" href="register">Register</a>
     </header>
 
     <main>
-      <div class="coming-soon-banner visible-banner" id="coming-soon">
-        <p class="eyebrow">Coming Soon</p>
-        <h2>Ambassador <span class="text-blue">Program</span></h2>
-        <p>The GAAC Ambassador Program is launching soon. Stay tuned!</p>
-      </div>
-
-      <div class="ambassador-content hidden-content" id="real-content">
       <section class="page-shell" style="padding-top: 40px; padding-bottom: 0;">
         <div class="reveal" style="text-align: center; max-width: 600px; margin: 0 auto;">
           <p class="eyebrow">Ambassador Program</p>
@@ -207,7 +180,7 @@
               </div>
 
               <p style="text-align: center; margin-top: 20px; color: var(--silver);">
-                Already an ambassador? <a href="ambassador-login.html" style="color: var(--blue);">Login here</a>.
+                Already an ambassador? <a href="ambassador-login" style="color: var(--blue);">Login here</a>.
               </p>
             </form>
 
@@ -223,7 +196,7 @@
                 <button id="btn-copy-referral" class="button secondary" style="margin-top: 12px;">Copy Link</button>
               </div>
               <p style="color: var(--muted); font-size: 0.8rem; margin-top: 16px;">Students who register using your link earn you points on the leaderboard.</p>
-              <a href="ambassador-dashboard.html" class="button primary" style="margin-top: 20px;">Go to Dashboard</a>
+              <a href="ambassador-dashboard" class="button primary" style="margin-top: 20px;">Go to Dashboard</a>
             </div>
           </div>
         </div>
@@ -260,7 +233,6 @@
           </div>
         </div>
       </section>
-      </div>
     </main>
 
     <footer class="site-footer">
@@ -269,11 +241,11 @@
         <p>Global Astronomy &amp; Astrophysics Challenge, organized by STEM Astronomy Club.</p>
       </div>
       <nav aria-label="Footer navigation">
-        <a href="index.html">Home</a>
-        <a href="syllabus.html">Syllabus</a>
-        <a href="timeline.html">Timeline</a>
-        <a href="partners.html">Partners</a>
-        <a href="ambassador.html">Ambassador</a>
+        <a href="index">Home</a>
+        <a href="syllabus">Syllabus</a>
+        <a href="timeline">Timeline</a>
+        <a href="partners">Partners</a>
+        <a href="ambassador">Ambassador</a>
       </nav>
       <a class="footer-email" href="mailto:astronomyclub64@gmail.com">astronomyclub64@gmail.com</a>
       <a class="footer-email" href="mailto:gaac@stemastronomyclub.org">gaac@stemastronomyclub.org</a>
@@ -300,12 +272,6 @@
       const auth = getAuth(app);
       const db = getFirestore(app);
 
-      // Always show Coming Soon for now
-      const comingSoon = document.getElementById('coming-soon');
-      const realContent = document.getElementById('real-content');
-      comingSoon.classList.add('visible-banner');
-      realContent.classList.add('hidden-content');
-
       // --- LEADERBOARD ---
       async function loadLeaderboard() {
         const loader = document.getElementById('lb-loader');
@@ -315,7 +281,7 @@
         const tbody = document.getElementById('lb-body');
 
         try {
-          const q = query(collection(db, 'ambassadors'), orderBy('points', 'desc'), limit(50));
+          const q = query(collection(db, 'ambassadors'), orderBy('points', 'desc'), limit(15));
           const snapshot = await getDocs(q);
           loader.classList.add('hidden');
           if (snapshot.empty) {
@@ -430,7 +396,7 @@
           });
 
           form.classList.add('hidden');
-          const regUrl = `register.html?ref=${referralCode}`;
+          const regUrl = `https://gaac.stemastronomyclub.org/register?ref=${referralCode}`;
           document.getElementById('display-ref-code').textContent = referralCode;
           document.getElementById('display-ref-link').textContent = regUrl;
           document.getElementById('btn-copy-referral').addEventListener('click', () => {
