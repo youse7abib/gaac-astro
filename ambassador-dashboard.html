@@ -179,21 +179,9 @@
         measurementId: "G-0F3CBV292K"
       };
 
-      const regConfig = {
-        apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
-        authDomain: "gaac-registration-2026.firebaseapp.com",
-        projectId: "gaac-registration-2026",
-        storageBucket: "gaac-registration-2026.firebasestorage.app",
-        messagingSenderId: "542838311094",
-        appId: "1:542838311094:web:6104e2ed0d1cafa976be17",
-        measurementId: "G-CEB6Z0RF5E"
-      };
-
       const app = initializeApp(firebaseConfig);
       const auth = getAuth(app);
       const db = getFirestore(app);
-      const regApp = initializeApp(regConfig, 'registration');
-      const regDb = getFirestore(regApp);
 
       const loadingState = document.getElementById('loading-state');
       const dashContent = document.getElementById('dashboard-content');
@@ -227,12 +215,6 @@
           refCodeDisplay.textContent = refCode;
           const regUrl = `https://gaac.stemastronomyclub.org/register?ref=${refCode}`;
           referralLink.textContent = regUrl;
-
-          const adminDoc = await getDoc(doc(regDb, 'admins', user.uid));
-          const adminBanner = document.getElementById('admin-banner');
-          if (adminDoc.exists() && adminDoc.data().isAdmin === true) {
-            adminBanner.removeAttribute('hidden');
-          }
 
           loadingState.classList.add('hidden');
           dashContent.classList.remove('hidden');
