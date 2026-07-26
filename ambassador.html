@@ -78,6 +78,138 @@
         font-weight: 700;
         text-align: right;
       }
+      .leaderboard-table .name-cell {
+        line-height: 1.4;
+      }
+      .leaderboard-table .school-name {
+        font-size: 0.78rem;
+        color: var(--muted);
+        font-weight: 400;
+      }
+      .prizes-section {
+        max-width: 800px;
+        margin: 0 auto 48px;
+      }
+      .prizes-section .section-heading {
+        text-align: center;
+        margin-bottom: 32px;
+      }
+      .prizes-section .section-heading h2 {
+        margin-bottom: 4px;
+      }
+      .prizes-section .section-heading p {
+        color: var(--silver);
+      }
+      .prize-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      @media (max-width: 700px) {
+        .prize-grid { grid-template-columns: 1fr; }
+      }
+      .prize-card {
+        background: rgba(10, 14, 23, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px;
+        padding: 28px 20px;
+        text-align: center;
+        backdrop-filter: blur(12px);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+      }
+      .prize-card.gold { border-color: rgba(255, 215, 0, 0.4); }
+      .prize-card.silver { border-color: rgba(192, 192, 192, 0.3); }
+      .prize-card.bronze { border-color: rgba(205, 127, 50, 0.3); }
+      .prize-medal {
+        font-size: 2rem;
+        margin-bottom: 8px;
+      }
+      .prize-card h3 {
+        font-family: var(--font-orbitron);
+        font-size: 0.85rem;
+        color: var(--white);
+        margin-bottom: 16px;
+        letter-spacing: 0.05em;
+      }
+      .prize-card.gold h3 { color: #ffd700; }
+      .prize-card.silver h3 { color: #c0c0c0; }
+      .prize-card.bronze h3 { color: #cd7f32; }
+      .prize-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        width: 100%;
+        padding: 8px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+      }
+      .prize-item:last-child { border-bottom: none; }
+      .prize-item img {
+        width: 36px;
+        height: 36px;
+        object-fit: contain;
+        border-radius: 6px;
+        background: rgba(255,255,255,0.05);
+        padding: 4px;
+        flex-shrink: 0;
+      }
+      .prize-item span {
+        font-size: 0.85rem;
+        color: var(--silver);
+      }
+      .bonus-prizes {
+        margin-top: 32px;
+        background: rgba(10, 14, 23, 0.6);
+        border: 1px solid rgba(38, 183, 255, 0.2);
+        border-radius: 16px;
+        padding: 24px 28px;
+        text-align: center;
+      }
+      .bonus-prizes h3 {
+        font-family: var(--font-orbitron);
+        font-size: 0.8rem;
+        color: var(--blue-light);
+        letter-spacing: 0.06em;
+        margin-bottom: 16px;
+        text-transform: uppercase;
+      }
+      .bonus-row {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+        padding: 10px 0;
+        flex-wrap: wrap;
+      }
+      .bonus-threshold {
+        font-family: var(--font-orbitron);
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--white);
+        min-width: 120px;
+        text-align: right;
+      }
+      .bonus-arrow {
+        color: var(--blue-light);
+        font-size: 1.2rem;
+      }
+      .bonus-reward {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        min-width: 180px;
+      }
+      .bonus-reward img {
+        width: 28px;
+        height: 28px;
+        object-fit: contain;
+        border-radius: 4px;
+      }
+      .bonus-reward span {
+        font-size: 0.85rem;
+        color: var(--silver);
+      }
       .leaderboard-empty {
         text-align: center;
         padding: 40px 20px;
@@ -121,7 +253,7 @@
         <div class="reveal" style="text-align: center; max-width: 600px; margin: 0 auto;">
           <p class="eyebrow">Ambassador Program</p>
           <h1 style="font-size: clamp(1.4rem, 3vw, 2rem);">Become a <span class="text-blue">GAAC Ambassador</span></h1>
-          <p style="font-size: 0.9rem; margin-top: 8px; color: var(--muted);">Help students discover GAAC. Earn points for every team you refer.</p>
+          <p style="font-size: 0.9rem; margin-top: 8px; color: var(--muted);">Help students discover GAAC. Earn referrals for every team you bring in.</p>
         </div>
       </section>
 
@@ -195,9 +327,52 @@
                 <p id="display-ref-link" style="font-size: 0.85rem; color: var(--silver); word-break: break-all;"></p>
                 <button id="btn-copy-referral" class="button secondary" style="margin-top: 12px;">Copy Link</button>
               </div>
-              <p style="color: var(--muted); font-size: 0.8rem; margin-top: 16px;">Students who register using your link earn you points on the leaderboard.</p>
+              <p style="color: var(--muted); font-size: 0.8rem; margin-top: 16px;">Students who register using your link count as accepted referrals on the leaderboard.</p>
               <a href="ambassador-dashboard" class="button primary" style="margin-top: 20px;">Go to Dashboard</a>
             </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="page-shell compact prizes-section">
+        <div class="section-heading centered reveal">
+          <p class="eyebrow">Prizes</p>
+          <h2>Ambassador <span class="text-blue">Rewards</span>.</h2>
+          <p>Climb the leaderboard and earn exclusive prizes.</p>
+        </div>
+        <div class="prize-grid reveal delay-1">
+          <div class="prize-card gold">
+            <div class="prize-medal">🥇</div>
+            <h3>1st Place</h3>
+            <div class="prize-item"><img src="wolfram-alpha.jpg" alt="Wolfram" /><span>Wolfram|One</span></div>
+            <div class="prize-item"><img src="Starry night pto logowebp.webp" alt="Starry Night Pro" /><span>Starry Night Pro</span></div>
+            <div class="prize-item"><img src="Universe Sandbook.jfif" alt="Universe Sandbox" /><span>Universe Sandbox (Steam Code)</span></div>
+          </div>
+          <div class="prize-card silver">
+            <div class="prize-medal">🥈</div>
+            <h3>2nd Place</h3>
+            <div class="prize-item"><img src="wolfram-alpha.jpg" alt="Wolfram" /><span>Wolfram|One</span></div>
+            <div class="prize-item"><img src="SkySaffari.png" alt="SkySafari" /><span>SkySafari</span></div>
+            <div class="prize-item"><img src="siril.png" alt="Siril" /><span>Siril Book</span></div>
+          </div>
+          <div class="prize-card bronze">
+            <div class="prize-medal">🥉</div>
+            <h3>3rd Place</h3>
+            <div class="prize-item"><img src="wolfram-alpha.jpg" alt="Wolfram" /><span>Wolfram|One</span></div>
+            <div class="prize-item"><img src="siril.png" alt="Siril" /><span>Siril Book</span></div>
+          </div>
+        </div>
+        <div class="bonus-prizes reveal delay-2">
+          <h3>Bonus Rewards</h3>
+          <div class="bonus-row">
+            <span class="bonus-threshold">20+ Referrals</span>
+            <span class="bonus-arrow">→</span>
+            <div class="bonus-reward"><img src="wolfram-alpha.jpg" alt="Wolfram" /><span>Wolfram|One</span></div>
+          </div>
+          <div class="bonus-row">
+            <span class="bonus-threshold">5+ Referrals</span>
+            <span class="bonus-arrow">→</span>
+            <div class="bonus-reward"><span>Special GAAC Ambassador Certificate</span></div>
           </div>
         </div>
       </section>
@@ -206,7 +381,7 @@
         <div class="section-heading centered reveal">
           <p class="eyebrow">Leaderboard</p>
           <h2>Top <span class="text-blue">Ambassadors</span>.</h2>
-          <p>Ambassadors ranked by referral points earned.</p>
+          <p>Ambassadors ranked by accepted referrals.</p>
         </div>
         <div class="leaderboard-card reveal delay-1">
           <div id="lb-loader" class="lb-loader">
@@ -219,7 +394,7 @@
                   <th>Rank</th>
                   <th>Name</th>
                   <th>Country</th>
-                  <th style="text-align: right;">Points</th>
+                  <th style="text-align: right;">Referrals</th>
                 </tr>
               </thead>
               <tbody id="lb-body"></tbody>
@@ -292,13 +467,14 @@
           let rank = 1;
           snapshot.forEach(doc => {
             const data = doc.data();
+            const referrals = Math.floor((data.points || 0) / 10);
             const tr = document.createElement('tr');
             if (rank <= 3) tr.className = `rank-${rank}`;
             tr.innerHTML = `
               <td class="rank-num">#${rank}</td>
-              <td>${data.fullName || data.name || 'Unknown'}</td>
+              <td class="name-cell">${data.fullName || data.name || 'Unknown'}${data.school ? `<br><span class="school-name">${data.school}</span>` : ''}</td>
               <td style="color: var(--muted);">${data.country || '--'}</td>
-              <td class="points-col">${data.points || 0} pts</td>
+              <td class="points-col">${referrals}</td>
             `;
             tbody.appendChild(tr);
             rank++;

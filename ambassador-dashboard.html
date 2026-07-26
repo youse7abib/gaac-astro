@@ -116,12 +116,8 @@
         <div id="dashboard-content" class="hidden">
           <div class="stats-row">
             <div class="stat-mini">
-              <h3>Points</h3>
-              <p class="val text-blue" id="stat-points">0</p>
-            </div>
-            <div class="stat-mini">
               <h3>Referrals</h3>
-              <p class="val" id="stat-referrals">0</p>
+              <p class="val text-blue" id="stat-referrals">0</p>
             </div>
           </div>
 
@@ -136,7 +132,8 @@
           <div class="leaderboard-prompt">
             <p>Don't see yourself on the leaderboard?<br>
             <strong style="color: var(--blue-light);">Share your referral link everywhere</strong>, social media, group chats, with friends — and climb into the <strong style="color: var(--white);">top 15</strong>!</p>
-            <a href="ambassador" class="button secondary" style="margin-top: 12px;">View Leaderboard</a>
+            <p style="color: var(--muted); font-size: 0.8rem; margin-top: 8px;">1 accepted referral = points on the leaderboard. Earn 5+ for a certificate, 20+ for Wolfram|One.</p>
+            <a href="ambassador" class="button secondary" style="margin-top: 12px;">View Leaderboard &amp; Prizes</a>
           </div>
 
           <div id="admin-banner" hidden style="margin-top: 40px; padding: 16px; background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.4); border-radius: 8px; text-align: center;">
@@ -186,7 +183,6 @@
       const loadingState = document.getElementById('loading-state');
       const dashContent = document.getElementById('dashboard-content');
       const userGreeting = document.getElementById('user-greeting');
-      const statPoints = document.getElementById('stat-points');
       const statReferrals = document.getElementById('stat-referrals');
       const refCodeDisplay = document.getElementById('display-ref-code');
       const referralLink = document.getElementById('referral-link');
@@ -207,9 +203,12 @@
           }
 
           const data = docSnap.data();
+          const referrals = Math.floor((data.points || 0) / 10);
           userGreeting.textContent = `Welcome, ${data.fullName || 'Ambassador'}`;
-          statPoints.textContent = data.points || 0;
-          statReferrals.textContent = data.successfulRegistrations || 0;
+          if (data.school) {
+            userGreeting.innerHTML += `<br><span style="font-size: 0.7em; font-weight: 400; color: var(--muted);">${data.school}</span>`;
+          }
+          statReferrals.textContent = referrals;
 
           const refCode = data.referralCode || ('GAAC-' + user.uid.substring(0, 3));
           refCodeDisplay.textContent = refCode;
