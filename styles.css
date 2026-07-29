@@ -803,6 +803,7 @@ p  { overflow-wrap: anywhere; }
   background: rgba(255,255,255,0.92);
 }
 .partner-card:first-child img { background: transparent; }
+.partner-card img.dark-bg { background: rgba(0,0,0,0.85); }
 .partner-card h2, .info-card h2, .timeline-track h2 { font-size: clamp(1.05rem,1.7vw,1.45rem); }
 
 /* ================================================================

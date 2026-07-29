@@ -331,7 +331,7 @@ form.addEventListener('submit', async (e) => {
                 <tr><td align="center">
                   <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;">
                     <tr><td align="center" style="padding-bottom:32px;">
-                      <img src="https://gaac-registration-2026.web.app/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" width="180" style="display:block;">
+                      <img src="https://gaac-registration-2026.web.app/images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" width="180" style="display:block;">
                     </td></tr>
                     <tr><td style="background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.018));border:1px solid rgba(38,183,255,0.15);border-radius:16px;padding:40px 36px;backdrop-filter:blur(22px);">
                       <h1 style="margin:0 0 8px;font-family:'Orbitron',Arial,sans-serif;font-size:1.3rem;font-weight:700;color:#ffffff;letter-spacing:0.04em;text-align:center;">Registration Confirmed</h1>
