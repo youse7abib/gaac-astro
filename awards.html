@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Awards and prizes for GAAC competition participants." />
+    <title>Awards | GAAC</title>
+    <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="styles.css" />
+    <style>
+      .awards-page .page-shell { max-width: 800px; }
+      .awards-page .section-heading { text-align: center; margin-bottom: 28px; }
+      .awards-page .section-heading h2 { margin-bottom: 4px; }
+      .awards-page .section-heading p { color: var(--silver); font-size: 0.9rem; }
+      .awards-page .section-heading .eyebrow { margin-bottom: 4px; }
+
+      /* Qualification Rewards */
+      .qual-grid { display: grid; gap: 16px; }
+      .qual-tier {
+        display: flex; align-items: center; gap: 20px;
+        background: rgba(10, 14, 23, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px; padding: 20px 24px;
+        backdrop-filter: blur(12px);
+      }
+      .qual-tier .qual-badge {
+        font-family: var(--font-orbitron); font-size: 0.78rem; font-weight: 700;
+        letter-spacing: 0.05em; color: var(--blue-light); white-space: nowrap;
+        min-width: 90px;
+      }
+      .qual-tier .qual-icon {
+        width: 44px; height: 44px; object-fit: contain; border-radius: 8px; flex-shrink: 0;
+      }
+      .qual-tier .qual-icon.cert {
+        width: 40px; height: 40px; background: rgba(38,183,255,0.12); border-radius: 50%;
+        display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+      }
+      .qual-tier .qual-desc { flex: 1; font-size: 0.92rem; color: var(--white); }
+      .qual-tier .qual-desc small { display: block; font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+      @media (max-width: 600px) {
+        .qual-tier { flex-wrap: wrap; gap: 12px; }
+        .qual-tier .qual-badge { min-width: unset; }
+      }
+
+      /* Team Rewards */
+      .team-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; }
+      @media (max-width: 700px) { .team-grid { grid-template-columns: 1fr; } }
+      .member-card {
+        background: rgba(10, 14, 23, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);
+        border-radius: 16px; padding: 24px 20px; text-align: center; backdrop-filter: blur(12px);
+      }
+      .member-card .member-label {
+        font-size: 0.7rem; font-family: var(--font-orbitron); letter-spacing: 0.08em;
+        text-transform: uppercase; color: var(--muted); margin-bottom: 16px;
+      }
+      .member-card img {
+        width: 52px; height: 52px; object-fit: contain; border-radius: 8px;
+        background: rgba(255,255,255,0.05); padding: 6px; margin-bottom: 12px;
+      }
+      .member-card h4 { font-size: 0.92rem; color: var(--white); font-weight: 600; }
+      .member-card .member-count {
+        font-size: 0.78rem; color: var(--blue-light); font-family: var(--font-orbitron); margin-top: 4px;
+      }
+      .team-note { text-align: center; font-size: 0.78rem; color: var(--muted); margin-top: 16px; font-style: italic; }
+
+      /* Honorable Mention */
+      .hm-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      @media (max-width: 700px) { .hm-grid { grid-template-columns: 1fr; } }
+      .hm-card {
+        background: rgba(10, 14, 23, 0.5); border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px; padding: 20px 16px; text-align: center; backdrop-filter: blur(8px);
+      }
+      .hm-card img {
+        width: 42px; height: 42px; object-fit: contain; border-radius: 6px;
+        background: rgba(255,255,255,0.04); padding: 5px; margin-bottom: 10px;
+      }
+      .hm-card h4 { font-size: 0.85rem; color: var(--white); font-weight: 500; }
+      .hm-card .hm-count {
+        font-size: 0.72rem; color: var(--muted); font-family: var(--font-orbitron); margin-top: 4px;
+      }
+      .hm-note { text-align: center; font-size: 0.75rem; color: var(--muted); margin-top: 14px; font-style: italic; }
+
+      /* Outstanding Performer */
+      .outstanding-card {
+        background: linear-gradient(135deg, rgba(255,215,0,0.06), rgba(255,215,0,0.02));
+        border: 1px solid rgba(255, 215, 0, 0.25); border-radius: 16px;
+        padding: 28px 24px; text-align: center; backdrop-filter: blur(12px);
+      }
+      .outstanding-card .outstanding-icon { font-size: 2rem; margin-bottom: 8px; }
+      .outstanding-card h3 {
+        font-family: var(--font-orbitron); font-size: 0.82rem; color: #ffd700;
+        letter-spacing: 0.05em; margin-bottom: 4px; text-transform: uppercase;
+      }
+      .outstanding-card .outstanding-sub { font-size: 0.78rem; color: var(--muted); }
+      .outstanding-card img {
+        width: 44px; height: 44px; object-fit: contain; border-radius: 6px;
+        background: rgba(255,255,255,0.04); padding: 5px; margin: 12px auto 0;
+      }
+      .outstanding-card .outstanding-label {
+        font-size: 0.88rem; color: var(--white); font-weight: 600; margin-top: 6px;
+      }
+
+      /* Participation Rewards */
+      .participation-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+      @media (max-width: 700px) { .participation-grid { grid-template-columns: 1fr; } }
+      .participation-card {
+        background: rgba(10, 14, 23, 0.5); border: 1px solid rgba(255, 255, 255, 0.07);
+        border-radius: 14px; padding: 20px 16px; text-align: center; backdrop-filter: blur(8px);
+      }
+      .participation-card img {
+        width: 38px; height: 38px; object-fit: contain; border-radius: 6px;
+        background: rgba(255,255,255,0.04); padding: 4px; margin-bottom: 10px;
+      }
+      .participation-card h4 { font-size: 0.82rem; color: var(--white); font-weight: 500; }
+      .participation-card .part-label {
+        font-size: 0.7rem; color: var(--muted); font-family: var(--font-orbitron);
+        letter-spacing: 0.04em; text-transform: uppercase; margin-top: 4px;
+      }
+      .participation-card .part-sub { font-size: 0.72rem; color: var(--muted); margin-top: 2px; }
+
+      .awards-spacer { height: 48px; }
+    </style>
+  </head>
+  <body class="page-awards awards-page">
+    <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
+
+    <header class="site-header">
+      <a class="brand-lockup" href="index" aria-label="GAAC home">
+        <img class="brand-logo club-logo" src="images/Club_Logo_Black_BG-removebg-preview.png" alt="STEM October Astronomy Club logo" />
+        <span class="brand-divider" aria-hidden="true"></span>
+        <img class="brand-logo gaac-logo" src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+      </a>
+      <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
+        <span></span><span></span><span></span>
+      </button>
+      <nav class="site-nav" aria-label="Primary navigation">
+        <a href="index">Home</a>
+        <a href="syllabus">Syllabus</a>
+        <a href="timeline">Timeline</a>
+        <a href="partners">Partners</a>
+        <a href="awards">Awards</a>
+        <a href="ambassador">Ambassador</a>
+      </nav>
+      <a class="nav-cta header-cta" href="register">Register</a>
+    </header>
+
+    <main>
+      <section class="page-shell compact">
+        <div class="section-heading reveal">
+          <p class="eyebrow" style="margin-bottom:4px;">Awards</p>
+          <h1 style="font-size:clamp(1.4rem,3vw,2rem);">Competition <span class="text-blue">Prizes</span>.</h1>
+          <p>Every participating team has a chance to earn exclusive prizes from our partners.</p>
+        </div>
+
+        <!-- Team Rewards (Top 3) -->
+        <div class="section-heading reveal" style="margin-bottom:20px;">
+          <p class="eyebrow">Top 3 Teams</p>
+          <h2>Winning Team <span class="text-blue">Rewards</span>.</h2>
+          <p>Each team member receives a software license from our partners.</p>
+        </div>
+        <div class="team-grid reveal delay-1">
+          <div class="member-card">
+            <div class="member-label">Team Member 1</div>
+            <img src="images/partners/SkySaffari.png" alt="SkySafari Pro" />
+            <h4>SkySafari Pro</h4>
+            <div class="member-count">1 License</div>
+          </div>
+          <div class="member-card">
+            <div class="member-label">Team Member 2</div>
+            <img src="images/partners/SkySaffari.png" alt="SkySafari Pro" />
+            <h4>SkySafari Pro</h4>
+            <div class="member-count">1 License</div>
+          </div>
+          <div class="member-card">
+            <div class="member-label">Team Member 3</div>
+            <img src="images/partners/Starry night pto logowebp.webp" alt="Starry Night Pro 8" />
+            <h4>Starry Night Pro 8</h4>
+            <div class="member-count">1 License</div>
+          </div>
+        </div>
+        <p class="team-note">Each team member receives one software license for their own use. (2× SkySafari Pro · 1× Starry Night Pro 8)</p>
+
+        <div class="awards-spacer" aria-hidden="true"></div>
+
+        <!-- Honorable Mention -->
+        <div class="section-heading reveal" style="margin-bottom:20px;">
+          <p class="eyebrow">Honorable Mention</p>
+          <h2>Recognizing <span class="text-blue">Excellence</span>.</h2>
+        </div>
+        <div class="hm-grid reveal delay-1">
+          <div class="hm-card">
+            <img src="images/partners/Starry night pto logowebp.webp" alt="Starry Night Pro 8" />
+            <h4>Starry Night Pro 8</h4>
+            <div class="hm-count">1 License</div>
+          </div>
+          <div class="hm-card">
+            <img src="images/partners/Starry night pto logowebp.webp" alt="Starry Night Pro 8" />
+            <h4>Starry Night Pro 8</h4>
+            <div class="hm-count">1 License</div>
+          </div>
+          <div class="hm-card">
+            <img src="images/partners/SkySaffari.png" alt="SkySafari Pro" />
+            <h4>SkySafari Pro</h4>
+            <div class="hm-count">1 License</div>
+          </div>
+        </div>
+        <p class="hm-note">Software licenses are distributed among the Honorable Mention team members. (2× Starry Night Pro 8 · 1× SkySafari Pro)</p>
+
+        <div class="awards-spacer" aria-hidden="true"></div>
+
+        <!-- Qualification Rewards -->
+        <div class="section-heading reveal" style="margin-bottom:20px;">
+          <p class="eyebrow">Qualification</p>
+          <h2>Advance &amp; <span class="text-blue">Earn</span>.</h2>
+          <p>Teams that advance through the rounds unlock rewards at each stage.</p>
+        </div>
+        <div class="qual-grid reveal delay-1">
+          <div class="qual-tier">
+            <span class="qual-badge">Top 32</span>
+            <div class="qual-icon cert">🏅</div>
+            <div class="qual-desc">Special Quarterfinalist Certificate<small>Awarded to every team that reaches the quarterfinals.</small></div>
+          </div>
+          <div class="qual-tier">
+            <span class="qual-badge">Top 16</span>
+            <img class="qual-icon" src="images/partners/Universe Sandbook.jfif" alt="Universe Sandbox" />
+            <div class="qual-desc">Universe Sandbox Steam Keys <strong style="color:var(--blue-light);">3×</strong><small>One Steam key for each team member.</small></div>
+          </div>
+          <div class="qual-tier">
+            <span class="qual-badge">Top 8</span>
+            <img class="qual-icon" src="images/partners/KSP LOGO.webp" alt="Kerbal Space Program" />
+            <div class="qual-desc">Kerbal Space Program Codes <strong style="color:var(--blue-light);">3×</strong><small>One KSP code for each team member.</small></div>
+          </div>
+        </div>
+
+        <div class="awards-spacer" aria-hidden="true"></div>
+
+        <!-- Outstanding Performer -->
+        <div class="section-heading reveal" style="margin-bottom:20px;">
+          <p class="eyebrow">Round One</p>
+          <h2>Outstanding <span class="text-blue">Performer</span>.</h2>
+          <p>Awarded to the highest-scoring individual in the first round.</p>
+        </div>
+        <div class="outstanding-card reveal delay-1">
+          <div class="outstanding-icon">⭐</div>
+          <h3>Round One Outstanding Performer</h3>
+          <p class="outstanding-sub">Awarded to the individual with the highest Round 1 score.</p>
+          <img src="images/partners/wolfram-alpha.jpg" alt="Wolfram" />
+          <div class="outstanding-label">Wolfram Pro Plus <strong style="color:#ffd700;">1×</strong> — 1-Year Subscription</div>
+        </div>
+
+        <div class="awards-spacer" aria-hidden="true"></div>
+
+        <!-- Participation Rewards -->
+        <div class="section-heading reveal" style="margin-bottom:20px;">
+          <p class="eyebrow">Everyone</p>
+          <h2>Participation <span class="text-blue">Rewards</span>.</h2>
+          <p>Every registered participant receives access to these tools.</p>
+        </div>
+        <div class="participation-grid reveal delay-1">
+          <div class="participation-card">
+            <img src="images/partners/wolfram-alpha.jpg" alt="Wolfram" />
+            <h4>Wolfram One Pro Account</h4>
+            <div class="part-label">Wolfram</div>
+          </div>
+          <div class="participation-card">
+            <img src="images/partners/SkySaffari.png" alt="SkySafari" />
+            <h4>SkySafari Pro Discount Code</h4>
+            <div class="part-label">SkySafari</div>
+          </div>
+          <div class="participation-card">
+            <img src="images/partners/Starry night pto logowebp.webp" alt="Starry Night" />
+            <h4>Starry Night Pro 8 Discount Code</h4>
+            <div class="part-label">Simulation Curriculum</div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div>
+        <img src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+        <p>Global Astronomy &amp; Astrophysics Challenge, organized by STEM October Astronomy Club.</p>
+      </div>
+      <nav aria-label="Footer navigation">
+        <a href="index">Home</a>
+        <a href="syllabus">Syllabus</a>
+        <a href="timeline">Timeline</a>
+        <a href="partners">Partners</a>
+        <a href="awards">Awards</a>
+        <a href="ambassador">Ambassador</a>
+      </nav>
+      <a class="footer-email" href="mailto:astronomyclub64@gmail.com">astronomyclub64@gmail.com</a>
+      <a class="footer-email" href="mailto:gaac@stemastronomyclub.org">gaac@stemastronomyclub.org</a>
+      <p class="copyright">Copyright 2026 Global Astronomy &amp; Astrophysics Challenge.</p>
+    </footer>
+
+    <script src="script.js"></script>
+  </body>
+</html>
