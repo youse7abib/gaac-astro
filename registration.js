@@ -368,7 +368,7 @@ form.addEventListener('submit', async (e) => {
                       <p style="color:#7a9bb5;font-size:0.82rem;line-height:1.5;margin:0;">If you have any questions, contact us at <a href="mailto:astronomyclub64@gmail.com" style="color:#26b7ff;text-decoration:none;">astronomyclub64@gmail.com</a><br><a href="mailto:gaac@stemastronomyclub.org" style="color:#26b7ff;text-decoration:none;">gaac@stemastronomyclub.org</a></p>
                     </td></tr>
                     <tr><td align="center" style="padding-top:28px;">
-                      <p style="color:#4a6a80;font-size:0.75rem;margin:0;">STEM Astronomy Club — Global Astronomy &amp; Astrophysics Challenge</p>
+                      <p style="color:#4a6a80;font-size:0.75rem;margin:0;">STEM October Astronomy Club — Global Astronomy &amp; Astrophysics Challenge</p>
                     </td></tr>
                   </table>
                 </td></tr>
