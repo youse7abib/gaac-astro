@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInAnonymously, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp, collection, query, where, getDocs, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -23,12 +23,17 @@ const ambassadorConfig = {
 };
 
 let app, db, ambApp, ambDb, auth;
+let authReady = Promise.resolve();
 try {
   app = initializeApp(firebaseConfig);
   db = getFirestore(app);
   auth = getAuth(app);
   ambApp = initializeApp(ambassadorConfig, 'ambassador');
   ambDb = getFirestore(ambApp);
+  authReady = signInAnonymously(auth).catch((e) => {
+    console.error("Anonymous sign-in failed:", e);
+    throw e;
+  });
 } catch (e) {
   console.error("Firebase initialization failed:", e);
 }
@@ -238,6 +243,13 @@ form.addEventListener('submit', async (e) => {
       throw new Error("Firebase is not configured. Please add your config to registration.js.");
     }
 
+    // Ensure anonymous auth is ready so Firestore rules allow the writes
+    try {
+      await authReady;
+    } catch (e) {
+      throw new Error('Registration is temporarily unavailable. Please try again in a few minutes.');
+    }
+
     // Check if registration is open
     const compSnap = await getDoc(doc(db, 'settings', 'competition'));
     if (compSnap.exists()) {
@@ -292,8 +304,7 @@ form.addEventListener('submit', async (e) => {
         const emailRef = doc(db, 'registeredEmails', email);
         transaction.set(emailRef, { 
           teamName: teamName, 
-          registrationId: regId,
-          password: loginPassword
+          registrationId: regId
         });
       });
 
@@ -301,7 +312,6 @@ form.addEventListener('submit', async (e) => {
         registrationId: regId,
         teamName,
         leader,
-        password: loginPassword,
         timestamp: serverTimestamp(),
         status: 'registered'
       };
@@ -407,11 +417,10 @@ form.addEventListener('submit', async (e) => {
     if (validAmbassadorId && ambDb) {
       try {
         const configRef = doc(db, 'settings', 'referrals');
-        const configSnap = await getDocs(collection(db, 'settings'));
+        const configSnap = await getDoc(configRef);
         let pointsToAdd = 10;
-        if (!configSnap.empty) {
-          const configData = configSnap.docs.find(d => d.id === 'referrals')?.data();
-          pointsToAdd = configData?.pointsPerRegistration || 10;
+        if (configSnap.exists()) {
+          pointsToAdd = configSnap.data().pointsPerRegistration || 10;
         }
         await updateDoc(doc(ambDb, 'ambassadors', validAmbassadorId), {
           successfulRegistrations: increment(1),

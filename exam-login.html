@@ -101,7 +101,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, query, collection, where } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -159,13 +159,14 @@
 
         // Verify team registration exists (leader or member)
         let teamId = null;
-        const leaderSnap = await getDocs(query(collection(db, 'registrations'), where('leader.email', '==', email)));
-        const member2Snap = await getDocs(query(collection(db, 'registrations'), where('member2.email', '==', email)));
-        const member3Snap = await getDocs(query(collection(db, 'registrations'), where('member3.email', '==', email)));
-
-        if (!leaderSnap.empty) teamId = leaderSnap.docs[0].id;
-        else if (!member2Snap.empty) teamId = member2Snap.docs[0].id;
-        else if (!member3Snap.empty) teamId = member3Snap.docs[0].id;
+        const memberSnap = await getDoc(doc(db, 'teamMembers', uid));
+        if (memberSnap.exists()) {
+          teamId = memberSnap.data().teamId;
+        } else {
+          // Fallback for legacy registrations: email -> registeredEmails lookup
+          const emailSnap = await getDoc(doc(db, 'registeredEmails', email));
+          if (emailSnap.exists()) teamId = emailSnap.data().registrationId;
+        }
 
         if (!teamId) {
           throw new Error('No team registration found for this email.');

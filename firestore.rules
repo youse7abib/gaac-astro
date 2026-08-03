@@ -9,6 +9,12 @@ service cloud.firestore {
       return request.auth != null;
     }
 
+    // Non-anonymous user (has a verified email). Blocks anonymous accounts
+    // from reading exam content / sensitive data.
+    function isRealUser() {
+      return isAuthenticated() && request.auth.token.email != null;
+    }
+
     function isAdmin() {
       return isAuthenticated()
         && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
@@ -29,8 +35,17 @@ service cloud.firestore {
     // 1) SETTINGS
     // ================================================================
     match /settings/counter {
-      allow read: if true;
-      allow write: if true;
+      // Sequential registration-ID counter. Only authenticated callers may
+      // read it; writes must increment by exactly 1 (transaction-safe).
+      allow get: if isAuthenticated();
+      allow list: if isAdmin();
+      allow create: if isAuthenticated()
+        && request.resource.data.keys().hasOnly(['lastId'])
+        && request.resource.data.lastId == 1;
+      allow update: if isAuthenticated()
+        && request.resource.data.keys().hasOnly(['lastId'])
+        && request.resource.data.lastId == resource.data.lastId + 1;
+      allow delete: if false;
     }
 
     // Competition control flags (open/close registration, rounds)
@@ -39,55 +54,80 @@ service cloud.firestore {
       allow write: if isAdmin();
     }
 
+    // Ambassador referral settings (points per registration)
+    match /settings/referrals {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin();
+    }
+
     // ================================================================
     // 2) REGISTERED TEAMS (duplicate prevention)
+    //    get: authenticated (needed for in-transaction duplicate check)
+    //    list: admin-only (prevents mass enumeration)
     // ================================================================
     match /registeredTeams/{teamName} {
-      allow read: if true;
-      allow create: if !exists(/databases/$(database)/documents/registeredTeams/$(teamName));
+      allow get: if isAuthenticated();
+      allow list: if isAdmin();
+      allow create: if isAuthenticated()
+        && !exists(/databases/$(database)/documents/registeredTeams/$(teamName))
+        && request.resource.data.keys().hasAll(['originalName', 'registrationId', 'createdAt']);
       allow delete: if isAdmin();
       allow update: if false;
     }
 
     // ================================================================
     // 3) REGISTERED EMAILS (duplicate prevention)
+    //    get: authenticated (needed for in-transaction duplicate check)
+    //    list: admin-only (prevents mass email enumeration)
     // ================================================================
     match /registeredEmails/{email} {
-      allow read: if true;
-      allow create: if !exists(/databases/$(database)/documents/registeredEmails/$(email));
+      allow get: if isAuthenticated();
+      allow list: if isAdmin();
+      allow create: if isAuthenticated()
+        && !exists(/databases/$(database)/documents/registeredEmails/$(email))
+        && request.resource.data.keys().hasAll(['teamName', 'registrationId'])
+        && !request.resource.data.keys().hasAny(['password']);
       allow delete: if isAdmin();
       allow update: if false;
     }
 
     // ================================================================
-    // 4) REGISTRATIONS (team data, readable by auth users)
+    // 4) REGISTRATIONS (full team data incl. PII)
+    //    STRICTLY admin-only reads. No plaintext passwords allowed.
     // ================================================================
     match /registrations/{regId} {
-      allow read: if true;
-      allow create: if !exists(/databases/$(database)/documents/registrations/$(regId));
+      allow read: if isAdmin();
+      allow create: if isAuthenticated()
+        && !exists(/databases/$(database)/documents/registrations/$(regId))
+        && request.resource.data.keys().hasAll(['registrationId', 'teamName', 'leader', 'timestamp', 'status'])
+        && !request.resource.data.keys().hasAny(['password']);
       allow delete: if isAdmin();
       allow update: if isAdmin();
     }
 
     // ================================================================
-    // 5) MAIL (Trigger Email Extension)
+    // 5) MAIL (Trigger Email Extension) — authenticated create only
     // ================================================================
     match /mail/{mailId} {
-      allow create: if request.resource.data.keys().hasAll(['to', 'message']);
-      allow read, write: if isAdmin();
+      allow create: if isAuthenticated()
+        && !exists(/databases/$(database)/documents/mail/$(mailId))
+        && request.resource.data.keys().hasAll(['to', 'message']);
+      allow read: if isAdmin();
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
 
     // ================================================================
-    // 6) EXAM QUESTIONS — client can read questions (without answers)
+    // 6) EXAM QUESTIONS — readable by real (non-anonymous) users only
     //    Answer keys are in a SEPARATE subcollection (admin-only)
     // ================================================================
     match /round1/{examId} {
-      allow read: if isAuthenticated();
+      allow read: if isRealUser();
       allow write: if isAdmin();
 
       match /questions/{questionId} {
         // Questions: text and options only (NO correctAnswer)
-        allow read: if isAuthenticated();
+        allow read: if isRealUser();
         allow write: if isAdmin();
         // Validate that correctAnswer is NOT in question docs
         allow create, update: if isAdmin()
@@ -138,19 +178,20 @@ service cloud.firestore {
     }
 
     // ================================================================
-    // 8) ADMINS
+    // 8) ADMINS — self-check or admin only
     // ================================================================
     match /admins/{userId} {
-      allow read: if isAuthenticated();
+      allow read: if isOwnUser(userId) || isAdmin();
       allow write: if isAdmin();
     }
 
     // ================================================================
-    // 9) TEAM MEMBERSHIP MAPPING
+    // 9) TEAM MEMBERSHIP MAPPING — owner or admin only
     // ================================================================
     match /teamMembers/{userId} {
-      allow read: if isAuthenticated();
-      allow write: if isOwnUser(userId);
+      allow get: if isOwnUser(userId) || isAdmin();
+      allow list: if isAdmin();
+      allow create, update: if isOwnUser(userId);
       allow delete: if false;
     }
 
