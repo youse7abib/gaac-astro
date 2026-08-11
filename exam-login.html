@@ -44,7 +44,10 @@
       <a href="awards">Awards</a>
       <a href="ambassador">Ambassador</a>
     </nav>
-    <a class="nav-cta header-cta" href="register">Register</a>
+    <div class="header-ctas">
+      <a class="nav-cta header-cta" href="register">Register</a>
+      <a class="nav-cta header-cta" href="team-dashboard">Log In</a>
+    </div>
   </header>
 
   <main class="exam-login-wrapper">
@@ -57,8 +60,9 @@
 
       <form id="exam-login-form" novalidate>
         <div class="form-group">
-          <label for="login-email">Team Leader Email</label>
-          <input type="email" id="login-email" name="email" required placeholder="leader@example.com" />
+          <label for="login-email">Your Email</label>
+          <input type="email" id="login-email" name="email" required placeholder="you@example.com" />
+          <p class="hint" style="font-size:0.72rem;color:var(--muted);margin-top:6px;">Use the email you registered with (any team member's email works).</p>
         </div>
         <div class="form-group">
           <label for="login-password">Password</label>
@@ -72,9 +76,6 @@
           </button>
         </div>
         <p id="login-error" class="login-error" style="color:var(--error,#ff4757);display:none;"></p>
-        <p style="text-align:center;margin-top:16px;font-size:0.82rem;">
-          <a href="change-password" style="color:var(--blue-light);">Change your password</a>
-        </p>
       </form>
     </div>
   </main>
@@ -172,22 +173,9 @@
           throw new Error('No team registration found for this email.');
         }
 
-        // Check if exam is already started/submitted
-        const examRef = doc(db, 'teams', teamId, 'exam', 'round1');
-        const examSnap = await getDoc(examRef);
-
-        if (examSnap.exists()) {
-          const status = examSnap.data().status;
-          if (status === 'submitted') {
-            showAlert('You have already submitted this exam.', true);
-            return;
-          }
-          if (status === 'in-progress') {
-            window.location.href = `exam.html?team=${teamId}`;
-            return;
-          }
-        }
-
+        // Each member takes the exam individually (teams/{teamId}/exam/{uid}).
+        // There is no team-level lock here — exam.html decides between
+        // start / resume / already-submitted for THIS member.
         window.location.href = `exam.html?team=${teamId}`;
       } catch (err) {
         btn.disabled = false;

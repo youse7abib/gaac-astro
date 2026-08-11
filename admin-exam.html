@@ -101,7 +101,7 @@
         <h2 style="font-size:1.1rem;margin-bottom:20px;">Admin <span class="text-blue">Login</span></h2>
         <div class="form-group" style="margin-bottom:16px;">
           <label for="admin-email" style="font-size:0.85rem;">Admin Email</label>
-          <input type="email" id="admin-email" placeholder="admin@stemastronomyclub.org" style="width:100%;" />
+          <input type="email" id="admin-email" placeholder="astronomyclub64@gmail.com" style="width:100%;" />
         </div>
         <div class="form-group" style="margin-bottom:16px;">
           <label for="admin-password" style="font-size:0.85rem;">Password</label>
@@ -165,7 +165,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, query, where, orderBy, updateDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, query, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
       authDomain: "gaac-registration-2026.firebaseapp.com",
@@ -239,33 +239,21 @@
           getDocs(collection(db, 'teams'))
         ]);
 
-        let totalReg = registrationsSnap.size;
-        let inProgress = 0, submitted = 0, disqualified = 0;
-
         const teamsLookup = {};
         teamsSnap.docs.forEach(d => { teamsLookup[d.id] = d.data(); });
 
-        // Count from teams parent docs + exam subcollections
-        await Promise.all(registrationsSnap.docs.map(async (regDoc) => {
-          const teamId = regDoc.id;
-          const summary = teamsLookup[teamId];
+        let totalReg = registrationsSnap.size;
+        let inProgress = 0, submitted = 0, disqualified = 0;
 
-          if (summary) {
-            if (summary.disqualified) disqualified++;
-            if (summary.examStatus === 'scored' || summary.examScore != null) submitted++;
-            else if (summary.examStatus === 'in-progress') inProgress++;
-            return;
-          }
-
-          // No parent doc — check exam subcollection
-          try {
-            const snap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
-            if (!snap.exists()) return;
-            const status = snap.data().status;
-            if (status === 'submitted' || snap.data().scored) submitted++;
-            else if (status === 'in-progress') inProgress++;
-          } catch {}
-        }));
+        // Status is mirrored on the team summary doc by the exam flow,
+        // so 2 queries are enough (no per-team reads).
+        registrationsSnap.docs.forEach((regDoc) => {
+          const summary = teamsLookup[regDoc.id] || {};
+          if (summary.disqualified) { disqualified++; return; }
+          const st = summary.examStatus || summary.status || 'registered';
+          if (st === 'scored' || summary.examScore != null) submitted++;
+          else if (st === 'in-progress') inProgress++;
+        });
 
         document.getElementById('stats-summary').innerHTML = `
           <div class="stat-item"><div class="num">${totalReg}</div><div class="label">Registered</div></div>
@@ -293,7 +281,7 @@
       grid.innerHTML = '<div class="empty-state">Loading teams...</div>';
 
       try {
-        // Batch reads: fetch all registrations + all team summaries in parallel
+        // Batch reads: registrations + team summaries in parallel (2 queries).
         const [registrationsSnap, teamsSnap] = await Promise.all([
           getDocs(collection(db, 'registrations')),
           getDocs(collection(db, 'teams'))
@@ -305,39 +293,6 @@
           teamMap[doc.id] = doc.data();
         });
 
-        // For teams not in the summary, check exam subcollection for in-progress status
-        // Batch check in chunks to avoid too many individual reads
-        const missingTeamIds = [];
-        registrationsSnap.docs.forEach(regDoc => {
-          const teamId = regDoc.id;
-          if (!teamMap[teamId]) missingTeamIds.push(teamId);
-        });
-
-        // Check exam subcollection for missing teams (limit to reduce reads)
-        const examStatusMap = {};
-        const checkChunks = missingTeamIds.slice(0, 500);
-        await Promise.all(checkChunks.map(async (teamId) => {
-          try {
-            const examSnap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
-            if (examSnap.exists()) {
-              const examData = examSnap.data();
-              examStatusMap[teamId] = {
-                status: examData.status || 'registered',
-                eventCount: examData.eventCount || 0,
-                severeEventCount: examData.severeEventCount || 0,
-                disqualified: examData.disqualified || false,
-                examScore: examData.score,
-                examStatus: examData.status
-              };
-            }
-          } catch (e) { /* skip */ }
-        }));
-
-        // Merge exam status into team map
-        for (const [teamId, data] of Object.entries(examStatusMap)) {
-          teamMap[teamId] = { ...teamMap[teamId], ...data };
-        }
-
         const teams = [];
 
         registrationsSnap.docs.forEach((regDoc) => {
@@ -345,7 +300,7 @@
           const teamId = regDoc.id;
           const teamData = teamMap[teamId] || {};
 
-          const examStatus = teamData.status || teamData.examStatus || 'registered';
+          const examStatus = teamData.examStatus || teamData.status || 'registered';
           const displayStatus = examStatus === 'scored' ? 'submitted' : examStatus;
 
           if (filter !== 'all' && displayStatus !== filter) return;
@@ -387,6 +342,7 @@
             <div class="event-count">
               Events: ${t.eventCount} ${t.severeCount > 0 ? `<span class="severe">(${t.severeCount} severe)</span>` : ''}
             </div>
+            ${t.examData.memberCount ? `<div class="event-count">Members: ${t.examData.submittedCount || 0}/${t.examData.memberCount} submitted</div>` : ''}
             <div class="card-actions">
               <button class="button secondary" data-team="${t.teamId}" data-name="${t.regData.teamName}" onclick="viewEvents(this)">Events</button>
               <button class="button secondary" data-team="${t.teamId}" onclick="viewTeamDetails(this)">Details</button>
@@ -465,10 +421,13 @@
       const teamId = btn.dataset.team;
       try {
         const regSnap = await getDoc(doc(db, 'registrations', teamId));
-        const examSnap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
+        const teamSnap = await getDoc(doc(db, 'teams', teamId));
+        const examSnap = await getDocs(collection(db, 'teams', teamId, 'exam'));
         if (!regSnap.exists()) { alert('Team not found.'); return; }
         const regData = regSnap.data();
-        const examData = examSnap.exists() ? examSnap.data() : {};
+        const teamData = teamSnap.exists() ? teamSnap.data() : {};
+        const memberExams = [];
+        examSnap.forEach(d => memberExams.push({ uid: d.id, ...d.data() }));
 
         const members = [regData.leader];
         if (regData.member2) members.push(regData.member2);
@@ -477,15 +436,14 @@
         let html = `<div style="padding:16px;"><table class="event-table" style="margin-bottom:16px;">
           <tr><th style="width:140px;">Team ID</th><td>${teamId}</td></tr>
           <tr><th>Team Name</th><td>${regData.teamName || '—'}</td></tr>
-          <tr><th>Status</th><td>${examData.status || 'registered'}</td></tr>
-          <tr><th>Score</th><td>${examData.score != null ? examData.score + '%' : '—'}</td></tr>
-          <tr><th>Correct</th><td>${examData.correctCount != null ? examData.correctCount + '/' + examData.totalQuestions : '—'}</td></tr>
-          <tr><th>Disqualified</th><td>${examData.disqualified ? 'Yes' : 'No'}</td></tr>
-          <tr><th>Events</th><td>${examData.eventCount || 0} (${examData.severeEventCount || 0} severe)</td></tr>
-          <tr><th>Submitted At</th><td>${examData.submittedAt ? new Date(examData.submittedAt).toLocaleString() : '—'}</td></tr>
+          <tr><th>Status</th><td>${teamData.examStatus || teamData.status || 'registered'}</td></tr>
+          <tr><th>Team Score</th><td>${teamData.examScore != null ? teamData.examScore + '%' : '—'}</td></tr>
+          <tr><th>Members Submitted</th><td>${teamData.submittedCount || 0} / ${teamData.memberCount || '?'}</td></tr>
+          <tr><th>Disqualified</th><td>${teamData.disqualified ? 'Yes' : 'No'}</td></tr>
+          <tr><th>Events</th><td>${teamData.eventCount || 0} (${teamData.severeEventCount || 0} severe)</td></tr>
         </table>`;
 
-        html += '<h3 style="margin-bottom:8px;">Members</h3><table class="event-table" style="margin-bottom:16px;">';
+        html += '<h3 style="margin-bottom:8px;">Registered Members</h3><table class="event-table" style="margin-bottom:16px;">';
         html += '<tr><th>Role</th><th>Name</th><th>Email</th><th>Country</th><th>School</th></tr>';
         members.forEach((m, i) => {
           if (!m) return;
@@ -493,9 +451,23 @@
         });
         html += '</table>';
 
-        if (examData.answers) {
-          const answered = Object.keys(examData.answers).length;
-          html += `<p style="color:var(--muted);font-size:0.82rem;">Answers: ${answered} of ${examData.totalQuestions || '?'} questions answered.</p>`;
+        html += '<h3 style="margin-bottom:8px;">Member Submissions</h3>';
+        if (memberExams.length === 0) {
+          html += '<p style="color:var(--muted);font-size:0.82rem;">No member has started the exam yet.</p>';
+        } else {
+          html += '<table class="event-table" style="margin-bottom:16px;"><tr><th>Status</th><th>Score</th><th>Correct</th><th>Answers</th><th>Submitted At</th><th>Events</th></tr>';
+          memberExams.forEach(m => {
+            const answered = m.answers ? Object.keys(m.answers).length : 0;
+            html += `<tr>
+              <td>${m.status || 'registered'}</td>
+              <td>${m.score != null ? m.score + '%' : '—'}</td>
+              <td>${m.correctCount != null ? m.correctCount + '/' + m.totalQuestions : '—'}</td>
+              <td>${answered}</td>
+              <td style="font-size:0.75rem;color:var(--muted);">${m.submittedAt ? new Date(m.submittedAt).toLocaleString() : '—'}</td>
+              <td>${m.eventCount || 0}</td>
+            </tr>`;
+          });
+          html += '</table>';
         }
 
         html += '</div>';
@@ -509,14 +481,13 @@
     };
 
     window.terminateExam = async (btn) => {
-      if (!confirm('Terminate this exam? The submission will be forced.')) return;
+      if (!confirm('Terminate this exam? The team will be marked terminated.')) return;
       const teamId = btn.dataset.team;
       try {
-        await updateDoc(doc(db, 'teams', teamId, 'exam', 'round1'), {
-          status: 'submitted',
-          submittedAt: new Date().toISOString(),
+        await setDoc(doc(db, 'teams', teamId), {
+          status: 'terminated',
           terminated: true
-        });
+        }, { merge: true });
         loadTeams();
       } catch (e) {
         alert('Failed to terminate: ' + e.message);
@@ -635,10 +606,6 @@
           fetchAnswerKeys()
         ]);
 
-        console.log('[leaderboard] registrations:', registrationsSnap.size);
-        console.log('[leaderboard] teams docs:', teamsSnap.size);
-        console.log('[leaderboard] answerKeys:', Object.keys(answerKeys).length);
-
         const teamNameMap = {};
         registrationsSnap.docs.forEach(d => {
           teamNameMap[d.id] = d.data().teamName || d.id;
@@ -649,17 +616,18 @@
         teamsSnap.docs.forEach(d => { teamsLookup[d.id] = d.data(); });
 
         const entries = [];
+        const pendingTeams = [];
 
         // Iterate over all registered teams (source of truth)
         for (const regDoc of registrationsSnap.docs) {
           const teamId = regDoc.id;
-          const summary = teamsLookup[teamId];
+          const summary = teamsLookup[teamId] || {};
 
-          if (summary && (summary.examStatus === 'scored' || summary.examScore != null)) {
+          if (summary.examScore != null) {
             entries.push({
               teamId,
               teamName: teamNameMap[teamId] || teamId,
-              score: summary.examScore != null ? summary.examScore : -1,
+              score: summary.examScore,
               correct: summary.correctCount || 0,
               total: summary.totalQuestions || 0,
               disqualified: summary.disqualified || false,
@@ -668,66 +636,88 @@
             continue;
           }
 
-          // No parent score — check exam subcollection
+          // At least one member submitted but the team avg is not computed
+          if ((summary.submittedCount || 0) > 0) pendingTeams.push(teamId);
+        }
+
+        // One-time scoring sweep per pending team: score each submitted
+        // member's exam doc, then PERSIST the team average to the parent doc
+        // (so later loads only need 2 queries).
+        await Promise.all(pendingTeams.map(async (teamId) => {
           try {
-            const examSnap = await getDoc(doc(db, 'teams', teamId, 'exam', 'round1'));
-            if (!examSnap.exists()) continue;
-            const examData = examSnap.data();
-            console.log('[leaderboard] team', teamId, 'status:', examData.status, 'scored:', examData.scored, 'questions:', Object.keys(examData.answers || {}).length);
-            if (examData.status !== 'submitted') continue;
+            const examSnap = await getDocs(collection(db, 'teams', teamId, 'exam'));
+            const memberExams = [];
+            examSnap.forEach(d => memberExams.push(d));
 
-            // Cloud function may have scored the exam doc
-            if (examData.scored && examData.score != null) {
-              entries.push({
-                teamId,
-                teamName: teamNameMap[teamId] || teamId,
-                score: examData.score,
-                correct: examData.correctCount || 0,
-                total: examData.totalQuestions || 0,
-                disqualified: examData.disqualified || false,
-                examData
-              });
-              continue;
-            }
+            if (memberExams.length === 0) return;
 
-            // Manual scoring
-            const answers = examData.answers || {};
-            const questionOrder = examData.questionOrder || [];
             const hasAnswerKeys = Object.keys(answerKeys).length > 0;
+            let sum = 0, correctTotal = 0, submittedMembers = 0, totalQs = 0;
 
-            if (hasAnswerKeys && questionOrder.length > 0) {
-              let correct = 0;
-              const total = questionOrder.length;
-              Object.entries(answers).forEach(([idx, answer]) => {
-                const qId = questionOrder[parseInt(idx)];
-                if (answerKeys[qId] && answerKeys[qId].correctAnswer === answer) correct++;
-              });
-              const score = Math.round((correct / total) * 100);
-              entries.push({
-                teamId,
-                teamName: teamNameMap[teamId] || teamId,
-                score,
-                correct,
-                total,
-                disqualified: examData.disqualified || false,
-                examData
-              });
-            } else {
-              // Show as submitted but pending score
-              entries.push({
-                teamId,
-                teamName: teamNameMap[teamId] || teamId,
-                score: -1,
-                correct: 0,
-                total: 0,
-                disqualified: examData.disqualified || false,
-                examData
-              });
+            for (const d of memberExams) {
+              const examData = d.data();
+              if (examData.status !== 'submitted') continue;
+              submittedMembers++;
+
+              const answers = examData.answers || {};
+              const questionOrder = examData.questionOrder || [];
+
+              if (hasAnswerKeys && questionOrder.length > 0) {
+                let correct = 0;
+                const total = questionOrder.length;
+                Object.entries(answers).forEach(([idx, answer]) => {
+                  const qId = questionOrder[parseInt(idx)];
+                  if (answerKeys[qId] && answerKeys[qId].correctAnswer === answer) correct++;
+                });
+                const answered = Object.keys(answers).length;
+                const unanswered = Math.max(0, total - answered);
+                const incorrect = Math.max(0, answered - correct);
+                const score = Math.round((correct / total) * 100);
+                const passed = score >= 50;
+
+                await setDoc(d.ref, {
+                  scored: true,
+                  score,
+                  correctCount: correct,
+                  incorrectCount: incorrect,
+                  unansweredCount: unanswered,
+                  totalQuestions: total,
+                  passed,
+                  scoredAt: new Date().toISOString()
+                }, { merge: true });
+
+                sum += score;
+                correctTotal += correct;
+                totalQs += total;
+              }
+              // Without answer keys / question order the member counts as
+              // submitted with 0 so the team average stays meaningful.
             }
+
+            if (submittedMembers === 0) return;
+
+            const avg = Math.round(sum / submittedMembers);
+            await setDoc(doc(db, 'teams', teamId), {
+              examScore: avg,
+              correctCount: correctTotal,
+              totalQuestions: totalQs,
+              submittedCount: submittedMembers,
+              examStatus: 'scored'
+            }, { merge: true });
+
+            entries.push({
+              teamId,
+              teamName: teamNameMap[teamId] || teamId,
+              score: avg,
+              correct: correctTotal,
+              total: totalQs,
+              disqualified: false,
+              examData: {}
+            });
           } catch (e) {
             console.warn('Failed to score team:', teamId, e);
           }
-        }
+        }));
 
         entries.sort((a, b) => {
           if (a.score === -1 && b.score === -1) return 0;
@@ -805,10 +795,7 @@
       if (!confirm(`${currentlyDq ? 'Reinstate' : 'Disqualify'} team "${teamId}"?`)) return;
 
       try {
-        await Promise.all([
-          setDoc(doc(db, 'teams', teamId), { disqualified: !currentlyDq }, { merge: true }),
-          setDoc(doc(db, 'teams', teamId, 'exam', 'round1'), { disqualified: !currentlyDq }, { merge: true })
-        ]);
+        await setDoc(doc(db, 'teams', teamId), { disqualified: !currentlyDq }, { merge: true });
         loadLeaderboard();
       } catch (e) {
         alert('Failed: ' + (e.message || e));

@@ -27,6 +27,28 @@ service cloud.firestore {
         && get(/databases/$(database)/documents/teamMembers/$(request.auth.uid)).data.teamId == teamId;
     }
 
+    // The registered team captain: their signed-in email matches the
+    // registration doc's leader.email. Only the leader may manage the
+    // roster (add/remove members) from the team dashboard.
+    function isLeader(teamId) {
+      return isAuthenticated()
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/registrations/$(teamId))
+        && get(/databases/$(database)/documents/registrations/$(teamId)).data.leader.email == request.auth.token.email;
+    }
+
+    // A SOLO team: the registered leader is the current user AND the team has
+    // no member2/member3. Only such a leader may fully delete a team (all its
+    // documents), or have the team/registration docs removed during a wipe.
+    function isSoloLeader(regId) {
+      return isAuthenticated()
+        && request.auth.token.email != null
+        && exists(/databases/$(database)/documents/registrations/$(regId))
+        && get(/databases/$(database)/documents/registrations/$(regId)).data.leader.email == request.auth.token.email
+        && !('member2' in get(/databases/$(database)/documents/registrations/$(regId)).data)
+        && !('member3' in get(/databases/$(database)/documents/registrations/$(regId)).data);
+    }
+
     function isOwnUser(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
@@ -71,38 +93,68 @@ service cloud.firestore {
       allow create: if isAuthenticated()
         && !exists(/databases/$(database)/documents/registeredTeams/$(teamName))
         && request.resource.data.keys().hasAll(['originalName', 'registrationId', 'createdAt']);
-      allow delete: if isAdmin();
+      allow delete: if isAdmin()
+        || isSoloLeader(get(/databases/$(database)/documents/registeredTeams/$(teamName)).data.registrationId);
       allow update: if false;
     }
 
     // ================================================================
     // 3) REGISTERED EMAILS (duplicate prevention)
-    //    get: authenticated (needed for in-transaction duplicate check)
+    //    get: public per-document — lets a user verify their own email /
+    //    team (ID + name) when recovering a forgotten password without
+    //    being signed in. Only exposes teamName + registrationId.
     //    list: admin-only (prevents mass email enumeration)
     // ================================================================
     match /registeredEmails/{email} {
-      allow get: if isAuthenticated();
+      allow get: if true;
       allow list: if isAdmin();
       allow create: if isAuthenticated()
         && !exists(/databases/$(database)/documents/registeredEmails/$(email))
         && request.resource.data.keys().hasAll(['teamName', 'registrationId'])
         && !request.resource.data.keys().hasAny(['password']);
-      allow delete: if isAdmin();
+      allow delete: if isAdmin()
+        || (isAuthenticated()
+            && request.auth.token.email != null
+            && exists(/databases/$(database)/documents/registeredEmails/$(email))
+            && isLeader(get(/databases/$(database)/documents/registeredEmails/$(email)).data.registrationId));
       allow update: if false;
     }
 
     // ================================================================
     // 4) REGISTRATIONS (full team data incl. PII)
-    //    STRICTLY admin-only reads. No plaintext passwords allowed.
+    //    Reads: admin, or members/leader of the team itself (the team
+    //    dashboard needs to display the roster to every registered
+    //    member). Updates: admin, or the leader changing ONLY the
+    //    member2/member3 slots (roster management).
+    //    No plaintext passwords allowed.
     // ================================================================
     match /registrations/{regId} {
-      allow read: if isAdmin();
+      allow read: if isAdmin()
+        || (isAuthenticated() && request.auth.token.email != null && resource.data.leader.email == request.auth.token.email)
+        || isTeamMember(regId);
       allow create: if isAuthenticated()
         && !exists(/databases/$(database)/documents/registrations/$(regId))
         && request.resource.data.keys().hasAll(['registrationId', 'teamName', 'leader', 'timestamp', 'status'])
         && !request.resource.data.keys().hasAny(['password']);
-      allow delete: if isAdmin();
-      allow update: if isAdmin();
+      allow delete: if isAdmin()
+        || isSoloLeader(regId);
+      allow update: if isAdmin()
+        || (isAuthenticated()
+            && request.auth.token.email != null
+            && resource.data.leader.email == request.auth.token.email
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['member2', 'member3']))
+        // Leadership transfer (leader withdraws): promote a CURRENT member to
+        // leader (member2 takes precedence over member3) and the old leader
+        // must fully disappear from the roster.
+        || (isAuthenticated()
+            && request.auth.token.email != null
+            && resource.data.leader.email == request.auth.token.email
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['leader', 'member2', 'member3'])
+            && (resource.data.member2 != null && request.resource.data.leader.email == resource.data.member2.email
+                || resource.data.member3 != null && request.resource.data.leader.email == resource.data.member3.email)
+            && (request.resource.data.leader == null || request.resource.data.leader.email != request.auth.token.email)
+            && (request.resource.data.member2 == null || request.resource.data.member2.email != request.auth.token.email)
+            && (request.resource.data.member3 == null || request.resource.data.member3.email != request.auth.token.email));
     }
 
     // ================================================================
@@ -114,7 +166,7 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['to', 'message']);
       allow read: if isAdmin();
       allow update: if isAdmin();
-      allow delete: if isAdmin();
+      allow delete: if isAdmin() || isSoloLeader(mailId);
     }
 
     // ================================================================
@@ -143,28 +195,75 @@ service cloud.firestore {
 
     // ================================================================
     // 7) TEAMS — exam data, events
+    //    The team summary doc mirrors the exam status so the admin
+    //    dashboard can render everything with 2 queries (no per-team
+    //    reads). Members write non-scoring fields (status, counters);
+    //    scoring fields (examScore/...) are reserved for the admin, who
+    //    runs the scoring pipeline from the dashboard.
     // ================================================================
     match /teams/{teamId} {
-      // Team summary doc: own team or admin
       allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
-      allow create: if isAuthenticated() && isTeamMember(teamId);
-      allow update: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
-      allow delete: if false;
+      // memberCount is admin-set (precomputed from registeredEmails); the
+      // submittedCount counter may only advance by +1 (submit event).
+      allow create: if isAuthenticated() && (
+        isAdmin()
+        || (isTeamMember(teamId)
+            && !request.resource.data.keys().hasAny([
+              'examScore', 'examPassed', 'examStatus', 'correctCount', 'totalQuestions',
+              'memberCount'
+            ])
+            && (!request.resource.data.keys().hasAny(['submittedCount'])
+                || request.resource.data.submittedCount == 1))
+        || (isTeamMember(teamId) && isLeader(teamId)
+            && request.resource.data.keys().hasOnly(['memberCount']))
+      );
+      allow update: if isAuthenticated() && (
+        isAdmin()
+        || (isTeamMember(teamId)
+            && !request.resource.data.keys().hasAny([
+              'examScore', 'examPassed', 'examStatus', 'correctCount', 'totalQuestions'
+            ])
+            && (
+              // Regular member updates (e.g. submittedCount +1) — never memberCount
+              ((!request.resource.data.keys().hasAny(['submittedCount'])
+                  || request.resource.data.submittedCount - resource.data.get('submittedCount', 0) == 1)
+                && !request.resource.data.keys().hasAny(['memberCount']))
+              ||
+              // Leader roster management: adjust memberCount by exactly +1 / -1
+              (isLeader(teamId)
+                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount'])
+                && (request.resource.data.memberCount - resource.data.get('memberCount', 0) == 1
+                    || request.resource.data.memberCount - resource.data.get('memberCount', 0) == -1))
+            ))
+      );
+      allow delete: if isAdmin() || isSoloLeader(teamId);
 
-      // Exam subcollection
+      // Exam subcollection — ONE document PER MEMBER, keyed by their UID
+      // (teams/{teamId}/exam/{uid}). Each member takes the exam on their
+      // own; the team score is the average of the members who submitted.
       match /exam/{examId} {
-        allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
-        allow create: if isAuthenticated() && isTeamMember(teamId);
-        // Allow update for own team or admin
-        // - Client cannot set scoring fields (reserved for Cloud Function)
-        // - Once submitted, only admins can modify further
-        allow update: if isAuthenticated()
-          && (isTeamMember(teamId) || isAdmin())
-          && !request.resource.data.keys().hasAny([
+        allow read: if isAuthenticated() && (isAdmin() || (isTeamMember(teamId) && request.auth.uid == examId));
+        // Create allowed for own member doc only; scoring fields are reserved
+        // for the admin scoring pipeline (no Cloud Function in this plan).
+        allow create: if isAuthenticated() && (
+          isAdmin()
+          || (isTeamMember(teamId) && request.auth.uid == examId && !request.resource.data.keys().hasAny([
             'scored', 'score', 'correctCount', 'incorrectCount',
             'unansweredCount', 'totalQuestions', 'passed', 'details', 'scoredAt'
-          ])
-          && (resource.data.status != 'submitted' || isAdmin());
+          ]))
+        );
+        // Update: admin may write anything (scoring); a member may only
+        // update their OWN doc while IT is not submitted, and never
+        // scoring fields.
+        allow update: if isAuthenticated() && (
+          isAdmin()
+          || (isTeamMember(teamId) && request.auth.uid == examId
+              && !request.resource.data.keys().hasAny([
+                'scored', 'score', 'correctCount', 'incorrectCount',
+                'unansweredCount', 'totalQuestions', 'passed', 'details', 'scoredAt'
+              ])
+              && resource.data.status != 'submitted')
+        );
         allow delete: if false;
       }
 
@@ -186,13 +285,56 @@ service cloud.firestore {
     }
 
     // ================================================================
-    // 9) TEAM MEMBERSHIP MAPPING — owner or admin only
+    // 9) TEAM MEMBERSHIP MAPPING
+    //    Read: owner or admin. Create: the user themselves, BUT the
+    //    requested teamId MUST be the team registered under their own
+    //    email (registeredEmails/{email}) — prevents a user from
+    //    assigning themselves to any arbitrary team (exam access).
+    //    The leader may also create a mapping for a NEW member whose
+    //    email is registered to the leader's team (add-member flow).
+    //    Delete: admin, or the leader removing a member of their own
+    //    team (revokes all exam/team access immediately).
     // ================================================================
     match /teamMembers/{userId} {
       allow get: if isOwnUser(userId) || isAdmin();
       allow list: if isAdmin();
-      allow create, update: if isOwnUser(userId);
-      allow delete: if false;
+      allow create: if isAuthenticated() && request.auth.token.email != null && (
+        // Self-signup for your own registered team
+        (isOwnUser(userId)
+          && exists(/databases/$(database)/documents/registeredEmails/$(request.auth.token.email))
+          && get(/databases/$(database)/documents/registeredEmails/$(request.auth.token.email)).data.registrationId
+             == request.resource.data.teamId)
+        ||
+        // Leader adds a member to their own team. NOTE: rules do not see
+        // writes from earlier in the same batch, so the email's
+        // registeredEmails doc (created in the same batch) cannot be
+        // checked here. The leader alone can create mappings, and only
+        // for their own team, so this is safe.
+        (request.resource.data.email != null && isLeader(request.resource.data.teamId))
+      );
+      allow update: if isAdmin();
+      allow delete: if isAdmin()
+        || (isAuthenticated()
+            && request.auth.token.email != null
+            && exists(/databases/$(database)/documents/teamMembers/$(userId))
+            && isLeader(get(/databases/$(database)/documents/teamMembers/$(userId)).data.teamId));
+    }
+
+    // ================================================================
+    // 10) REMOVED MEMBERS (roster changes audit)
+    //     The leader logs a removed member here so an admin script can
+    //     disable their Auth account (Spark plan has no Cloud Functions,
+    //     so account lock is a small offline admin task). Data access is
+    //     already revoked instantly by deleting teamMembers/{uid} +
+    //     registeredEmails/{email}.
+    // ================================================================
+    match /removedMembers/{uid} {
+      allow create: if isAuthenticated()
+        && request.auth.token.email != null
+        && request.resource.data.keys().hasAll(['email', 'teamId'])
+        && isLeader(request.resource.data.teamId);
+      allow read, list: if isAdmin();
+      allow update, delete: if isAdmin();
     }
 
     // ================================================================

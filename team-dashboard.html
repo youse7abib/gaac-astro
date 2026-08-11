@@ -1,0 +1,993 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Team Dashboard | GAAC</title>
+  <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="registration.css" />
+  <style>
+    body { min-height: 100vh; display: flex; flex-direction: column; cursor: auto !important; }
+    a, button, input, select, textarea { cursor: pointer !important; }
+    .td-wrapper { flex: 1; padding: 40px 20px; }
+    .td-card { width: 100%; max-width: 480px; margin: 0 auto; padding: 36px 32px; }
+    .td-card h1 { font-size: 1.3rem; text-align: center; margin-bottom: 4px; }
+    .td-card .subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 28px; }
+    .td-card .logo-area { text-align: center; margin-bottom: 24px; }
+    .td-card .logo-area img { width: 110px; display: block; margin: 0 auto; }
+    .team-banner {
+      background: linear-gradient(135deg, rgba(38,183,255,0.12), rgba(38,183,255,0.03));
+      border: 1px solid rgba(38,183,255,0.25);
+      border-radius: 14px; padding: 24px; margin-bottom: 24px; text-align: center;
+      backdrop-filter: blur(12px); position: relative;
+    }
+    .team-banner h1 { margin: 0 0 6px; font-size: 1.2rem; }
+    .team-banner .reg-id { font-family: var(--font-orbitron); color: var(--blue-light); font-weight: 700; letter-spacing: 0.08em; font-size: 0.9rem; margin-top: 8px; }
+    .team-banner .member-count { color: var(--muted); font-size: 0.82rem; margin-top: 6px; }
+    .delete-icon-btn {
+      position: absolute; top: 14px; right: 14px;
+      width: 38px; height: 38px; border-radius: 9px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(255,71,87,0.08); border: 1px solid rgba(255, 71, 87, 0.5); color: #ff6b7a;
+      transition: all 200ms;
+    }
+    .delete-icon-btn:hover { background: rgba(255, 71, 87, 0.18); }
+    .delete-icon-btn:disabled { opacity: 0.5; cursor: not-allowed !important; }
+    .roster-grid { display: grid; gap: 16px; }
+    .member-card {
+      background: rgba(10, 14, 23, 0.6); border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px; padding: 20px; backdrop-filter: blur(12px);
+    }
+    .member-card.leader { border-color: rgba(38, 183, 255, 0.35); }
+    .member-card .m-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .member-card .m-name { font-weight: 700; font-size: 1.02rem; }
+    .member-card .m-role {
+      font-size: 0.68rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--blue-light);
+      background: rgba(38,183,255,0.12); border: 1px solid rgba(38,183,255,0.3);
+      padding: 3px 10px; border-radius: 999px;
+    }
+    .member-card .m-row { font-size: 0.84rem; color: var(--muted); margin-top: 4px; word-break: break-word; }
+    .member-card .m-row strong { color: var(--silver); font-weight: 600; }
+    .member-card .m-actions { margin-top: 14px; text-align: right; }
+    .btn-danger {
+      background: transparent; border: 1px solid rgba(255, 71, 87, 0.5); color: #ff6b7a;
+      padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 200ms;
+    }
+    .btn-danger:hover { background: rgba(255, 71, 87, 0.12); }
+    .manage-panel {
+      margin-top: 28px; background: rgba(10,14,23,0.6); border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 14px; padding: 24px; backdrop-filter: blur(12px);
+    }
+    .manage-panel h2 { font-size: 1rem; margin: 0 0 4px; }
+    .manage-panel .sub { color: var(--muted); font-size: 0.82rem; margin-bottom: 20px; }
+    .manage-panel .form-row { gap: 12px; }
+    .manage-panel .form-group { margin-bottom: 14px; }
+    .manage-panel .form-group.half { margin-bottom: 14px; }
+    .info-note { color: var(--muted); font-size: 0.78rem; line-height: 1.6; margin-top: 12px; }
+    .notice { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 40px 20px; line-height: 1.7; }
+    .badge-warn { color: #ffc26b; }
+    .modal-overlay {
+      position: fixed; inset: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(5, 8, 14, 0.78); backdrop-filter: blur(6px); padding: 20px;
+    }
+    .modal-card {
+      width: 100%; max-width: 460px; position: relative;
+      background: linear-gradient(160deg, #121a28, #0a0e17);
+      border: 1px solid rgba(255, 71, 87, 0.35); border-radius: 16px;
+      padding: 34px 28px 26px; text-align: center;
+      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+    }
+    .modal-close {
+      position: absolute; top: 12px; right: 12px;
+      width: 30px; height: 30px; border-radius: 8px;
+      display: inline-flex; align-items: center; justify-content: center;
+      background: transparent; border: none; color: #7a9bb5;
+    }
+    .modal-close:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
+    .modal-icon {
+      width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.4); color: #ff6b7a;
+    }
+    .modal-card h2 {
+      margin: 0 0 8px; font-size: 1.15rem;
+      font-family: var(--font-orbitron); font-weight: 700; color: #ffffff; letter-spacing: 0.04em;
+    }
+    .modal-team {
+      margin: 0 0 14px; font-family: var(--font-orbitron); font-size: 0.82rem;
+      color: #26b7ff; font-weight: 700; letter-spacing: 0.08em; word-break: break-word;
+    }
+    .modal-msg { margin: 0 0 18px; color: #aec8e0; font-size: 0.9rem; line-height: 1.75; }
+    .modal-note { margin: 0 0 24px; color: #ff6b7a; font-size: 0.78rem; }
+    .modal-actions { display: flex; gap: 12px; }
+    .modal-actions button {
+      flex: 1; padding: 12px; border-radius: 10px;
+      font-size: 0.85rem; font-weight: 700; transition: all 200ms;
+    }
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.06); color: #e8f0f8;
+      border: 1px solid rgba(255, 255, 255, 0.16);
+    }
+    .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
+    .btn-danger-solid {
+      background: #ff4757; color: #fff; border: none; display: inline-flex;
+      align-items: center; justify-content: center; gap: 8px;
+    }
+    .btn-danger-solid:hover { background: #ff5c6b; }
+    .btn-danger-solid:disabled { opacity: 0.6; cursor: not-allowed !important; }
+    .modal-actions .btn-loader { width: 16px; height: 16px; border-width: 2px; }
+  </style>
+</head>
+<body class="page-home">
+  <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
+
+  <header class="site-header">
+    <a class="brand-lockup" href="index" aria-label="GAAC home">
+      <img class="brand-logo club-logo" src="images/Club_Logo_Black_BG-removebg-preview.png" alt="STEM October Astronomy Club logo" />
+      <span class="brand-divider" aria-hidden="true"></span>
+      <img class="brand-logo gaac-logo" src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+    </a>
+    <button class="nav-toggle" type="button" aria-label="Open navigation" aria-expanded="false">
+      <span></span><span></span><span></span>
+    </button>
+    <nav class="site-nav" aria-label="Primary navigation">
+      <a href="index">Home</a>
+      <a href="syllabus">Syllabus</a>
+      <a href="timeline">Timeline</a>
+      <a href="partners">Partners</a>
+      <a href="awards">Awards</a>
+      <a href="ambassador">Ambassador</a>
+    </nav>
+    <button id="btn-logout" class="button secondary" style="padding: 5px 10px; font-size: 0.75rem; display: none;">Logout</button>
+  </header>
+
+  <main class="td-wrapper">
+    <!-- ================= LOGIN STATE ================= -->
+    <div id="login-state">
+      <div class="registration-card td-card">
+        <div class="logo-area">
+          <img src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" />
+        </div>
+        <h1>Team <span class="text-blue">Dashboard</span></h1>
+        <p class="subtitle">View your team and manage your roster.</p>
+
+        <form id="td-login-form" novalidate onsubmit="return false;">
+          <div class="form-group">
+            <label for="login-email">Your Email</label>
+            <input type="email" id="login-email" name="email" required placeholder="you@example.com" />
+          </div>
+          <div class="form-group">
+            <label for="login-password">Password</label>
+            <input type="password" id="login-password" name="password" required placeholder="Your Password" />
+          </div>
+          <div class="form-actions">
+            <div id="login-alert" class="form-alert hidden"></div>
+            <button type="submit" id="login-btn" class="button primary submit-btn" style="width:100%;">
+              <span class="btn-text">Sign In</span>
+              <span class="btn-loader hidden"></span>
+            </button>
+          </div>
+          <p style="text-align:center;margin-top:16px;font-size:0.82rem;color:var(--muted);">
+            Not registered yet? <a href="register" style="color:var(--blue-light);">Register your team</a>
+          </p>
+        </form>
+      </div>
+    </div>
+
+    <!-- ================= DASHBOARD STATE ================= -->
+    <div id="dashboard-state" class="hidden">
+      <div style="max-width: 720px; margin: 0 auto;">
+        <div id="loading-state" style="text-align: center; padding: 60px;"><p>Loading dashboard data...</p></div>
+        <div id="dashboard-content" class="hidden">
+          <div class="team-banner">
+            <button type="button" id="btn-delete-team-top" class="delete-icon-btn hidden" title="Delete Team / Withdraw" aria-label="Delete team or withdraw">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 6h18"></path>
+                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
+                <line x1="10" y1="11" x2="10" y2="17"></line>
+                <line x1="14" y1="11" x2="14" y2="17"></line>
+              </svg>
+            </button>
+            <p class="eyebrow" id="user-greeting">Welcome</p>
+            <h1 id="team-name">Loading...</h1>
+            <div class="reg-id" id="team-reg-id">GAAC-2026-XXXX</div>
+            <div class="member-count" id="team-member-count"></div>
+            <div id="leader-badge" class="hidden" style="margin-top:12px;">
+              <span class="m-role" style="display:inline-block;">You are the Team Leader</span>
+            </div>
+            <div id="registration-closed-note" class="hidden" style="margin-top:12px;">
+              <span class="m-role badge-warn" style="display:inline-block;">Registration is closed — roster is locked</span>
+            </div>
+          </div>
+
+          <div id="team-alert" class="form-alert hidden" style="margin-bottom:16px;"></div>
+
+          <div class="roster-grid" id="roster-grid"></div>
+
+          <div id="manage-panel" class="manage-panel hidden">
+            <h2>Add a <span class="text-blue">Team Member</span></h2>
+            <p class="sub">New members get their own sign-in password by email.</p>
+            <form id="add-member-form" novalidate onsubmit="return false;">
+              <div class="form-group">
+                <label for="am-name">Full Name</label>
+                <input type="text" id="am-name" required placeholder="First and Last Name" />
+              </div>
+              <div class="form-group">
+                <label for="am-email">Email</label>
+                <input type="email" id="am-email" required placeholder="email@example.com" pattern="[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$" title="Must be a valid email address" />
+              </div>
+              <div class="form-row">
+                <div class="form-group half">
+                  <label for="am-country">Country</label>
+                  <input type="text" id="am-country" list="country-list" required placeholder="Start typing a country..." autocomplete="off" />
+                </div>
+                <div class="form-group half">
+                  <label for="am-school">School</label>
+                  <input type="text" id="am-school" placeholder="Enter school name" required />
+                </div>
+              </div>
+              <div class="form-row">
+                <div class="form-group half">
+                  <label for="am-dob">Date of Birth</label>
+                  <input type="date" id="am-dob" required />
+                </div>
+                <div class="form-group half">
+                  <label for="am-grade">Grade</label>
+                  <select id="am-grade" required>
+                    <option value="" disabled selected>Select grade</option>
+                    <option value="Grade 9">Grade 9</option>
+                    <option value="Grade 10">Grade 10</option>
+                    <option value="Grade 11">Grade 11</option>
+                    <option value="Grade 12">Grade 12</option>
+                  </select>
+                </div>
+              </div>
+              <div class="form-actions">
+                <div id="add-alert" class="form-alert hidden"></div>
+                <button type="submit" id="add-member-btn" class="button primary submit-btn" style="width:100%;">
+                  <span class="btn-text">Add Member</span>
+                  <span class="btn-loader hidden"></span>
+                </button>
+              </div>
+              <p class="info-note">The new member will receive a confirmation email with their sign-in password (same as the exam portal). Maximum of 3 members per team.</p>
+            </form>
+          </div>
+
+          <div id="delete-modal" class="modal-overlay hidden">
+            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
+              <button type="button" class="modal-close" id="btn-delete-close" aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+              <div class="modal-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              </div>
+              <h2 id="delete-modal-title">Delete Team</h2>
+              <p class="modal-team" id="delete-modal-team"></p>
+              <p class="modal-msg" id="delete-modal-msg"></p>
+              <p class="modal-note">This action cannot be undone.</p>
+              <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="btn-delete-cancel">Cancel</button>
+                <button type="button" class="btn-danger-solid" id="btn-delete-confirm">
+                  <span class="btn-text">Delete Team</span>
+                  <span class="btn-loader hidden"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <footer class="site-footer">
+    <div>
+      <img src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+      <p>Global Astronomy &amp; Astrophysics Challenge, organized by STEM October Astronomy Club.</p>
+    </div>
+    <nav aria-label="Footer navigation">
+      <a href="index">Home</a>
+      <a href="syllabus">Syllabus</a>
+      <a href="timeline">Timeline</a>
+      <a href="partners">Partners</a>
+      <a href="awards">Awards</a>
+      <a href="ambassador">Ambassador</a>
+    </nav>
+    <a class="footer-email" href="mailto:astronomyclub64@gmail.com">astronomyclub64@gmail.com</a>
+    <a class="footer-email" href="mailto:gaac@stemastronomyclub.org">gaac@stemastronomyclub.org</a>
+    <p class="copyright">Copyright 2026 Global Astronomy &amp; Astrophysics Challenge.</p>
+  </footer>
+
+  <datalist id="country-list"></datalist>
+
+  <script src="script.js"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, setDoc, writeBatch, deleteField, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
+      authDomain: "gaac-registration-2026.firebaseapp.com",
+      projectId: "gaac-registration-2026",
+      storageBucket: "gaac-registration-2026.firebasestorage.app",
+      messagingSenderId: "542838311094",
+      appId: "1:542838311094:web:6104e2ed0d1cafa976be17",
+      measurementId: "G-CEB6Z0RF5E"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    // In-memory session: the login page always opens on the login form and
+    // never silently auto-logins with a stale session from another visit.
+    setPersistence(auth, inMemoryPersistence).catch(() => {});
+    const db = getFirestore(app);
+    // Separate app instance so creating a member's Auth account does not
+    // hijack the signed-in leader's session.
+    const rosterApp = initializeApp(firebaseConfig, 'rosterApp');
+    const rosterAuth = getAuth(rosterApp);
+
+    const loginState = document.getElementById('login-state');
+    const dashState = document.getElementById('dashboard-state');
+    const loadingState = document.getElementById('loading-state');
+    const dashContent = document.getElementById('dashboard-content');
+    const btnLogout = document.getElementById('btn-logout');
+
+    // ----- Countries datalist -----
+    const countries = ["Afghanistan","Albania","Algeria","Andorra","Angola","Antigua and Barbuda","Argentina","Armenia","Australia","Austria","Azerbaijan","Bahamas","Bahrain","Bangladesh","Barbados","Belarus","Belgium","Belize","Benin","Bhutan","Bolivia","Bosnia and Herzegovina","Botswana","Brazil","Brunei","Bulgaria","Burkina Faso","Burundi","Côte d'Ivoire","Cabo Verde","Cambodia","Cameroon","Canada","Central African Republic","Chad","Chile","China","Colombia","Comoros","Congo","Costa Rica","Croatia","Cuba","Cyprus","Czechia","Denmark","Djibouti","Dominica","Dominican Republic","Ecuador","Egypt","El Salvador","Equatorial Guinea","Eritrea","Estonia","Eswatini","Ethiopia","Fiji","Finland","France","Gabon","Gambia","Georgia","Germany","Ghana","Greece","Grenada","Guatemala","Guinea","Guinea-Bissau","Guyana","Haiti","Holy See","Honduras","Hungary","Iceland","India","Indonesia","Iran","Iraq","Ireland","Israel","Italy","Jamaica","Japan","Jordan","Kazakhstan","Kenya","Kiribati","Kuwait","Kyrgyzstan","Laos","Latvia","Lebanon","Lesotho","Liberia","Libya","Liechtenstein","Lithuania","Luxembourg","Madagascar","Malawi","Malaysia","Maldives","Mali","Malta","Marshall Islands","Mauritania","Mauritius","Mexico","Micronesia","Moldova","Monaco","Mongolia","Montenegro","Morocco","Mozambique","Myanmar","Namibia","Nauru","Nepal","Netherlands","New Zealand","Nicaragua","Niger","Nigeria","North Korea","North Macedonia","Norway","Oman","Pakistan","Palau","Palestine State","Panama","Papua New Guinea","Paraguay","Peru","Philippines","Poland","Portugal","Qatar","Romania","Russia","Rwanda","Saint Kitts and Nevis","Saint Lucia","Saint Vincent and the Grenadines","Samoa","San Marino","Sao Tome and Principe","Saudi Arabia","Senegal","Serbia","Seychelles","Sierra Leone","Singapore","Slovakia","Slovenia","Solomon Islands","Somalia","South Africa","South Korea","South Sudan","Spain","Sri Lanka","Sudan","Suriname","Sweden","Switzerland","Syria","Taiwan","Tajikistan","Tanzania","Thailand","Togo","Trinidad and Tobago","Tunisia","Turkey","Turkmenistan","Uganda","Ukraine","United Arab Emirates","United Kingdom","United States","Uruguay","Uzbekistan","Venezuela","Vietnam","Yemen","Zambia","Zimbabwe"];
+    const dl = document.getElementById('country-list');
+    countries.forEach(c => {
+      const opt = document.createElement('option');
+      opt.value = c;
+      dl.appendChild(opt);
+    });
+
+    // ----- State -----
+    let currentTeamId = null;
+    let currentRegData = null;
+    let isLeader = false;
+    let registrationOpen = true;
+
+    const showAlert = (el, msg, isError = true) => {
+      el.textContent = msg;
+      el.className = `form-alert ${isError ? 'error' : 'success'}`;
+      el.classList.remove('hidden');
+    };
+    const hideAlert = (el) => el.classList.add('hidden');
+
+    const generatePassword = () => {
+      const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+      const lenArr = new Uint32Array(1);
+      crypto.getRandomValues(lenArr);
+      const length = 12 + (lenArr[0] % 5);
+      const arr = new Uint32Array(length);
+      crypto.getRandomValues(arr);
+      let pw = '';
+      for (let i = 0; i < length; i++) pw += chars[arr[i] % chars.length];
+      return pw;
+    };
+
+    const norm = (s) => (s || '').trim().toLowerCase();
+
+    // ----- Login -----
+    const loginForm = document.getElementById('td-login-form');
+    const loginBtn = document.getElementById('login-btn');
+    const loginBtnText = loginBtn.querySelector('.btn-text');
+    const loginBtnLoader = loginBtn.querySelector('.btn-loader');
+    const loginAlert = document.getElementById('login-alert');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert(loginAlert);
+      const email = document.getElementById('login-email').value.trim().toLowerCase();
+      const password = document.getElementById('login-password').value.trim();
+      loginBtn.disabled = true;
+      loginBtnText.classList.add('hidden');
+      loginBtnLoader.classList.remove('hidden');
+      try {
+        await signInWithEmailAndPassword(auth, email, password);
+      } catch (err) {
+        loginBtn.disabled = false;
+        loginBtnText.classList.remove('hidden');
+        loginBtnLoader.classList.add('hidden');
+        if (err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password' || err.code === 'auth/invalid-credential') {
+          showAlert(loginAlert, 'Invalid email or password.');
+        } else if (err.code === 'auth/invalid-email') {
+          showAlert(loginAlert, 'Please enter a valid email address.');
+        } else {
+          showAlert(loginAlert, err.message || 'Login failed. Please try again.');
+        }
+      }
+    });
+
+    btnLogout.addEventListener('click', async () => {
+      await signOut(auth);
+      sessionStorage.removeItem('gaac.teamId');
+      clearUrlIdentity();
+      window.location.reload();
+    });
+
+    // Show the team id and member name in the URL (never the password).
+    function updateUrlIdentity() {
+      const reg = currentRegData;
+      if (!reg || !auth.currentUser) return;
+      let name = null;
+      const email = norm(auth.currentUser.email);
+      [reg.leader, reg.member2, reg.member3].forEach((m) => {
+        if (m && norm(m.email) === email) name = m.name;
+      });
+      const params = new URLSearchParams();
+      params.set('id', currentTeamId);
+      if (name) params.set('member', name);
+      history.replaceState(null, '', window.location.pathname + '?' + params.toString());
+    }
+
+    // Strip ?id=...&member=... from the URL so the login page always shows
+    // the clean path (team-dashboard.html) whenever the session is dropped.
+    function clearUrlIdentity() {
+      history.replaceState(null, '', window.location.pathname);
+    }
+
+    // If a signed-in account has no usable team data, drop the session and
+    // return to the login form instead of leaving a broken dashboard.
+    function forceLogin(message) {
+      sessionStorage.removeItem('gaac.teamId');
+      signOut(auth).catch(() => {});
+      clearUrlIdentity();
+      loginState.classList.remove('hidden');
+      dashState.classList.add('hidden');
+      dashContent.classList.add('hidden');
+      loadingState.classList.add('hidden');
+      btnLogout.style.display = 'none';
+      if (message) showAlert(loginAlert, message, true);
+    }
+
+    // Mirrors exam-app.js: if the teamMembers mapping is missing (e.g. the
+    // account was re-created or the member never opened the exam portal),
+    // create it so the rules' isTeamMember check lets the registrations
+    // read through. Without it, members get denied even with valid login.
+    async function ensureTeamMembership(teamId) {
+      if (!auth.currentUser) return;
+      try {
+        const snap = await getDoc(doc(db, 'teamMembers', auth.currentUser.uid));
+        if (!snap.exists()) {
+          await setDoc(doc(db, 'teamMembers', auth.currentUser.uid), {
+            teamId,
+            email: auth.currentUser.email
+          });
+        }
+      } catch (e) {
+        console.warn('Failed to create team membership doc:', e);
+      }
+    }
+
+    // ----- Dashboard load -----
+    onAuthStateChanged(auth, async (user) => {
+      if (!user) {
+        clearUrlIdentity();
+        loginState.classList.remove('hidden');
+        dashState.classList.add('hidden');
+        btnLogout.style.display = 'none';
+        return;
+      }
+
+      loginState.classList.add('hidden');
+      dashState.classList.remove('hidden');
+      loadingState.classList.remove('hidden');
+      dashContent.classList.add('hidden');
+      btnLogout.style.display = 'inline-block';
+
+      try {
+        // Find the user's team. The mapping is cached per-tab so the
+        // teamMembers/registeredEmails lookups happen only once.
+        let teamId = sessionStorage.getItem('gaac.teamId') || null;
+        if (!teamId) {
+          const memberSnap = await getDoc(doc(db, 'teamMembers', user.uid));
+          if (memberSnap.exists()) {
+            teamId = memberSnap.data().teamId;
+          } else {
+            const emailSnap = await getDoc(doc(db, 'registeredEmails', norm(user.email)));
+            if (emailSnap.exists()) teamId = emailSnap.data().registrationId;
+          }
+          if (teamId) sessionStorage.setItem('gaac.teamId', teamId);
+        }
+
+        if (!teamId) {
+          forceLogin('No team registration was found for this account. Please log in with the email you registered with, or contact us if you believe this is a mistake.');
+          return;
+        }
+
+        currentTeamId = teamId;
+        await ensureTeamMembership(teamId);
+        const regSnap = await getDoc(doc(db, 'registrations', teamId));
+        if (!regSnap.exists()) {
+          forceLogin('Your team data could not be loaded. Please log in again.');
+          return;
+        }
+
+        currentRegData = regSnap.data();
+        isLeader = norm(currentRegData.leader.email) === norm(user.email);
+
+        // The registration-open flag only gates the leader's roster tools,
+        // so regular members never pay for this read.
+        if (isLeader) {
+          const compSnap = await getDoc(doc(db, 'settings', 'competition'));
+          registrationOpen = !(compSnap.exists() && compSnap.data().registrationOpen === false);
+        } else {
+          registrationOpen = true;
+        }
+
+        updateUrlIdentity();
+        renderDashboard(user);
+      } catch (e) {
+        console.error('Dashboard load error:', e);
+        forceLogin('Unable to load your dashboard. Please log in again and try again.');
+      }
+    });
+
+    function renderDashboard(user) {
+      const reg = currentRegData;
+      document.getElementById('user-greeting').textContent = `Welcome, ${reg.leader.name}`;
+      document.getElementById('team-name').textContent = reg.teamName;
+      document.getElementById('team-reg-id').textContent = reg.registrationId;
+
+      const members = [
+        { key: 'leader', label: 'Team Leader', data: reg.leader },
+        { key: 'member2', label: 'Member 2', data: reg.member2 },
+        { key: 'member3', label: 'Member 3', data: reg.member3 }
+      ].filter(m => m.data);
+
+      document.getElementById('team-member-count').textContent = `${members.length} of 3 members`;
+
+      const grid = document.getElementById('roster-grid');
+      grid.innerHTML = '';
+      members.forEach((m) => {
+        const isLeaderCard = m.key === 'leader';
+        const card = document.createElement('div');
+        card.className = `member-card${isLeaderCard ? ' leader' : ''}`;
+        let html = `
+          <div class="m-head">
+            <div class="m-name">${escapeHtml(m.data.name)}</div>
+            <div class="m-role">${m.label}</div>
+          </div>
+          <div class="m-row"><strong>Email:</strong> ${escapeHtml(m.data.email)}</div>`;
+        if (!isLeaderCard && isLeader && registrationOpen) {
+          html += `<div class="m-actions">
+            <button class="btn-danger" data-remove="${m.key}" data-email="${escapeHtml(m.data.email)}" data-name="${escapeHtml(m.data.name)}">Remove Member</button>
+          </div>`;
+        }
+        card.innerHTML = html;
+        grid.appendChild(card);
+      });
+
+      // Bind remove buttons
+      grid.querySelectorAll('[data-remove]').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          removeMember(btn.getAttribute('data-remove'), btn.getAttribute('data-email'), btn.getAttribute('data-name'));
+        });
+      });
+
+      // Leader controls
+      const managePanel = document.getElementById('manage-panel');
+      document.getElementById('leader-badge').classList.toggle('hidden', !isLeader);
+      document.getElementById('registration-closed-note').classList.toggle('hidden', registrationOpen || !isLeader);
+      if (isLeader && registrationOpen) {
+        const hasMember2 = !!reg.member2;
+        const hasMember3 = !!reg.member3;
+        const canAdd = !(hasMember2 && hasMember3);
+        managePanel.classList.toggle('hidden', !canAdd);
+        if (canAdd) {
+          document.querySelector('#add-member-form .info-note').textContent = hasMember2
+            ? 'This will fill your 3rd member slot (maximum of 3 per team).'
+            : 'This will fill your 2nd member slot (maximum of 3 per team).';
+        }
+      } else {
+        managePanel.classList.add('hidden');
+      }
+
+      // Delete/withdraw control (top-right icon) — leader only.
+      document.getElementById('btn-delete-team-top').classList.toggle('hidden', !isLeader);
+
+      loadingState.classList.add('hidden');
+      dashContent.classList.remove('hidden');
+    }
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+    }
+
+    // ----- Add member (leader only) -----
+    const addForm = document.getElementById('add-member-form');
+    const addBtn = document.getElementById('add-member-btn');
+    const addBtnText = addBtn.querySelector('.btn-text');
+    const addBtnLoader = addBtn.querySelector('.btn-loader');
+    const addAlert = document.getElementById('add-alert');
+
+    addForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      hideAlert(addAlert);
+
+      if (!isLeader) return;
+      if (!registrationOpen) { showAlert(addAlert, 'Registration is currently closed — the roster is locked.'); return; }
+
+      const name = document.getElementById('am-name').value.trim();
+      const email = document.getElementById('am-email').value.trim().toLowerCase();
+      const country = document.getElementById('am-country').value.trim();
+      const school = document.getElementById('am-school').value.trim();
+      const dob = document.getElementById('am-dob').value;
+      const grade = document.getElementById('am-grade').value;
+
+      if (!name || !email || !country || !school || !dob || !grade) {
+        showAlert(addAlert, 'Please fill in all fields.');
+        return;
+      }
+      if (!/^[a-z0-9._%+\-]+@[a-z0-9.\-]+\.[a-z]{2,}$/.test(email)) {
+        showAlert(addAlert, 'Please enter a valid email address.');
+        return;
+      }
+
+      addBtn.disabled = true;
+      addBtnText.classList.add('hidden');
+      addBtnLoader.classList.remove('hidden');
+
+      try {
+        const reg = currentRegData;
+        if (reg.member2 && reg.member3) {
+          showAlert(addAlert, 'Your team already has the maximum of 3 members.');
+          return;
+        }
+
+        // Email must be unique globally (Firestore duplicate prevention)
+        const emailSnap = await getDoc(doc(db, 'registeredEmails', email));
+        if (emailSnap.exists()) {
+          showAlert(addAlert, 'This email address is already registered to a team.');
+          return;
+        }
+
+        const slot = reg.member2 ? 'member3' : 'member2';
+        const loginPassword = generatePassword();
+
+        // 1. Create the member's Auth account (on a separate app instance so
+        //    the leader's own session is unaffected).
+        const cred = await createUserWithEmailAndPassword(rosterAuth, email, loginPassword);
+        const newUid = cred.user.uid;
+
+        const memberData = { name, email, country, school, dob, grade };
+
+        // 2. Atomically register the member everywhere.
+        const batch = writeBatch(db);
+        batch.set(doc(db, 'registeredEmails', email), {
+          teamName: reg.teamName,
+          registrationId: currentTeamId,
+          uid: newUid
+        });
+        batch.set(doc(db, 'teamMembers', newUid), {
+          teamId: currentTeamId,
+          email: email,
+          createdAt: serverTimestamp()
+        });
+        batch.update(doc(db, 'registrations', currentTeamId), { [slot]: memberData });
+
+        // memberCount: increment on an existing teams doc, or seed the doc
+        // with the exact new count if it does not exist yet (Firestore
+        // rejects transforms on non-existent documents).
+        const teamRef = doc(db, 'teams', currentTeamId);
+        const teamSnap = await getDoc(teamRef);
+        if (teamSnap.exists()) {
+          batch.set(teamRef, { memberCount: increment(1) }, { merge: true });
+        } else {
+          const rosterLen = (reg.leader ? 1 : 0) + (reg.member2 ? 1 : 0) + (reg.member3 ? 1 : 0);
+          batch.set(teamRef, { memberCount: rosterLen + 1 });
+        }
+
+        // 3. Send the new member their credentials by email.
+        const mailId = `add-${currentTeamId}-${Date.now()}`;
+        batch.set(doc(db, 'mail', mailId), {
+          to: email,
+          message: {
+            subject: 'GAAC 2026 — You have been added to Team ' + reg.teamName,
+            html: memberEmailHtml({ name, email, teamName: reg.teamName, regId: currentTeamId, password: loginPassword })
+          }
+        });
+
+        await batch.commit();
+
+        addForm.reset();
+        showAlert(addAlert, `${name} has been added to your team. Sign-in details were sent to ${email}.`, false);
+
+        // Update the roster locally instead of re-reading the registration doc.
+        currentRegData[slot] = memberData;
+        renderDashboard(auth.currentUser);
+      } catch (err) {
+        console.error('Add member error:', err);
+        if (err.code === 'auth/email-already-in-use') {
+          showAlert(addAlert, 'This email is already linked to an account. Please use a different email or contact us.');
+        } else if (/permission-denied|PERMISSION_DENIED/i.test(err.message)) {
+          showAlert(addAlert, 'You do not have permission to do this.');
+        } else {
+          showAlert(addAlert, err.message || 'Could not add the member. Please try again.');
+        }
+      } finally {
+        addBtn.disabled = false;
+        addBtnText.classList.remove('hidden');
+        addBtnLoader.classList.add('hidden');
+      }
+    });
+
+    // ----- Remove member (leader only) -----
+    async function removeMember(slot, email, name) {
+      if (!isLeader || !registrationOpen) return;
+      if (!window.confirm(`Remove ${name} (${email}) from your team?\n\nThis will immediately revoke their access to the exam portal. This cannot be undone.`)) return;
+
+      const teamAlert = document.getElementById('team-alert');
+      hideAlert(teamAlert);
+
+      try {
+        // Find the member's uid so we can delete their teamMembers mapping.
+        const emailSnap = await getDoc(doc(db, 'registeredEmails', norm(email)));
+        const uid = emailSnap.exists() ? emailSnap.data().uid : null;
+        if (!uid) {
+          showAlert(teamAlert, `Could not resolve ${email}'s account. Please contact support to remove them manually.`);
+          return;
+        }
+
+        const batch = writeBatch(db);
+        batch.delete(doc(db, 'registeredEmails', norm(email)));
+        batch.delete(doc(db, 'teamMembers', uid));
+        batch.update(doc(db, 'registrations', currentTeamId), { [slot]: deleteField() });
+        // memberCount: decrement an existing teams doc, or seed the doc with
+        // the exact new count if it does not exist yet.
+        const teamRef = doc(db, 'teams', currentTeamId);
+        const teamSnap = await getDoc(teamRef);
+        if (teamSnap.exists()) {
+          batch.set(teamRef, { memberCount: increment(-1) }, { merge: true });
+        } else {
+          const regNow = currentRegData;
+          const rosterLen = (regNow.leader ? 1 : 0) + (regNow.member2 ? 1 : 0) + (regNow.member3 ? 1 : 0);
+          batch.set(teamRef, { memberCount: rosterLen - 1 });
+        }
+        // Audit log for the admin account-lock cleanup script.
+        batch.set(doc(db, 'removedMembers', uid), {
+          email: norm(email),
+          teamId: currentTeamId,
+          removedAt: serverTimestamp()
+        });
+
+        await batch.commit();
+
+        showAlert(teamAlert, `${name} has been removed. Their portal access is now revoked.`, false);
+
+        // Update the roster locally instead of re-reading the registration doc.
+        currentRegData[slot] = null;
+        renderDashboard(auth.currentUser);
+      } catch (err) {
+        console.error('Remove member error:', err);
+        showAlert(teamAlert, err.message || 'Could not remove the member. Please try again.');
+      }
+    }
+
+    // ----- Delete team / withdraw (leader only) -----
+    const btnDeleteTeamTop = document.getElementById('btn-delete-team-top');
+    const teamAlert = document.getElementById('team-alert');
+    const deleteModal = document.getElementById('delete-modal');
+    const deleteModalTitle = document.getElementById('delete-modal-title');
+    const deleteModalTeam = document.getElementById('delete-modal-team');
+    const deleteModalMsg = document.getElementById('delete-modal-msg');
+    const btnDeleteClose = document.getElementById('btn-delete-close');
+    const btnDeleteCancel = document.getElementById('btn-delete-cancel');
+    const btnDeleteConfirm = document.getElementById('btn-delete-confirm');
+    const btnDeleteConfirmText = btnDeleteConfirm.querySelector('.btn-text');
+    const btnDeleteConfirmLoader = btnDeleteConfirm.querySelector('.btn-loader');
+
+    let pendingDelete = null;
+
+    function openDeleteModal() {
+      if (!isLeader) return;
+      const reg = currentRegData;
+      const members = [reg.leader, reg.member2, reg.member3].filter(Boolean);
+      const nextLeader = reg.member2 || reg.member3;
+      const willTransfer = members.length > 1;
+
+      pendingDelete = { willTransfer, reg, nextLeader };
+      deleteModalTeam.textContent = `${reg.teamName} — ${reg.registrationId}`;
+      if (willTransfer) {
+        deleteModalTitle.textContent = 'Withdraw from Team';
+        deleteModalMsg.textContent =
+          `You are about to withdraw from "${reg.teamName}". Leadership will be transferred to ` +
+          `${nextLeader.name} (${nextLeader.email}), and you will be removed from the team roster. ` +
+          `You will lose access to the exam portal and this dashboard.`;
+        btnDeleteConfirmText.textContent = 'Yes, Withdraw';
+      } else {
+        deleteModalTitle.textContent = 'Delete Team';
+        deleteModalMsg.textContent =
+          `You are about to permanently delete "${reg.teamName}". You are the only member, ` +
+          `so the team and all of its data will be erased. You will lose access to the exam portal and this dashboard.`;
+        btnDeleteConfirmText.textContent = 'Yes, Delete';
+      }
+      deleteModal.classList.remove('hidden');
+    }
+
+    function closeDeleteModal() {
+      deleteModal.classList.add('hidden');
+      pendingDelete = null;
+    }
+
+    btnDeleteTeamTop.addEventListener('click', openDeleteModal);
+    btnDeleteClose.addEventListener('click', closeDeleteModal);
+    btnDeleteCancel.addEventListener('click', closeDeleteModal);
+    deleteModal.addEventListener('click', (e) => {
+      if (e.target === deleteModal) closeDeleteModal();
+    });
+
+    btnDeleteConfirm.addEventListener('click', async () => {
+      if (!pendingDelete) return;
+      const { willTransfer, reg, nextLeader } = pendingDelete;
+      hideAlert(teamAlert);
+
+      btnDeleteConfirm.disabled = true;
+      btnDeleteConfirmText.classList.add('hidden');
+      btnDeleteConfirmLoader.classList.remove('hidden');
+
+      try {
+        if (willTransfer) {
+          await withdrawLeader(reg, nextLeader);
+          showAlert(teamAlert, `You have withdrawn from ${reg.teamName}. Leadership was transferred to ${nextLeader.name}.`, false);
+        } else {
+          await deleteEntireTeam(reg);
+          showAlert(teamAlert, `Team "${reg.teamName}" has been deleted.`, false);
+        }
+        closeDeleteModal();
+        sessionStorage.removeItem('gaac.teamId');
+        signOut(auth).catch(() => {});
+        clearUrlIdentity();
+        setTimeout(() => window.location.reload(), 1600);
+      } catch (err) {
+        console.error('Delete team error:', err);
+        if (/permission-denied|PERMISSION_DENIED/i.test(err.message)) {
+          showAlert(teamAlert, 'You do not have permission to do this.');
+        } else {
+          showAlert(teamAlert, err.message || 'Could not complete the request. Please try again.');
+        }
+        btnDeleteConfirm.disabled = false;
+        btnDeleteConfirmText.classList.remove('hidden');
+        btnDeleteConfirmLoader.classList.add('hidden');
+        closeDeleteModal();
+      }
+    });
+
+    // Promote the next member to leader, remove the withdrawing leader from
+    // the roster, and revoke their access. All in one atomic batch.
+    async function withdrawLeader(reg, nextLeader) {
+      const oldEmail = norm(auth.currentUser.email);
+      const emailSnap = await getDoc(doc(db, 'registeredEmails', oldEmail));
+      const oldUid = emailSnap.exists() ? emailSnap.data().uid : null;
+
+      // Shift members up: leader = next member, member3 fills member2, and
+      // the old leader's slot disappears.
+      const upd = { leader: nextLeader, member3: deleteField() };
+      upd.member2 = reg.member3 ? reg.member3 : deleteField();
+
+      const batch = writeBatch(db);
+      batch.update(doc(db, 'registrations', currentTeamId), upd);
+      batch.delete(doc(db, 'registeredEmails', oldEmail));
+      if (oldUid) {
+        batch.delete(doc(db, 'teamMembers', oldUid));
+        batch.set(doc(db, 'removedMembers', oldUid), {
+          email: oldEmail,
+          teamId: currentTeamId,
+          removedAt: serverTimestamp()
+        });
+      }
+      // Notify the new leader.
+      const mailId = `leader-${currentTeamId}-${Date.now()}`;
+      batch.set(doc(db, 'mail', mailId), {
+        to: nextLeader.email,
+        message: {
+          subject: 'GAAC 2026 — You are now the leader of Team ' + reg.teamName,
+          html: leaderTransferHtml({ name: nextLeader.name, teamName: reg.teamName, regId: currentTeamId })
+        }
+      });
+      await batch.commit();
+    }
+
+    // Solo leader: permanently delete the whole team in one atomic batch.
+    async function deleteEntireTeam(reg) {
+      const lowerTeamName = reg.teamName.toLowerCase().replace(/[/\\]/g, '-');
+      const emailSnap = await getDoc(doc(db, 'registeredEmails', norm(reg.leader.email)));
+      const leaderUid = emailSnap.exists() ? emailSnap.data().uid : null;
+
+      const batch = writeBatch(db);
+      batch.delete(doc(db, 'registrations', currentTeamId));
+      batch.delete(doc(db, 'registeredTeams', lowerTeamName));
+      batch.delete(doc(db, 'mail', currentTeamId));
+      batch.delete(doc(db, 'teams', currentTeamId));
+      batch.delete(doc(db, 'registeredEmails', norm(reg.leader.email)));
+      if (leaderUid) {
+        batch.delete(doc(db, 'teamMembers', leaderUid));
+        batch.set(doc(db, 'removedMembers', leaderUid), {
+          email: norm(reg.leader.email),
+          teamId: currentTeamId,
+          removedAt: serverTimestamp()
+        });
+      }
+      await batch.commit();
+    }
+
+    // ----- Email template for newly added members -----
+    function memberEmailHtml({ name, email, teamName, regId, password }) {
+      return `
+        <!DOCTYPE html><html><head><meta charset="utf-8"></head>
+        <body style="margin:0;padding:0;background:#0a0e17;font-family:'Inter',Arial,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0e17;padding:40px 20px;">
+            <tr><td align="center">
+              <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;">
+                <tr><td align="center" style="padding-bottom:32px;">
+                  <img src="https://gaac-registration-2026.web.app/images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" width="180" style="display:block;">
+                </td></tr>
+                <tr><td style="background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.018));border:1px solid rgba(38,183,255,0.15);border-radius:16px;padding:40px 36px;backdrop-filter:blur(22px);">
+                  <h1 style="margin:0 0 8px;font-family:'Orbitron',Arial,sans-serif;font-size:1.3rem;font-weight:700;color:#ffffff;letter-spacing:0.04em;text-align:center;">You've been added to a team</h1>
+                  <p style="margin:0 0 6px;color:#aec8e0;font-size:0.88rem;text-align:center;">Global Astronomy &amp; Astrophysics Challenge 2026</p>
+                  <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(38,183,255,0.3),transparent);margin:28px 0;"></div>
+                  <p style="color:#e8f0f8;font-size:0.95rem;line-height:1.7;margin:0 0 6px;">Dear ${name},</p>
+                  <p style="color:#aec8e0;font-size:0.9rem;line-height:1.7;margin:0 0 20px;">Your team leader has added you to team <strong style="color:#e8f0f8;">${teamName}</strong> for GAAC 2026.</p>
+                  <table width="100%" cellpadding="0" cellspacing="0" style="background:rgba(8,120,255,0.08);border:1px solid rgba(38,183,255,0.12);border-radius:12px;padding:20px;margin-bottom:24px;">
+                    <tr><td style="padding-bottom:8px;color:#7a9bb5;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;">Registration ID</td></tr>
+                    <tr><td style="font-family:'Orbitron',Arial,sans-serif;font-size:1.1rem;font-weight:700;color:#26b7ff;letter-spacing:0.08em;">${regId}</td></tr>
+                    <tr><td style="padding:12px 0 8px;color:#7a9bb5;font-size:0.75rem;letter-spacing:0.06em;text-transform:uppercase;">Exam Portal Password</td></tr>
+                    <tr><td style="font-family:'Orbitron',Arial,sans-serif;font-size:0.95rem;font-weight:600;color:#e8f0f8;letter-spacing:0.04em;">${password}</td></tr>
+                  </table>
+                  <p style="color:#aec8e0;font-size:0.85rem;line-height:1.6;margin:0 0 4px;">Use your email and the password above to sign in to the Exam Portal and the Team Dashboard.</p>
+                  <p style="color:#7a9bb5;font-size:0.82rem;line-height:1.5;margin:0;">Questions? Contact us at <a href="mailto:astronomyclub64@gmail.com" style="color:#26b7ff;text-decoration:none;">astronomyclub64@gmail.com</a></p>
+                </td></tr>
+                <tr><td align="center" style="padding-top:28px;">
+                  <p style="color:#4a6a80;font-size:0.75rem;margin:0;">STEM October Astronomy Club — Global Astronomy &amp; Astrophysics Challenge</p>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+        <\/body><\/html>`;
+    }
+
+    // ----- Email template for leadership transfer -----
+    function leaderTransferHtml({ name, teamName, regId }) {
+      return `
+        <!DOCTYPE html><html><head><meta charset="utf-8"></head>
+        <body style="margin:0;padding:0;background:#0a0e17;font-family:'Inter',Arial,sans-serif;">
+          <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0e17;padding:40px 20px;">
+            <tr><td align="center">
+              <table width="560" cellpadding="0" cellspacing="0" style="max-width:560px;">
+                <tr><td align="center" style="padding-bottom:32px;">
+                  <img src="https://gaac-registration-2026.web.app/images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" width="180" style="display:block;">
+                </td></tr>
+                <tr><td style="background:linear-gradient(135deg,rgba(255,255,255,0.07),rgba(255,255,255,0.018));border:1px solid rgba(38,183,255,0.15);border-radius:16px;padding:40px 36px;backdrop-filter:blur(22px);">
+                  <h1 style="margin:0 0 8px;font-family:'Orbitron',Arial,sans-serif;font-size:1.3rem;font-weight:700;color:#ffffff;letter-spacing:0.04em;text-align:center;">You are now the Team Leader</h1>
+                  <p style="margin:0 0 6px;color:#aec8e0;font-size:0.88rem;text-align:center;">Global Astronomy &amp; Astrophysics Challenge 2026</p>
+                  <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(38,183,255,0.3),transparent);margin:28px 0;"></div>
+                  <p style="color:#e8f0f8;font-size:0.95rem;line-height:1.7;margin:0 0 6px;">Dear ${name},</p>
+                  <p style="color:#aec8e0;font-size:0.9rem;line-height:1.7;margin:0 0 20px;">The previous leader has withdrawn from team <strong style="color:#e8f0f8;">${teamName}</strong>. You are now the team leader for GAAC 2026 (Registration ID <strong style="color:#26b7ff;">${regId}</strong>).</p>
+                  <p style="color:#aec8e0;font-size:0.9rem;line-height:1.7;margin:0 0 4px;">Sign in to the <a href="https://gaac-registration-2026.web.app/team-dashboard" style="color:#26b7ff;text-decoration:none;">Team Dashboard</a> with your existing email and password to manage the team.</p>
+                  <div style="height:1px;background:linear-gradient(90deg,transparent,rgba(38,183,255,0.15),transparent);margin:20px 0 24px;"></div>
+                  <p style="color:#7a9bb5;font-size:0.82rem;line-height:1.5;margin:0;">Questions? Contact us at <a href="mailto:astronomyclub64@gmail.com" style="color:#26b7ff;text-decoration:none;">astronomyclub64@gmail.com</a></p>
+                </td></tr>
+                <tr><td align="center" style="padding-top:28px;">
+                  <p style="color:#4a6a80;font-size:0.75rem;margin:0;">STEM October Astronomy Club — Global Astronomy &amp; Astrophysics Challenge</p>
+                </td></tr>
+              </table>
+            </td></tr>
+          </table>
+        <\/body><\/html>`;
+    }
+  </script>
+</body>
+</html>

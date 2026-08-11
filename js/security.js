@@ -1,6 +1,7 @@
 export class SecurityWrapper {
-  constructor(teamId, db, onNotify = null, countdownConfig = {}) {
+  constructor(teamId, memberUid, db, onNotify = null, countdownConfig = {}) {
     this.teamId = teamId;
+    this.memberUid = memberUid;
     this.db = db;
     this.eventQueue = [];
     this.flushTimer = null;
@@ -244,9 +245,16 @@ export class SecurityWrapper {
         b.set(ref, evt);
       });
 
-      // Atomically update counters on the exam doc
-      const examRef = doc(this.db, 'teams', this.teamId, 'exam', 'round1');
+      // Atomically update counters on the member's exam doc AND the team
+      // summary doc (the summary doc lets the admin dashboard render
+      // without per-team reads)
+      const examRef = doc(this.db, 'teams', this.teamId, 'exam', this.memberUid);
       b.set(examRef, {
+        eventCount: increment(batch.length),
+        severeEventCount: increment(severeCount)
+      }, { merge: true });
+      const teamRef = doc(this.db, 'teams', this.teamId);
+      b.set(teamRef, {
         eventCount: increment(batch.length),
         severeEventCount: increment(severeCount)
       }, { merge: true });

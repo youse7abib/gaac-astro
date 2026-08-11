@@ -5,7 +5,7 @@ import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, order
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
-let teamId, examId = 'round1', currentUser = null;
+let teamId, currentUser = null;
 let questions = [];
 let answers = {};
 let flagged = {};
@@ -13,7 +13,7 @@ let timerInterval, endTime, examDocRef, pausedRemaining = null, questionOrder = 
 let camStream = null, screenStream = null;
 let cameraActive = false, screenActive = false, fullscreenActive = false;
 let examPaused = false, examSubmitted = false, pauseResolve = null, healthInterval = null, countdownInterval = null;
-const STORAGE_KEY = () => `gaac_exam_${teamId}`;
+const STORAGE_KEY = () => `gaac_exam_${teamId}_${currentUser ? currentUser.uid : 'anon'}`;
 
 const saveState = () => {
   try {
@@ -54,7 +54,7 @@ const init = async () => {
     // Must exist before any teams/ read — used by security rules to verify team membership
     await ensureTeamMembership();
 
-    examDocRef = doc(db, 'teams', teamId, 'exam', examId);
+    examDocRef = doc(db, 'teams', teamId, 'exam', currentUser.uid);
 
     const existingExam = await getDoc(examDocRef);
     if (existingExam.exists() && existingExam.data().status === 'submitted') {
@@ -191,6 +191,12 @@ const startExam = async () => {
         startedAt: serverTimestamp(),
         endTime: new Date(endTime).toISOString()
       }, { merge: true });
+      // Mirror summary on the team parent doc so the admin dashboard can
+      // render status with 2 queries instead of one read per team.
+      await setDoc(doc(db, 'teams', teamId), {
+        status: 'in-progress',
+        startedAt: serverTimestamp()
+      }, { merge: true });
       console.log('[startExam] status=in-progress written, endTime=', new Date(endTime).toISOString());
   } catch (e) {
     console.warn('Failed to write in-progress status:', e);
@@ -256,7 +262,7 @@ const showToast = (msg, severity = 'warning') => {
 };
 
 const startSecurity = () => {
-  const security = new SecurityWrapper(teamId, db, (msg, severity) => {
+  const security = new SecurityWrapper(teamId, currentUser.uid, db, (msg, severity) => {
     showToast(msg, severity);
     if (msg.includes('switched away')) pauseExam('tab-hidden');
     else if (msg.includes('lost focus')) pauseExam('window-blur');
@@ -633,6 +639,10 @@ const submitExam = async () => {
       questionOrder,
       pausedRemaining: null
     }, { merge: true });
+    // Advance the team's submitted-member counter (rules allow +1 only).
+    // The team stays 'in-progress' until all registered members submit;
+    // the final average + completion is computed by the admin afterwards.
+    await incrementTeamSubmittedCount();
   } catch (e) {
     console.warn('Failed to save submission:', e);
   }
@@ -645,6 +655,22 @@ const submitExam = async () => {
   document.querySelector('.exam-layout')?.classList.add('hidden');
   document.querySelector('.exam-footer-bar')?.classList.add('hidden');
   document.getElementById('exam-submitted').classList.remove('hidden');
+};
+
+const incrementTeamSubmittedCount = async () => {
+  const pRef = doc(db, 'teams', teamId);
+  for (let attempt = 0; attempt < 5; attempt++) {
+    try {
+      const pSnap = await getDoc(pRef);
+      const next = (pSnap.exists() ? (pSnap.data().submittedCount || 0) : 0) + 1;
+      await setDoc(pRef, { submittedCount: next }, { merge: true });
+      return;
+    } catch (e) {
+      // Concurrent submit from a teammate or transient failure — retry
+      if (attempt === 4) console.warn('Failed to update submittedCount:', e);
+      await new Promise(r => setTimeout(r, 800));
+    }
+  }
 };
 
 const showMessage = (msg) => {

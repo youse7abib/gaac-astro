@@ -328,6 +328,7 @@ p  { overflow-wrap: anywhere; }
   box-shadow: 0 12px 38px rgba(8,120,255,0.44), inset 0 1px 0 rgba(255,255,255,0.18);
 }
 .header-cta { justify-self: end; }
+.header-ctas { justify-self: end; display: inline-flex; align-items: center; gap: 10px; }
 
 /* Mobile hamburger */
 .nav-toggle {
@@ -1011,7 +1012,7 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
 @media (max-width: 980px) {
   .site-header { grid-template-columns: auto 1fr auto; }
   .brand-lockup { grid-column: 1; }
-  .header-cta { grid-column: 2; justify-self: end; margin-right: 10px; }
+  .header-ctas { grid-column: 2; justify-self: end; margin-right: 10px; }
   .nav-toggle { grid-column: 3; justify-self: end; display: block; }
 
   .site-nav {
@@ -1046,11 +1047,14 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
    RESPONSIVE — 620px
    ================================================================ */
 @media (max-width: 620px) {
-  .site-header { grid-template-columns: 1fr auto; min-height: 70px; }
-  .club-logo { width: 34px; height: 34px; }
-  .gaac-logo { width: 52px; height: 42px; }
+  .site-header { grid-template-columns: auto 1fr auto; min-height: 70px; }
+  .brand-lockup { grid-column: 1; gap: 8px; }
+  .club-logo { width: 30px; height: 30px; }
+  .gaac-logo { width: 46px; height: 38px; }
   .site-nav  { top: 70px; }
-  .header-cta { display: none; }
+  .header-ctas { grid-column: 2; justify-self: end; margin-right: 4px; gap: 6px; }
+  .header-ctas .nav-cta { padding: 7px 12px; font-size: 0.76rem; white-space: nowrap; }
+  .nav-toggle { grid-column: 3; justify-self: end; width: 40px; height: 40px; }
 
   .page-shell { width: min(100% - 26px, 1180px); padding-top: 50px; padding-bottom: 50px; }
   h1 { font-size: clamp(1.8rem,9vw,2.8rem); }

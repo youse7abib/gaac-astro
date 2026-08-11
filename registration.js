@@ -1,6 +1,6 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFirestore, doc, getDoc, setDoc, runTransaction, serverTimestamp, collection, query, where, getDocs, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFirestore, doc, getDoc, setDoc, writeBatch, serverTimestamp, collection, query, where, getDocs, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -261,10 +261,17 @@ form.addEventListener('submit', async (e) => {
 
     const loginPassword = generatePassword();
 
-    const registrationId = await runTransaction(db, async (transaction) => {
+    // Atomic registration using a batch write. Firestore rules enforce
+    // uniqueness (!exists) and the counter increment (+1), so the batch is
+    // all-or-nothing. Retry a few times to handle concurrent submissions
+    // that race on the sequential ID counter.
+    let registrationId = null;
+    const MAX_ATTEMPTS = 3;
+
+    for (let attempt = 0; attempt < MAX_ATTEMPTS && !registrationId; attempt++) {
       // 1. Check Team Name uniqueness
       const teamRef = doc(db, 'registeredTeams', lowerTeamName);
-      const teamSnap = await transaction.get(teamRef);
+      const teamSnap = await getDoc(teamRef);
       if (teamSnap.exists()) {
         throw new Error(`The team name "${teamName}" is already taken.`);
       }
@@ -272,7 +279,7 @@ form.addEventListener('submit', async (e) => {
       // 2. Check Emails uniqueness
       for (const email of emails) {
         const emailRef = doc(db, 'registeredEmails', email);
-        const emailSnap = await transaction.get(emailRef);
+        const emailSnap = await getDoc(emailRef);
         if (emailSnap.exists()) {
           throw new Error(`The email address "${email}" is already registered.`);
         }
@@ -280,34 +287,17 @@ form.addEventListener('submit', async (e) => {
 
       // 3. Generate Sequential ID
       const counterRef = doc(db, 'settings', 'counter');
-      const counterSnap = await transaction.get(counterRef);
-      
+      const counterSnap = await getDoc(counterRef);
+
       let newIdNum = 1;
       if (counterSnap.exists()) {
         newIdNum = counterSnap.data().lastId + 1;
       }
-      
+
       const regId = `GAAC-2026-${String(newIdNum).padStart(4, '0')}`;
       const regRef = doc(db, 'registrations', regId);
 
-      // 4. Perform Writes
-      // Note: Must ensure security rules allow creating the counter if it doesn't exist
-      transaction.set(counterRef, { lastId: newIdNum });
-      
-      transaction.set(teamRef, { 
-        originalName: teamName, 
-        registrationId: regId, 
-        createdAt: serverTimestamp() 
-      });
-
-      emails.forEach((email) => {
-        const emailRef = doc(db, 'registeredEmails', email);
-        transaction.set(emailRef, { 
-          teamName: teamName, 
-          registrationId: regId
-        });
-      });
-
+      // 4. Build registration data
       const registrationData = {
         registrationId: regId,
         teamName,
@@ -324,11 +314,30 @@ form.addEventListener('submit', async (e) => {
         registrationData.referralCode = referralCode;
       }
 
-      transaction.set(regRef, registrationData);
+      // 5. Perform atomic writes
+      try {
+        const batch = writeBatch(db);
+        batch.set(counterRef, { lastId: newIdNum });
 
-      // Add mail payload for Trigger Email extension
-      const mailRef = doc(db, 'mail', regId);
-      transaction.set(mailRef, {
+        batch.set(teamRef, {
+          originalName: teamName,
+          registrationId: regId,
+          createdAt: serverTimestamp()
+        });
+
+        emails.forEach((email) => {
+          const emailRef = doc(db, 'registeredEmails', email);
+          batch.set(emailRef, {
+            teamName: teamName,
+            registrationId: regId
+          });
+        });
+
+        batch.set(regRef, registrationData);
+
+        // Add mail payload for Trigger Email extension
+        const mailRef = doc(db, 'mail', regId);
+        batch.set(mailRef, {
         to: leader.email,
         message: {
           subject: 'GAAC 2026 Registration Confirmed — Team ' + teamName,
@@ -386,11 +395,23 @@ form.addEventListener('submit', async (e) => {
             </body>
             </html>
           `
-        }
-      });
+          }
+        });
 
-      return regId;
-    });
+        await batch.commit();
+        registrationId = regId;
+      } catch (e) {
+        if (attempt === MAX_ATTEMPTS - 1) {
+          throw e;
+        }
+        // A concurrent submission likely advanced the counter (or created a
+        // duplicate doc) — retry with fresh reads.
+      }
+    }
+
+    if (!registrationId) {
+      throw new Error('Registration could not be completed. Please try again.');
+    }
 
     // Create Firebase Auth accounts for all team members
     const memberEmails = [leader.email];
