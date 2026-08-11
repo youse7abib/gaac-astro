@@ -395,6 +395,8 @@ p  { overflow-wrap: anywhere; }
   margin-top: 28px;
 }
 
+.hero-login { display: none; }
+
 /* Buttons */
 .button {
   cursor: pointer;
@@ -1052,8 +1054,8 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
   .club-logo { width: 30px; height: 30px; }
   .gaac-logo { width: 46px; height: 38px; }
   .site-nav  { top: 70px; }
-  .header-ctas { grid-column: 2; justify-self: end; margin-right: 4px; gap: 6px; }
-  .header-ctas .nav-cta { padding: 7px 12px; font-size: 0.76rem; white-space: nowrap; }
+  .header-ctas { display: none; }
+  .hero-login { display: inline-flex; }
   .nav-toggle { grid-column: 3; justify-self: end; width: 40px; height: 40px; }
 
   .page-shell { width: min(100% - 26px, 1180px); padding-top: 50px; padding-bottom: 50px; }
