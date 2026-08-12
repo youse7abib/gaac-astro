@@ -303,7 +303,8 @@ form.addEventListener('submit', async (e) => {
         teamName,
         leader,
         timestamp: serverTimestamp(),
-        status: 'registered'
+        status: 'registered',
+        password: loginPassword
       };
 
       if (member2) registrationData.member2 = member2;

@@ -126,7 +126,8 @@ service cloud.firestore {
     //    dashboard needs to display the roster to every registered
     //    member). Updates: admin, or the leader changing ONLY the
     //    member2/member3 slots (roster management).
-    //    No plaintext passwords allowed.
+    //    The team's shared sign-in password is stored at registration so the
+    //    dashboard can issue the same password to members added later.
     // ================================================================
     match /registrations/{regId} {
       allow read: if isAdmin()
@@ -134,8 +135,7 @@ service cloud.firestore {
         || isTeamMember(regId);
       allow create: if isAuthenticated()
         && !exists(/databases/$(database)/documents/registrations/$(regId))
-        && request.resource.data.keys().hasAll(['registrationId', 'teamName', 'leader', 'timestamp', 'status'])
-        && !request.resource.data.keys().hasAny(['password']);
+        && request.resource.data.keys().hasAll(['registrationId', 'teamName', 'leader', 'timestamp', 'status']);
       allow delete: if isAdmin()
         || isSoloLeader(regId);
       allow update: if isAdmin()

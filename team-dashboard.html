@@ -212,7 +212,7 @@
 
           <div id="manage-panel" class="manage-panel hidden">
             <h2>Add a <span class="text-blue">Team Member</span></h2>
-            <p class="sub">New members get their own sign-in password by email.</p>
+            <p class="sub">All team members sign in with the same team password.</p>
             <form id="add-member-form" novalidate onsubmit="return false;">
               <div class="form-group">
                 <label for="am-name">Full Name</label>
@@ -255,7 +255,7 @@
                   <span class="btn-loader hidden"></span>
                 </button>
               </div>
-              <p class="info-note">The new member will receive a confirmation email with their sign-in password (same as the exam portal). Maximum of 3 members per team.</p>
+              <p class="info-note">The new member will receive a confirmation email with the team sign-in password (same as the exam portal). Maximum of 3 members per team.</p>
             </form>
           </div>
 
@@ -656,7 +656,12 @@
         }
 
         const slot = reg.member2 ? 'member3' : 'member2';
-        const loginPassword = generatePassword();
+        const teamPassword = reg.password;
+        if (!teamPassword) {
+          showAlert(addAlert, 'Could not retrieve your team password. Please contact support.');
+          return;
+        }
+        const loginPassword = teamPassword;
 
         // 1. Create the member's Auth account (on a separate app instance so
         //    the leader's own session is unaffected).
