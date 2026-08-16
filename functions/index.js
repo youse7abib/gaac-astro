@@ -346,7 +346,7 @@ exports.sendPasswordReset = onCall({ region: 'africa-south1' }, async (request) 
 
   // Generate a secure, single-use reset link
   const link = await admin.auth().generatePasswordResetLink(email, {
-    url: 'https://gaac-registration-2026.web.app/exam-login',
+    url: 'https://gaac-registration-2026.web.app/team-dashboard',
     handleCodeInApp: false
   });
 
