@@ -740,6 +740,176 @@ p  { overflow-wrap: anywhere; }
 .round-syllabus ul { display: grid; gap: 8px; margin: 14px 0 0; padding-left: 20px; color: var(--muted); line-height: 1.72; font-size: 0.92rem; list-style: disc; }
 
 /* ================================================================
+   SAMPLE PAPER CARDS  (PDF covers)
+   ================================================================ */
+.section-sub {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.95rem;
+  line-height: 1.7;
+}
+
+.paper-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 16px;
+  margin-top: 18px;
+}
+
+.paper-card {
+  display: grid;
+  grid-template-columns: 210px minmax(0,1fr);
+  gap: clamp(20px,2.8vw,32px);
+  align-items: center;
+  padding: clamp(20px,3vw,28px);
+  border: 1px solid rgba(38,183,255,0.12);
+  border-radius: var(--r);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.07) 0%, rgba(255,255,255,0.018) 100%),
+    rgba(2,8,20,0.70);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(22px);
+  -webkit-backdrop-filter: blur(22px);
+  transition: border-color 300ms ease, box-shadow 300ms ease;
+}
+.paper-card:hover {
+  border-color: rgba(38,183,255,0.38);
+  box-shadow: 0 32px 100px rgba(8,120,255,0.24), var(--shadow-glow);
+}
+
+.paper-info h3 { margin: 4px 0 12px; }
+.paper-info p { color: var(--muted); line-height: 1.74; font-size: 0.92rem; }
+.paper-info .button { margin-top: 20px; }
+
+.paper-topics {
+  display: grid;
+  gap: 7px;
+  margin: 12px 0 0;
+  color: var(--muted);
+  line-height: 1.6;
+  font-size: 0.9rem;
+}
+.paper-topics li {
+  position: relative;
+  padding-left: 20px;
+}
+.paper-topics li::before {
+  content: "";
+  position: absolute;
+  left: 0; top: 0.62em;
+  width: 9px; height: 9px;
+  border: 1px solid var(--cyan);
+  border-radius: 50%;
+  background: rgba(0,229,255,0.12);
+}
+
+/* --- PDF cover mockup (mirrors the LaTeX cover) --- */
+.paper-cover {
+  position: relative;
+  display: block;
+  width: 100%;
+  max-width: 210px;
+  margin: 0 auto;
+  aspect-ratio: 3 / 4;
+  border-radius: 10px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 15% 8%, rgba(38,183,255,0.16), transparent 55%),
+    linear-gradient(160deg, #16344f 0%, #102A43 52%, #0a1a2b 100%);
+  border: 1px solid rgba(174,183,194,0.28);
+  box-shadow:
+    0 20px 50px rgba(8,120,255,0.30),
+    inset 0 0 60px rgba(8,120,255,0.08);
+  transition: transform 300ms ease, box-shadow 300ms ease, border-color 300ms ease;
+}
+.paper-cover:hover {
+  transform: translateY(-5px);
+  border-color: rgba(0,229,255,0.55);
+  box-shadow: 0 26px 60px rgba(8,120,255,0.42), inset 0 0 70px rgba(8,120,255,0.10);
+}
+
+.cover-frame {
+  position: absolute;
+  inset: 11px;
+  border: 1px solid rgba(174,183,194,0.55);
+  border-radius: 7px;
+  pointer-events: none;
+}
+.cover-frame::after {
+  content: "";
+  position: absolute;
+  inset: 3px;
+  border: 1px solid rgba(174,183,194,0.22);
+  border-radius: 5px;
+}
+
+.cover-body {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  padding: 42px 16px 16px;
+  text-align: center;
+  background: linear-gradient(200deg, rgba(255,255,255,0.06) 0%, transparent 38%);
+}
+
+.cover-logo {
+  width: 40%;
+  max-width: 72px;
+  margin: 0 auto;
+  filter: drop-shadow(0 0 14px rgba(38,183,255,0.35));
+}
+
+.cover-org {
+  color: rgba(174,183,194,0.9);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  line-height: 1.6;
+}
+
+.cover-title {
+  color: #fff;
+  font-family: var(--font-h);
+  font-size: clamp(1.2rem, 4.6vw, 1.5rem);
+  font-weight: 900;
+  line-height: 1.18;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  text-shadow: 0 0 22px rgba(0,229,255,0.35);
+}
+
+.cover-rule {
+  width: 64px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(174,183,194,0.9), transparent);
+}
+
+.cover-sub {
+  color: rgba(216,221,227,0.88);
+  font-size: 0.55rem;
+  letter-spacing: 0.05em;
+  line-height: 1.5;
+}
+
+.cover-tag {
+  margin-top: 5px;
+  padding: 5px 10px;
+  border: 1px solid rgba(0,229,255,0.38);
+  border-radius: 999px;
+  background: rgba(0,229,255,0.09);
+  color: var(--cyan);
+  font-size: 0.5rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* ================================================================
    PORTAL GRID
    ================================================================ */
 .portal-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
@@ -1040,7 +1210,7 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
   .subhero-logo { justify-self: start; }
 
   .stats, .partner-grid, .portal-grid,
-  .ambassador-grid, .round-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
+  .ambassador-grid, .round-grid, .paper-grid { grid-template-columns: repeat(2, minmax(0,1fr)); }
 
   .site-footer { grid-template-columns: 1fr; }
 }
@@ -1066,7 +1236,12 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
   .hero-actions, .button { width: 100%; }
 
   .stats, .partner-grid, .portal-grid, .ambassador-grid,
-  .round-grid, .syllabus-grid, .round-syllabus { grid-template-columns: 1fr; }
+  .round-grid, .syllabus-grid, .round-syllabus, .paper-grid { grid-template-columns: 1fr; }
+
+  .paper-card { grid-template-columns: 1fr; text-align: center; }
+  .paper-card .button { justify-content: center; }
+  .paper-cover { max-width: 190px; }
+  .paper-topics { text-align: left; }
 
   .hero-mark { min-height: 280px; }
   .timeline-track::before { display: none; }

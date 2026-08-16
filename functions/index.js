@@ -1,4 +1,5 @@
 const functions = require('firebase-functions');
+const { onCall, HttpsError } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
@@ -304,4 +305,97 @@ exports.exportData = functions.https.onCall(async (data, context) => {
   }
 
   return { data: csv, format: 'csv', rowCount: rows.length };
+});
+
+/**
+ * Backend-mediated password reset.
+ * Verifies identity server-side, generates a secure one-time reset link
+ * via the Admin SDK, and queues a branded email through the `mail`
+ * collection (sent by the Trigger Email extension from the club Gmail).
+ */
+exports.sendPasswordReset = onCall({ region: 'africa-south1' }, async (request) => {
+  const data = request.data || {};
+  const email = (data.email || '').trim().toLowerCase();
+  const registrationId = (data.registrationId || '').trim().toUpperCase();
+
+  if (!email || !registrationId) {
+    throw new HttpsError('invalid-argument', 'Email and Registration ID are required.');
+  }
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+    throw new HttpsError('invalid-argument', 'Please enter a valid email address.');
+  }
+
+  // Server-side identity verification (never trust the client)
+  const emailSnap = await db.collection('registeredEmails').doc(email).get();
+  if (!emailSnap.exists) {
+    throw new HttpsError('not-found', 'The information does not match our records.');
+  }
+  const rec = emailSnap.data() || {};
+  if ((rec.registrationId || '').toUpperCase() !== registrationId) {
+    throw new HttpsError('not-found', 'The information does not match our records.');
+  }
+
+  // Simple rate limit: one reset request per email per minute
+  const rateRef = db.collection('passwordResetRequests').doc(email);
+  const rateSnap = await rateRef.get();
+  const now = Date.now();
+  if (rateSnap.exists && now - (rateSnap.data().lastRequestAt || 0) < 60000) {
+    throw new HttpsError('resource-exhausted', 'Please wait a minute before requesting another reset email.');
+  }
+  await rateRef.set({ lastRequestAt: now }, { merge: true });
+
+  // Generate a secure, single-use reset link
+  const link = await admin.auth().generatePasswordResetLink(email, {
+    url: 'https://gaac-registration-2026.web.app/exam-login',
+    handleCodeInApp: false
+  });
+
+  const html = `
+<div style="background-color:#070b14; padding:40px 16px; font-family:Arial, Helvetica, sans-serif;">
+  <div style="max-width:560px; margin:0 auto; background:#0e1526; border-radius:16px; overflow:hidden; border:1px solid #1b2540;">
+
+    <div style="background:#0a0f1e; padding:28px 32px; text-align:center; border-bottom:1px solid #1b2540;">
+      <img src="https://gaac.stemastronomyclub.org/images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" width="140" style="display:block; margin:0 auto;" />
+      <p style="margin:14px 0 0; color:#7a9bb5; font-size:12px; letter-spacing:3px; text-transform:uppercase;">Password Reset</p>
+    </div>
+
+    <div style="padding:32px;">
+      <h1 style="margin:0 0 8px; color:#ffffff; font-size:22px;">Reset your password</h1>
+      <p style="color:#aec8e0; font-size:14px; line-height:1.7; margin:0 0 20px;">
+        Hello,<br />
+        We received a request to reset the password for your <strong style="color:#e8f0f8;">GAAC</strong> account (<span style="color:#e8f0f8;">${email}</span>). Click the button below to choose a new password:
+      </p>
+      <div style="text-align:center; margin:28px 0;">
+        <a href="${link}" style="background:linear-gradient(135deg,#26b7ff,#0878ff); color:#ffffff; text-decoration:none; padding:14px 32px; border-radius:8px; font-weight:bold; font-size:14px; display:inline-block;">Reset Password</a>
+      </div>
+      <p style="color:#7a9bb5; font-size:12px; line-height:1.6; margin:0 0 8px;">If the button doesn't work, copy and paste this link into your browser:</p>
+      <p style="margin:0 0 24px;"><a href="${link}" style="color:#26b7ff; font-size:12px; word-break:break-all;">${link}</a></p>
+      <p style="color:#7a9bb5; font-size:12px; line-height:1.6; margin:0; border-top:1px solid #1b2540; padding-top:20px;">
+        This link is valid for a limited time and can only be used once. If you didn't request a password reset, you can safely ignore this email.
+      </p>
+    </div>
+
+    <div style="background:#0a0f1e; padding:20px 32px; text-align:center; border-top:1px solid #1b2540;">
+      <p style="margin:0 0 6px; color:#7a9bb5; font-size:11px; line-height:1.6;">
+        Global Astronomy &amp; Astrophysics Challenge<br />
+        Organized by STEM October Astronomy Club
+      </p>
+      <p style="margin:0; color:#4a5a7a; font-size:11px;">
+        Questions? Email us at <a href="mailto:astronomyclub64@gmail.com" style="color:#26b7ff; text-decoration:none;">astronomyclub64@gmail.com</a>
+      </p>
+    </div>
+
+  </div>
+</div>`;
+
+  await db.collection('mail').add({
+    to: [email],
+    message: {
+      subject: 'Reset your password for GAAC 2026',
+      html: html
+    }
+  });
+
+  console.log(`Password reset email queued for ${email}`);
+  return { success: true };
 });

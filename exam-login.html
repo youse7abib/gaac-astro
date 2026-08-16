@@ -19,7 +19,6 @@
     .login-card .subtitle { text-align: center; color: var(--muted); font-size: 0.85rem; margin-bottom: 28px; }
     .login-card .form-group { margin-bottom: 20px; }
     .login-card .form-actions { margin-top: 28px; }
-    .login-error { text-align: center; margin-top: 16px; font-size: 0.85rem; }
     .login-card .logo-area { text-align: center; margin-bottom: 24px; }
     .login-card .logo-area img { width: 120px; display: block; margin: 0 auto; }
   </style>
@@ -58,6 +57,9 @@
       <h1>Exam <span class="text-blue">Portal</span></h1>
       <p class="subtitle">Round 1 : Individual Qualification</p>
 
+      <div id="login-alert" class="form-alert hidden"></div>
+
+      <!-- ===== EMAIL + PASSWORD (default) ===== -->
       <form id="exam-login-form" novalidate>
         <div class="form-group">
           <label for="login-email">Your Email</label>
@@ -69,13 +71,14 @@
           <input type="password" id="login-password" name="password" required placeholder="Your Password" />
         </div>
         <div class="form-actions">
-          <div id="login-alert" class="form-alert hidden"></div>
           <button type="submit" id="login-btn" class="button primary submit-btn" style="width:100%;">
             <span class="btn-text">Sign In</span>
             <span class="btn-loader hidden"></span>
           </button>
         </div>
-        <p id="login-error" class="login-error" style="color:var(--error,#ff4757);display:none;"></p>
+        <p style="text-align:center;margin-top:14px;font-size:0.82rem;color:var(--muted);">
+          <a href="change-password" style="color:var(--blue-light);">Forgot password?</a>
+        </p>
       </form>
     </div>
   </main>
@@ -102,7 +105,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -123,7 +126,6 @@
     const btnText = btn.querySelector('.btn-text');
     const btnLoader = btn.querySelector('.btn-loader');
     const alertEl = document.getElementById('login-alert');
-    const errorEl = document.getElementById('login-error');
 
     const showAlert = (msg, isError = true) => {
       alertEl.textContent = msg;
@@ -132,10 +134,52 @@
     };
     const hideAlert = () => alertEl.classList.add('hidden');
 
+    // Resolve the signed-in user's team and open the exam. Mirrors the
+    // dashboard logic: teamMembers/{uid} first, then registeredEmails.
+    async function finishLogin(email) {
+      const user = auth.currentUser;
+      if (!user) throw new Error('Login failed. Please try again.');
+
+      try {
+        const compSnap = await getDoc(doc(db, 'settings', 'competition'));
+        if (compSnap.exists() && compSnap.data().portalRegistrationOpen === false) {
+          throw new Error('Exam portal is currently closed.');
+        }
+      } catch (e) {
+        if (e.message === 'Exam portal is currently closed.') throw e;
+        /* ignore fetch errors */
+      }
+
+      let teamId = null;
+      const memberSnap = await getDoc(doc(db, 'teamMembers', user.uid));
+      if (memberSnap.exists()) {
+        teamId = memberSnap.data().teamId;
+      } else {
+        // Fallback for legacy registrations: email -> registeredEmails lookup
+        const emailSnap = await getDoc(doc(db, 'registeredEmails', norm(email)));
+        if (emailSnap.exists()) teamId = emailSnap.data().registrationId;
+      }
+
+      if (!teamId) throw new Error('No team registration found for this email.');
+
+      // Ensure the membership mapping exists so the exam security rules pass.
+      try {
+        const ref = doc(db, 'teamMembers', user.uid);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) {
+          await setDoc(ref, { teamId, email: user.email });
+        }
+      } catch (e) { console.warn('Failed to create team membership doc:', e); }
+
+      // Each member takes the exam individually (teams/{teamId}/exam/{uid}).
+      window.location.href = `exam.html?team=${teamId}`;
+    }
+
+    const norm = (s) => (s || '').trim().toLowerCase();
+
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
       hideAlert();
-      errorEl.style.display = 'none';
       btn.disabled = true;
       btnText.classList.add('hidden');
       btnLoader.classList.remove('hidden');
@@ -144,39 +188,8 @@
       const password = document.getElementById('login-password').value.trim();
 
       try {
-        const cred = await signInWithEmailAndPassword(auth, email, password);
-        const uid = cred.user.uid;
-
-        // Check if exam portal is open
-        try {
-          const compSnap = await getDoc(doc(db, 'settings', 'competition'));
-          if (compSnap.exists() && compSnap.data().portalRegistrationOpen === false) {
-            throw new Error('Exam portal is currently closed.');
-          }
-        } catch (e) {
-          if (e.message === 'Exam portal is currently closed.') throw e;
-          /* ignore fetch errors */
-        }
-
-        // Verify team registration exists (leader or member)
-        let teamId = null;
-        const memberSnap = await getDoc(doc(db, 'teamMembers', uid));
-        if (memberSnap.exists()) {
-          teamId = memberSnap.data().teamId;
-        } else {
-          // Fallback for legacy registrations: email -> registeredEmails lookup
-          const emailSnap = await getDoc(doc(db, 'registeredEmails', email));
-          if (emailSnap.exists()) teamId = emailSnap.data().registrationId;
-        }
-
-        if (!teamId) {
-          throw new Error('No team registration found for this email.');
-        }
-
-        // Each member takes the exam individually (teams/{teamId}/exam/{uid}).
-        // There is no team-level lock here — exam.html decides between
-        // start / resume / already-submitted for THIS member.
-        window.location.href = `exam.html?team=${teamId}`;
+        await signInWithEmailAndPassword(auth, email, password);
+        await finishLogin(email);
       } catch (err) {
         btn.disabled = false;
         btnText.classList.remove('hidden');
@@ -191,6 +204,7 @@
         }
       }
     });
+
   </script>
 </body>
 </html>

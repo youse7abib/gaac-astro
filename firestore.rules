@@ -117,7 +117,15 @@ service cloud.firestore {
             && request.auth.token.email != null
             && exists(/databases/$(database)/documents/registeredEmails/$(email))
             && isLeader(get(/databases/$(database)/documents/registeredEmails/$(email)).data.registrationId));
-      allow update: if false;
+      // A user may stamp their OWN email's doc with their Auth account uid
+      // right after their account is created during registration. This keeps
+      // an email -> uid index so roster management can always resolve an
+      // account later. No other field may change.
+      allow update: if isAuthenticated()
+        && request.auth.token.email != null
+        && request.auth.token.email == email
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['uid'])
+        && request.resource.data.uid is string;
     }
 
     // ================================================================
@@ -125,7 +133,9 @@ service cloud.firestore {
     //    Reads: admin, or members/leader of the team itself (the team
     //    dashboard needs to display the roster to every registered
     //    member). Updates: admin, or the leader changing ONLY the
-    //    member2/member3 slots (roster management).
+    //    member2/member3 slots (roster management), or ONLY the password
+    //    field (keeps the shared team password in sync with the leader's
+    //    own account when they change it).
     //    The team's shared sign-in password is stored at registration so the
     //    dashboard can issue the same password to members added later.
     // ================================================================
@@ -143,6 +153,10 @@ service cloud.firestore {
             && request.auth.token.email != null
             && resource.data.leader.email == request.auth.token.email
             && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['member2', 'member3']))
+        || (isAuthenticated()
+            && request.auth.token.email != null
+            && resource.data.leader.email == request.auth.token.email
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['password']))
         // Leadership transfer (leader withdraws): promote a CURRENT member to
         // leader (member2 takes precedence over member3) and the old leader
         // must fully disappear from the roster.
@@ -334,7 +348,40 @@ service cloud.firestore {
         && request.resource.data.keys().hasAll(['email', 'teamId'])
         && isLeader(request.resource.data.teamId);
       allow read, list: if isAdmin();
-      allow update, delete: if isAdmin();
+      allow update: if isAdmin();
+      // The team's current leader may clear a removal record for one of their
+      // members (e.g. when that member is re-added with the same email).
+      allow delete: if isAdmin()
+        || (isAuthenticated()
+            && request.auth.token.email != null
+            && resource.data.teamId != null
+            && isLeader(resource.data.teamId));
+    }
+
+    // ================================================================
+    // 11) REMOVED EMAILS (email -> uid lookup for re-adding members)
+    //     When a leader removes a member, we record their email + uid so
+    //     that re-adding them later can reuse the SAME Auth account even
+    //     if their password no longer matches the team password.
+    // ================================================================
+    match /removedEmails/{email} {
+      allow get: if isAuthenticated()
+        && request.auth.token.email != null
+        && resource.data.teamId != null
+        && isLeader(resource.data.teamId);
+      allow list: if isAdmin();
+      allow create: if isAuthenticated()
+        && request.auth.token.email != null
+        && request.resource.data.keys().hasAll(['uid', 'email', 'teamId'])
+        && isLeader(request.resource.data.teamId);
+      allow update: if isAdmin();
+      // The team's current leader may clear the record for a member that is
+      // being re-added with the same email.
+      allow delete: if isAdmin()
+        || (isAuthenticated()
+            && request.auth.token.email != null
+            && resource.data.teamId != null
+            && isLeader(resource.data.teamId));
     }
 
     // ================================================================

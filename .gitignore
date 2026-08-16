@@ -1,5 +1,10 @@
 .chrome-profile-*/
 .edge-profile-*/
 .firebase/
+functions/node_modules/
+.env
+serviceAccountKey.json
+hosting-*.txt
+deploy-*.txt
 *.xlsx
 *.csv

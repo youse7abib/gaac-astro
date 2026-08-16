@@ -1,5 +1,5 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-import { getAuth, signInAnonymously, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getAuth, signInAnonymously, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, writeBatch, serverTimestamp, collection, query, where, getDocs, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig = {
@@ -414,20 +414,46 @@ form.addEventListener('submit', async (e) => {
       throw new Error('Registration could not be completed. Please try again.');
     }
 
-    // Create Firebase Auth accounts for all team members
+    // Create Firebase Auth accounts for all team members. Each account is
+    // stamped onto its registeredEmails doc (email -> uid) so roster
+    // management can always resolve an account later.
     const memberEmails = [leader.email];
     if (member2) memberEmails.push(member2.email);
     if (member3) memberEmails.push(member3.email);
     for (const email of memberEmails) {
-      try {
-        const cred = await createUserWithEmailAndPassword(auth, email, loginPassword);
-        await setDoc(doc(db, 'teamMembers', cred.user.uid), {
-          teamId: registrationId,
-          email: email,
-          createdAt: serverTimestamp()
-        });
-      } catch (authError) {
-        console.error(`Auth account creation failed for ${email}:`, authError);
+      let accountReady = false;
+      for (let attempt = 0; attempt < 3 && !accountReady; attempt++) {
+        try {
+          let uid;
+          try {
+            const cred = await createUserWithEmailAndPassword(auth, email, loginPassword);
+            uid = cred.user.uid;
+          } catch (authError) {
+            // The email already has an account (e.g. a team that was deleted
+            // or a withdrawn leader re-registering). Reuse it when the shared
+            // team password still opens it; otherwise it is an orphaned
+            // account that support must clean up.
+            if (authError.code !== 'auth/email-already-in-use') throw authError;
+            await signOut(auth).catch(() => {});
+            try {
+              const cred = await signInWithEmailAndPassword(auth, email, loginPassword);
+              uid = cred.user.uid;
+            } catch (reuseError) {
+              console.warn(`Existing account for ${email} cannot be reused with the team password:`, reuseError);
+              throw authError;
+            }
+          }
+          await setDoc(doc(db, 'teamMembers', uid), {
+            teamId: registrationId,
+            email: email,
+            createdAt: serverTimestamp()
+          });
+          await updateDoc(doc(db, 'registeredEmails', email), { uid });
+          accountReady = true;
+        } catch (authError) {
+          console.error(`Auth account creation failed for ${email} (attempt ${attempt + 1}):`, authError);
+          if (attempt < 2) await new Promise(r => setTimeout(r, 1200));
+        }
       }
     }
 

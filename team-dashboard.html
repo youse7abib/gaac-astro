@@ -156,6 +156,9 @@
         <h1>Team <span class="text-blue">Dashboard</span></h1>
         <p class="subtitle">View your team and manage your roster.</p>
 
+        <div id="login-alert" class="form-alert hidden"></div>
+
+        <!-- ===== EMAIL + PASSWORD (default) ===== -->
         <form id="td-login-form" novalidate onsubmit="return false;">
           <div class="form-group">
             <label for="login-email">Your Email</label>
@@ -166,16 +169,19 @@
             <input type="password" id="login-password" name="password" required placeholder="Your Password" />
           </div>
           <div class="form-actions">
-            <div id="login-alert" class="form-alert hidden"></div>
             <button type="submit" id="login-btn" class="button primary submit-btn" style="width:100%;">
               <span class="btn-text">Sign In</span>
               <span class="btn-loader hidden"></span>
             </button>
           </div>
-          <p style="text-align:center;margin-top:16px;font-size:0.82rem;color:var(--muted);">
-            Not registered yet? <a href="register" style="color:var(--blue-light);">Register your team</a>
+          <p style="text-align:center;margin-top:14px;font-size:0.82rem;color:var(--muted);">
+            <a href="change-password" style="color:var(--blue-light);">Forgot password?</a>
           </p>
         </form>
+
+        <p style="text-align:center;margin-top:16px;font-size:0.82rem;color:var(--muted);">
+          Not registered yet? <a href="register" style="color:var(--blue-light);">Register your team</a>
+        </p>
       </div>
     </div>
 
@@ -313,7 +319,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, setDoc, writeBatch, deleteField, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, setDoc, writeBatch, deleteDoc, deleteField, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -448,6 +454,7 @@
       dashContent.classList.add('hidden');
       loadingState.classList.add('hidden');
       btnLogout.style.display = 'none';
+      loginForm.classList.remove('hidden');
       if (message) showAlert(loginAlert, message, true);
     }
 
@@ -651,22 +658,52 @@
         // Email must be unique globally (Firestore duplicate prevention)
         const emailSnap = await getDoc(doc(db, 'registeredEmails', email));
         if (emailSnap.exists()) {
-          showAlert(addAlert, 'This email address is already registered to a team.');
+          const existing = emailSnap.data();
+          if (norm(existing.registrationId) === norm(currentTeamId)) {
+            showAlert(addAlert, 'This email already belongs to your team.');
+          } else {
+            showAlert(addAlert,
+              `This email is already registered to ${existing.teamName || 'another team'}. ` +
+              `A person can only be in one team — have the other team leader remove them first, or contact us for help.`);
+          }
           return;
         }
 
         const slot = reg.member2 ? 'member3' : 'member2';
-        const teamPassword = reg.password;
-        if (!teamPassword) {
-          showAlert(addAlert, 'Could not retrieve your team password. Please contact support.');
-          return;
-        }
-        const loginPassword = teamPassword;
+        // Prefer the shared team password; fall back to a freshly generated
+        // one for any team that somehow has no stored password, so the
+        // leader is never blocked from adding members.
+        const loginPassword = reg.password || generatePassword();
 
         // 1. Create the member's Auth account (on a separate app instance so
-        //    the leader's own session is unaffected).
-        const cred = await createUserWithEmailAndPassword(rosterAuth, email, loginPassword);
-        const newUid = cred.user.uid;
+        //    the leader's own session is unaffected). If the email already has
+        //    an Auth account — normally because this member was removed
+        //    earlier and is now rejoining — reuse that SAME account so the
+        //    member keeps their identity.
+        //    Sign out first: Firebase Auth can get stuck after a failed
+        //    create/sign-in on the same instance and then reports confusing
+        //    errors like "email already in use" or "another team".
+        await signOut(rosterAuth).catch(() => {});
+
+        let newUid;
+        let isReusedAccount = false;
+        try {
+          const cred = await createUserWithEmailAndPassword(rosterAuth, email, loginPassword);
+          newUid = cred.user.uid;
+        } catch (err) {
+          if (err.code !== 'auth/email-already-in-use') throw err;
+          // The email already has an account. Resolve its uid without the
+          // password via the removal audit (email -> uid), falling back to
+          // signing in with the shared team password when possible.
+          newUid = await findRemovedMemberUid(email, loginPassword);
+          if (!newUid) {
+            showAlert(addAlert,
+              'This email is linked to an existing account that this team password cannot open. ' +
+              'If this member was removed earlier and needs to rejoin, contact us and we will restore them.');
+            return;
+          }
+          isReusedAccount = true;
+        }
 
         const memberData = { name, email, country, school, dob, grade };
 
@@ -708,6 +745,12 @@
 
         await batch.commit();
 
+        // Best-effort cleanup: clear any prior removal audit records for this
+        // member (e.g. a re-added member) so their account is never treated
+        // as "removed" by future cleanup jobs.
+        deleteDoc(doc(db, 'removedMembers', newUid)).catch(() => {});
+        deleteDoc(doc(db, 'removedEmails', email)).catch(() => {});
+
         addForm.reset();
         showAlert(addAlert, `${name} has been added to your team. Sign-in details were sent to ${email}.`, false);
 
@@ -740,10 +783,11 @@
 
       try {
         // Find the member's uid so we can delete their teamMembers mapping.
-        const emailSnap = await getDoc(doc(db, 'registeredEmails', norm(email)));
-        const uid = emailSnap.exists() ? emailSnap.data().uid : null;
+        // Legacy teams registered before uids were stored don't have one on
+        // the email doc — discover it by signing in with the shared password.
+        const uid = await resolveMemberUid(email, currentRegData.password);
         if (!uid) {
-          showAlert(teamAlert, `Could not resolve ${email}'s account. Please contact support to remove them manually.`);
+          showAlert(teamAlert, `Could not resolve ${email}'s account to remove them. Please contact us so we can remove them manually.`);
           return;
         }
 
@@ -762,8 +806,15 @@
           const rosterLen = (regNow.leader ? 1 : 0) + (regNow.member2 ? 1 : 0) + (regNow.member3 ? 1 : 0);
           batch.set(teamRef, { memberCount: rosterLen - 1 });
         }
-        // Audit log for the admin account-lock cleanup script.
+        // Audit logs so the admin can lock the account and the leader can
+        // re-add the member later without needing their password.
         batch.set(doc(db, 'removedMembers', uid), {
+          email: norm(email),
+          teamId: currentTeamId,
+          removedAt: serverTimestamp()
+        });
+        batch.set(doc(db, 'removedEmails', norm(email)), {
+          uid,
           email: norm(email),
           teamId: currentTeamId,
           removedAt: serverTimestamp()
@@ -779,6 +830,45 @@
       } catch (err) {
         console.error('Remove member error:', err);
         showAlert(teamAlert, err.message || 'Could not remove the member. Please try again.');
+      }
+    }
+
+    // Resolve a member's Auth uid without needing their password.
+    // 1. Their registeredEmails doc stores the uid (post-registration).
+    // 2. Legacy fallback: the shared team password opens the account, so
+    //    signing in on the roster app reveals its uid.
+    async function resolveMemberUid(email, teamPassword) {
+      try {
+        const snap = await getDoc(doc(db, 'registeredEmails', norm(email)));
+        if (snap.exists() && snap.data().uid) return snap.data().uid;
+      } catch (e) { /* doc missing or unreadable */ }
+      if (teamPassword) {
+        await signOut(rosterAuth).catch(() => {});
+        try {
+          const cred = await signInWithEmailAndPassword(rosterAuth, norm(email), teamPassword);
+          return cred.user.uid;
+        } catch (e) { /* wrong password / no account */ }
+      }
+      return null;
+    }
+
+    // Find a previously-removed member's uid so they can be re-added to the
+    // same team. 1) the removal audit stores the email -> uid; 2) fallback:
+    // the shared team password still opens the account, so sign in to learn
+    // its uid.
+    async function findRemovedMemberUid(email, password) {
+      try {
+        const snap = await getDoc(doc(db, 'removedEmails', norm(email)));
+        if (snap.exists() && snap.data().uid) return snap.data().uid;
+      } catch (e) {
+        console.warn('Could not read removal record:', e);
+      }
+      await signOut(rosterAuth).catch(() => {});
+      try {
+        const cred = await signInWithEmailAndPassword(rosterAuth, norm(email), password);
+        return cred.user.uid;
+      } catch (e) {
+        return null;
       }
     }
 
@@ -875,8 +965,8 @@
     // the roster, and revoke their access. All in one atomic batch.
     async function withdrawLeader(reg, nextLeader) {
       const oldEmail = norm(auth.currentUser.email);
-      const emailSnap = await getDoc(doc(db, 'registeredEmails', oldEmail));
-      const oldUid = emailSnap.exists() ? emailSnap.data().uid : null;
+      // Resolve the leader's own uid (legacy registrations may lack it).
+      const oldUid = await resolveMemberUid(oldEmail, reg.password);
 
       // Shift members up: leader = next member, member3 fills member2, and
       // the old leader's slot disappears.
@@ -889,6 +979,12 @@
       if (oldUid) {
         batch.delete(doc(db, 'teamMembers', oldUid));
         batch.set(doc(db, 'removedMembers', oldUid), {
+          email: oldEmail,
+          teamId: currentTeamId,
+          removedAt: serverTimestamp()
+        });
+        batch.set(doc(db, 'removedEmails', oldEmail), {
+          uid: oldUid,
           email: oldEmail,
           teamId: currentTeamId,
           removedAt: serverTimestamp()
