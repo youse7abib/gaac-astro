@@ -1,5 +1,5 @@
 const functions = require('firebase-functions');
-const { onCall, HttpsError } = require('firebase-functions/v2/https');
+const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
@@ -11,9 +11,9 @@ const db = admin.firestore();
  * Validates submission server-side to prevent score manipulation.
  */
 exports.scoreExam = functions.firestore
-  .document('teams/{teamId}/exam/round1')
+  .document('teams/{teamId}/exam/{examId}')
   .onWrite(async (change, context) => {
-    const { teamId } = context.params;
+    const { teamId, examId } = context.params;
     const data = change.after.data();
     if (!data || data.status !== 'submitted') return;
     if (data.scored) return;
@@ -140,8 +140,10 @@ exports.rescoreTeam = functions.https.onCall(async (data, context) => {
   const { teamId } = data;
   if (!teamId) throw new functions.https.HttpsError('invalid-argument', 'teamId required');
 
-  const examRef = db.collection('teams').doc(teamId).collection('exam').doc('round1');
-  await examRef.update({ scored: false, status: 'submitted' });
+  const examSnap = await db.collection('teams').doc(teamId).collection('exam').where('status', '==', 'submitted').get();
+  for (const doc of examSnap.docs) {
+    await doc.ref.update({ scored: false, status: 'submitted' });
+  }
   return { success: true };
 });
 
@@ -167,7 +169,10 @@ exports.toggleDisqualify = functions.https.onCall(async (data, context) => {
   // Update both the team summary doc and the exam subcollection
   const batch = db.batch();
   batch.set(teamRef, { disqualified: !currentlyDisqualified }, { merge: true });
-  batch.set(teamRef.collection('exam').doc('round1'), { disqualified: !currentlyDisqualified }, { merge: true });
+  const examSnap = await db.collection('teams').doc(teamId).collection('exam').get();
+  for (const d of examSnap.docs) {
+    batch.set(d.ref, { disqualified: !currentlyDisqualified }, { merge: true });
+  }
   await batch.commit();
 
   return { success: true, disqualified: !currentlyDisqualified };
@@ -242,12 +247,17 @@ exports.exportData = functions.https.onCall(async (data, context) => {
     let examData = null;
     let eventCount = 0;
     let severeCount = 0;
+    let teamData = null;
     try {
-      const examSnap = await db.collection('teams').doc(teamId).collection('exam').doc('round1').get();
-      if (examSnap.exists) {
-        examData = examSnap.data();
-        eventCount = examData.eventCount || 0;
-        severeCount = examData.severeEventCount || 0;
+      const teamSnap = await db.collection('teams').doc(teamId).get();
+      if (teamSnap.exists) {
+        teamData = teamSnap.data();
+        eventCount = teamData.eventCount || 0;
+        severeCount = teamData.severeEventCount || 0;
+      }
+      const examSnap = await db.collection('teams').doc(teamId).collection('exam').where('status', '==', 'submitted').limit(1).get();
+      if (!examSnap.empty) {
+        examData = examSnap.docs[0].data();
       }
     } catch (e) { /* skip */ }
 
@@ -395,7 +405,133 @@ exports.sendPasswordReset = onCall({ region: 'africa-south1' }, async (request) 
       html: html
     }
   });
-
   console.log(`Password reset email queued for ${email}`);
+
   return { success: true };
+});
+
+/**
+ * Called during registration when a member's Firebase Auth account already
+ * exists with a different password (orphaned from a deleted team). Uses Admin
+ * SDK to reset their password so they can rejoin with the new team password.
+ */
+exports.reassignMember = onCall({ region: 'africa-south1' }, async (request) => {
+  const data = request.data || {};
+  const email = (data.email || '').trim().toLowerCase();
+  const newPassword = (data.newPassword || '').trim();
+  const newTeamId = (data.newTeamId || '').trim().toUpperCase();
+
+  if (!email || !newPassword || !newTeamId) {
+    throw new HttpsError('invalid-argument', 'Email, new password, and team ID are required.');
+  }
+
+  const emailSnap = await db.collection('registeredEmails').doc(email).get();
+  if (!emailSnap.exists) {
+    throw new HttpsError('not-found', 'Email not found in registeredEmails.');
+  }
+
+  const rec = emailSnap.data() || {};
+  const uid = rec.uid;
+  if (!uid) {
+    throw new HttpsError('failed-precondition', 'No UID found for this email.');
+  }
+
+  await admin.auth().updateUser(uid, { password: newPassword });
+  console.log(`Password reset for ${email} (uid=${uid}) to join ${newTeamId}`);
+
+  return { success: true, uid };
+});
+
+/**
+ * Admin: Remove an orphaned Firebase Auth account + Firestore records
+ * so the person can re-register with a different email.
+ */
+exports.removeOrphanedAccount = onCall({ region: 'africa-south1' }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+  if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+
+  const data = request.data || {};
+  const email = (data.email || '').trim().toLowerCase();
+  if (!email) throw new HttpsError('invalid-argument', 'Email required.');
+
+  const emailSnap = await db.collection('registeredEmails').doc(email).get();
+  if (!emailSnap.exists) {
+    return { success: true, message: 'No registeredEmails record found.' };
+  }
+  const rec = emailSnap.data();
+  const uid = rec.uid;
+  const teamId = rec.registrationId;
+
+  if (uid) {
+    try { await admin.auth().deleteUser(uid); console.log(`Deleted Auth user ${uid} (${email})`); }
+    catch (e) { console.warn(`Auth delete failed for ${uid}:`, e.message); }
+    try { await db.collection('teamMembers').doc(uid).delete(); console.log(`Deleted teamMembers/${uid}`); }
+    catch (e) { console.warn(`teamMembers delete failed:`, e.message); }
+  }
+
+  try { await db.collection('registeredEmails').doc(email).delete(); console.log(`Deleted registeredEmails/${email}`); }
+  catch (e) { console.warn(`registeredEmails delete failed:`, e.message); }
+
+  if (teamId) {
+    const regSnap = await db.collection('registrations').doc(teamId).get();
+    if (regSnap.exists) {
+      const reg = regSnap.data();
+      const updates = {};
+      if (reg.leader && reg.leader.email === email) updates.leader = deleteField();
+      if (reg.member2 && reg.member2.email === email) updates.member2 = deleteField();
+      if (reg.member3 && reg.member3.email === email) updates.member3 = deleteField();
+      if (Object.keys(updates).length > 0) {
+        await db.collection('registrations').doc(teamId).update(updates);
+        console.log(`Cleared ${email} from registrations/${teamId}`);
+      }
+    }
+  }
+
+  return { success: true, uid, teamId };
+});
+
+/**
+ * Admin: Look up registration info for an email.
+ */
+exports.getRegistrationInfo = onCall({ region: 'africa-south1' }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+  if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+
+  const data = request.data || {};
+  const email = (data.email || '').trim().toLowerCase();
+  if (!email) throw new HttpsError('invalid-argument', 'Email required.');
+
+  const emailSnap = await db.collection('registeredEmails').doc(email).get();
+  if (!emailSnap.exists) {
+    return { found: false, email };
+  }
+  const rec = emailSnap.data();
+
+  let teamInfo = null;
+  if (rec.registrationId) {
+    const regSnap = await db.collection('registrations').doc(rec.registrationId).get();
+    if (regSnap.exists) teamInfo = regSnap.data();
+  }
+
+  return {
+    found: true,
+    email,
+    uid: rec.uid,
+    registrationId: rec.registrationId,
+    teamName: rec.teamName,
+    teamInfo: teamInfo ? {
+      teamName: teamInfo.teamName,
+      password: teamInfo.password,
+      status: teamInfo.status,
+      leader: teamInfo.leader,
+      member2: teamInfo.member2,
+      member3: teamInfo.member3
+    } : null
+  };
 });

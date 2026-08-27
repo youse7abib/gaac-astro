@@ -39,6 +39,7 @@ export class SecurityWrapper {
   async stop() {
     this.active = false;
     if (this.flushTimer) clearInterval(this.flushTimer);
+    if (this._oneShotTimers) Object.values(this._oneShotTimers).forEach(t => clearTimeout(t));
     // Resolve all still-active events with their actual duration
     for (const [type, state] of Object.entries(this.eventStates)) {
       const actualSecs = (Date.now() - state.startTime) / 1000;
@@ -131,6 +132,12 @@ export class SecurityWrapper {
     this.setActive(type, severity);
   }
 
+  _resetOneShot(type, delayMs = 1000) {
+    if (this._oneShotTimers?.[type]) clearTimeout(this._oneShotTimers[type]);
+    if (!this._oneShotTimers) this._oneShotTimers = {};
+    this._oneShotTimers[type] = setTimeout(() => this.setInactive(type), delayMs);
+  }
+
   requestFullscreen() {
     if (!document.fullscreenElement && this.active) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -155,11 +162,13 @@ export class SecurityWrapper {
   }
 
   _watchVisibility() {
+    this._lastTabEvent = 0;
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden) {
         this.hasBeenVisible = true;
         this.setInactive('tab-hidden');
       } else if (this.active && this.hasBeenVisible) {
+        this._lastTabEvent = Date.now();
         this.setActive('tab-hidden', 'severe');
         if (this.onNotify) this.onNotify('You switched away from the exam tab. This is being recorded.', 'severe');
       }
@@ -169,6 +178,7 @@ export class SecurityWrapper {
   _watchFocus() {
     window.addEventListener('blur', () => {
       if (this.active && this.hasBeenFocused) {
+        if (Date.now() - (this._lastTabEvent || 0) < 500) return;
         this.setActive('window-blur', 'severe');
         if (this.onNotify) this.onNotify('Exam window lost focus. Please return to the exam.', 'severe');
       }
@@ -182,41 +192,40 @@ export class SecurityWrapper {
   _blockInteractions() {
     document.addEventListener('contextmenu', (e) => {
       e.preventDefault();
-      this.setActive('right-click', 'warning');
+      if (this.setActive('right-click', 'warning')) this._resetOneShot('right-click');
     });
     document.addEventListener('copy', (e) => {
       e.preventDefault();
-      this.setActive('copy-attempt', 'warning');
+      if (this.setActive('copy-attempt', 'warning')) this._resetOneShot('copy-attempt');
     });
     document.addEventListener('cut', (e) => {
       e.preventDefault();
-      this.setActive('cut-attempt', 'warning');
+      if (this.setActive('cut-attempt', 'warning')) this._resetOneShot('cut-attempt');
     });
     document.addEventListener('paste', (e) => {
       e.preventDefault();
-      this.setActive('paste-attempt', 'warning');
+      if (this.setActive('paste-attempt', 'warning')) this._resetOneShot('paste-attempt');
     });
     document.addEventListener('keydown', (e) => {
       if (e.ctrlKey && (e.key === 'c' || e.key === 'v' || e.key === 'u' || e.key === 's' || e.key === 'p')) {
         e.preventDefault();
-        if (e.key === 'c') this.setActive('copy-attempt', 'warning');
-        if (e.key === 'v') this.setActive('paste-attempt', 'warning');
-        if (e.key === 'u') this.setActive('view-source-attempt', 'warning');
-        if (e.key === 'p') this.setActive('print-attempt', 'warning');
+        if (e.key === 'c') { if (this.setActive('copy-attempt', 'warning')) this._resetOneShot('copy-attempt'); }
+        if (e.key === 'v') { if (this.setActive('paste-attempt', 'warning')) this._resetOneShot('paste-attempt'); }
+        if (e.key === 'u') { if (this.setActive('view-source-attempt', 'warning')) this._resetOneShot('view-source-attempt'); }
+        if (e.key === 'p') { if (this.setActive('print-attempt', 'warning')) this._resetOneShot('print-attempt'); }
       }
       if (e.key === 'F12' || (e.ctrlKey && e.shiftKey && e.key === 'I')) {
         e.preventDefault();
-        this.setActive('devtools-attempt', 'warning');
+        if (this.setActive('devtools-attempt', 'warning')) this._resetOneShot('devtools-attempt');
       }
       if (e.key === 'PrintScreen' || e.key === 'F13') {
         e.preventDefault();
-        this.setActive('screenshot-attempt', 'severe');
+        if (this.setActive('screenshot-attempt', 'severe')) this._resetOneShot('screenshot-attempt');
       }
     });
-    // Detect PrintScreen via clipboard change (some browsers)
     document.addEventListener('keyup', (e) => {
       if (e.key === 'PrintScreen') {
-        this.setActive('screenshot-attempt', 'severe');
+        if (this.setActive('screenshot-attempt', 'severe')) this._resetOneShot('screenshot-attempt');
       }
     });
   }
@@ -233,33 +242,39 @@ export class SecurityWrapper {
     try {
       const { writeBatch, doc, collection, increment, setDoc } = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
       this._setDoc = setDoc;
-      const b = writeBatch(this.db);
 
-      // Count severe events in this batch
-      let severeCount = 0;
+      // STEP 1: Write events in their OWN batch — no other operations.
+      // This ensures events are always persisted even if counter updates fail.
+      const eventBatch = writeBatch(this.db);
       const refs = {};
       batch.forEach((evt) => {
-        if (evt.severity === 'severe') severeCount++;
         const ref = doc(collection(this.db, 'teams', this.teamId, 'events'));
         refs[evt.localId] = ref;
-        b.set(ref, evt);
+        eventBatch.set(ref, evt);
       });
+      await eventBatch.commit();
+      console.log('[Security] Flushed', batch.length, 'events to Firestore');
 
-      // Atomically update counters on the member's exam doc AND the team
-      // summary doc (the summary doc lets the admin dashboard render
-      // without per-team reads)
-      const examRef = doc(this.db, 'teams', this.teamId, 'exam', this.memberUid);
-      b.set(examRef, {
-        eventCount: increment(batch.length),
-        severeEventCount: increment(severeCount)
-      }, { merge: true });
-      const teamRef = doc(this.db, 'teams', this.teamId);
-      b.set(teamRef, {
-        eventCount: increment(batch.length),
-        severeEventCount: increment(severeCount)
-      }, { merge: true });
-
-      await b.commit();
+      // STEP 2: Update counters in a SEPARATE batch (best-effort).
+      // If this fails, events are still safe.
+      let severeCount = 0;
+      batch.forEach(evt => { if (evt.severity === 'severe') severeCount++; });
+      try {
+        const counterBatch = writeBatch(this.db);
+        const examRef = doc(this.db, 'teams', this.teamId, 'exam', this.memberUid);
+        counterBatch.set(examRef, {
+          eventCount: increment(batch.length),
+          severeEventCount: increment(severeCount)
+        }, { merge: true });
+        const teamRef = doc(this.db, 'teams', this.teamId);
+        counterBatch.set(teamRef, {
+          eventCount: increment(batch.length),
+          severeEventCount: increment(severeCount)
+        }, { merge: true });
+        await counterBatch.commit();
+      } catch (counterErr) {
+        console.warn('[Security] Counter update failed (events still saved):', counterErr.message || counterErr);
+      }
 
       // After commit succeeds, set pendingFlush for still-active events
       for (const [type, state] of Object.entries(this.eventStates)) {
@@ -278,7 +293,7 @@ export class SecurityWrapper {
         this._inFlight.delete(localId);
       }
     } catch (e) {
-      console.warn('Failed to flush events:', e);
+      console.error('[Security] Failed to flush events:', e);
       this.eventQueue.push(...batch);
       localIds.forEach(id => this._inFlight.delete(id));
     }

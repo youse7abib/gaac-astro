@@ -278,15 +278,16 @@ service cloud.firestore {
               ])
               && resource.data.status != 'submitted')
         );
-        allow delete: if false;
+        allow delete: if isAdmin();
       }
 
       // Events subcollection
       match /events/{eventId} {
         allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
         allow create: if isAuthenticated() && isTeamMember(teamId);
-        allow update: if false;
-        allow delete: if false;
+        allow update: if isAuthenticated() && isTeamMember(teamId)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['actualSecs']);
+        allow delete: if isAdmin();
       }
     }
 

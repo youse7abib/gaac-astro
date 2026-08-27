@@ -1,6 +1,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
 import { getAuth, signInAnonymously, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFirestore, doc, getDoc, setDoc, writeBatch, serverTimestamp, collection, query, where, getDocs, increment, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -22,12 +23,13 @@ const ambassadorConfig = {
   measurementId: "G-0F3CBV292K"
 };
 
-let app, db, ambApp, ambDb, auth;
+let app, db, ambApp, ambDb, auth, functions;
 let authReady = Promise.resolve();
 try {
   app = initializeApp(firebaseConfig);
   db = getFirestore(app);
   auth = getAuth(app);
+  functions = getFunctions(app);
   ambApp = initializeApp(ambassadorConfig, 'ambassador');
   ambDb = getFirestore(ambApp);
   authReady = signInAnonymously(auth).catch((e) => {
@@ -439,8 +441,18 @@ form.addEventListener('submit', async (e) => {
               const cred = await signInWithEmailAndPassword(auth, email, loginPassword);
               uid = cred.user.uid;
             } catch (reuseError) {
-              console.warn(`Existing account for ${email} cannot be reused with the team password:`, reuseError);
-              throw authError;
+              console.warn(`Existing account for ${email} cannot be reused with the team password, attempting reassign...`);
+              try {
+                const reassignMember = httpsCallable(functions, 'reassignMember');
+                await reassignMember({ email, newPassword: loginPassword, newTeamId: registrationId });
+                await signOut(auth).catch(() => {});
+                const cred = await signInWithEmailAndPassword(auth, email, loginPassword);
+                uid = cred.user.uid;
+                console.log(`Reassigned ${email} successfully, uid=${uid}`);
+              } catch (reassignErr) {
+                console.error(`Reassign failed for ${email}:`, reassignErr);
+                throw authError;
+              }
             }
           }
           await setDoc(doc(db, 'teamMembers', uid), {

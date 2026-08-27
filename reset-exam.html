@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reset Exam | GAAC</title>
+  <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <style>
+    .reset-box { max-width: 500px; margin: 60px auto; padding: 28px; border: 1px solid rgba(255,183,77,0.3); border-radius: 16px; background: rgba(10,14,23,0.8); text-align: center; }
+    .reset-box h1 { font-size: 1.2rem; margin-bottom: 12px; }
+    #log { text-align: left; margin-top: 16px; font-size: 0.8rem; color: var(--muted); max-height: 400px; overflow-y: auto; }
+    #log .ok { color: #00c850; }
+    #log .err { color: #ff4757; }
+    #log .info { color: var(--blue-light); }
+  </style>
+</head>
+<body class="page-home">
+  <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
+  <header class="site-header">
+    <a class="brand-lockup" href="index" aria-label="GAAC home">
+      <img class="brand-logo club-logo" src="images/Club_Logo_Black_BG-removebg-preview.png" alt="STEM October Astronomy Club logo" />
+      <span class="brand-divider" aria-hidden="true"></span>
+      <img class="brand-logo gaac-logo" src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+    </a>
+  </header>
+  <main>
+    <div class="reset-box">
+      <h1>Reset Exam: <span style="color:var(--blue-light);">GAAC-2026-0605</span></h1>
+      <p style="color:var(--muted);font-size:0.85rem;">Deletes all events, exam submissions, and snapshots. Registration stays intact.</p>
+      <div id="login-section" style="margin-top:20px;">
+        <div class="form-group" style="margin-bottom:12px;">
+          <input type="password" id="admin-password" placeholder="Admin Password" style="width:100%;" />
+        </div>
+        <button class="button primary" id="btn-login" style="width:100%;">Sign In & Reset</button>
+      </div>
+      <div id="reset-section" style="display:none;">
+        <button class="button primary" id="btn-reset" style="width:100%;border-color:rgba(255,71,87,0.5);background:rgba(255,71,87,0.15);">DELETE All Exam Data</button>
+      </div>
+      <div id="log"></div>
+    </div>
+  </main>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, writeBatch, setDoc, query, orderBy } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref as storageRef, listAll, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
+    const app = initializeApp({
+      apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
+      authDomain: "gaac-registration-2026.firebaseapp.com",
+      projectId: "gaac-registration-2026",
+      storageBucket: "gaac-registration-2026.firebasestorage.app",
+      messagingSenderId: "542838311094",
+      appId: "1:542838311094:web:6104e2ed0d1cafa976be17"
+    }, 'reset-exam');
+
+    const auth = getAuth(app);
+    const db = getFirestore(app);
+    const storage = getStorage(app);
+    const TEAM_ID = 'GAAC-2026-0605';
+    const logEl = document.getElementById('log');
+
+    function log(msg, cls = '') {
+      const p = document.createElement('p');
+      p.className = cls;
+      p.textContent = msg;
+      logEl.appendChild(p);
+      logEl.scrollTop = logEl.scrollHeight;
+    }
+
+    document.getElementById('btn-login').addEventListener('click', async () => {
+      const pw = document.getElementById('admin-password').value.trim();
+      const errEl = document.getElementById('login-section');
+      try {
+        await signInWithEmailAndPassword(auth, 'astronomyclub64@gmail.com', pw);
+        document.getElementById('login-section').style.display = 'none';
+        document.getElementById('reset-section').style.display = 'block';
+        log('Logged in successfully.', 'ok');
+      } catch (e) {
+        log('Login failed: ' + e.message, 'err');
+      }
+    });
+
+    document.getElementById('btn-reset').addEventListener('click', async () => {
+      const btn = document.getElementById('btn-reset');
+      btn.disabled = true;
+      btn.textContent = 'Deleting...';
+      try {
+        let eventCount = 0, examCount = 0, snapCount = 0;
+
+        log('--- Deleting events ---', 'info');
+        const eventsSnap = await getDocs(collection(db, 'teams', TEAM_ID, 'events'));
+        if (!eventsSnap.empty) {
+          const b = writeBatch(db);
+          eventsSnap.forEach(d => { b.delete(d.ref); eventCount++; });
+          await b.commit();
+          log(`Deleted ${eventCount} event documents.`, 'ok');
+        } else {
+          log('No events found.', 'info');
+        }
+
+        log('--- Deleting exam submissions ---', 'info');
+        const examSnap = await getDocs(collection(db, 'teams', TEAM_ID, 'exam'));
+        if (!examSnap.empty) {
+          const b = writeBatch(db);
+          examSnap.forEach(d => { b.delete(d.ref); examCount++; });
+          await b.commit();
+          log(`Deleted ${examCount} exam documents.`, 'ok');
+        } else {
+          log('No exam documents found.', 'info');
+        }
+
+        log('--- Resetting team status ---', 'info');
+        await setDoc(doc(db, 'teams', TEAM_ID), {
+          examStatus: 'registered',
+          status: 'registered',
+          submittedCount: 0,
+          eventCount: 0,
+          severeEventCount: 0,
+          examScore: null,
+          examPassed: null,
+          correctCount: null,
+          totalQuestions: null,
+          disqualified: false,
+          lastEventAt: null,
+          resetAt: Date.now()
+        }, { merge: true });
+        log('Team status reset to "registered".', 'ok');
+
+        log('--- Deleting snapshots ---', 'info');
+        try {
+          const listRef = storageRef(storage, `snapshots/round1/${TEAM_ID}`);
+          const result = await listAll(listRef);
+          const allItems = [...result.items];
+          for (const prefix of result.prefixes) {
+            const sub = await listAll(prefix);
+            allItems.push(...sub.items);
+          }
+          for (const item of allItems) {
+            try {
+              await deleteObject(item);
+              snapCount++;
+            } catch {}
+          }
+          log(`Deleted ${snapCount} snapshot files.`, 'ok');
+        } catch (e) {
+          log('Snapshot cleanup skipped: ' + e.message, 'err');
+        }
+
+        log('=== RESET COMPLETE ===', 'ok');
+        log(`Events: ${eventCount} deleted | Exams: ${examCount} deleted | Snapshots: ${snapCount} deleted`, 'info');
+        btn.textContent = 'Done!';
+      } catch (e) {
+        log('ERROR: ' + e.message, 'err');
+        btn.disabled = false;
+        btn.textContent = 'DELETE All Exam Data';
+      }
+    });
+  </script>
+</body>
+</html>

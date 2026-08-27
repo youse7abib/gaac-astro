@@ -265,6 +265,31 @@
             </form>
           </div>
 
+          <div id="remove-modal" class="modal-overlay hidden">
+            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="remove-modal-title">
+              <button type="button" class="modal-close" id="btn-remove-close" aria-label="Close">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+              <div class="modal-icon">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                  <line x1="12" y1="9" x2="12" y2="13"></line>
+                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
+                </svg>
+              </div>
+              <h2 id="remove-modal-title">Remove Member</h2>
+              <p class="modal-msg" id="remove-modal-msg"></p>
+              <p class="modal-note">This action cannot be undone.</p>
+              <div class="modal-actions">
+                <button type="button" class="btn-secondary" id="btn-remove-cancel">Cancel</button>
+                <button type="button" class="btn-danger-solid" id="btn-remove-confirm">
+                  <span class="btn-text">Remove</span>
+                  <span class="btn-loader hidden"></span>
+                </button>
+              </div>
+            </div>
+          </div>
+
           <div id="delete-modal" class="modal-overlay hidden">
             <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
               <button type="button" class="modal-close" id="btn-delete-close" aria-label="Close">
@@ -320,6 +345,7 @@
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, writeBatch, deleteDoc, deleteField, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -341,6 +367,7 @@
     // hijack the signed-in leader's session.
     const rosterApp = initializeApp(firebaseConfig, 'rosterApp');
     const rosterAuth = getAuth(rosterApp);
+    const rosterFunctions = getFunctions(rosterApp);
 
     const loginState = document.getElementById('login-state');
     const dashState = document.getElementById('dashboard-state');
@@ -695,7 +722,7 @@
           // The email already has an account. Resolve its uid without the
           // password via the removal audit (email -> uid), falling back to
           // signing in with the shared team password when possible.
-          newUid = await findRemovedMemberUid(email, loginPassword);
+          newUid = await findRemovedMemberUid(email, loginPassword, currentTeamId);
           if (!newUid) {
             showAlert(addAlert,
               'This email is linked to an existing account that this team password cannot open. ' +
@@ -727,7 +754,7 @@
         const teamRef = doc(db, 'teams', currentTeamId);
         const teamSnap = await getDoc(teamRef);
         if (teamSnap.exists()) {
-          batch.set(teamRef, { memberCount: increment(1) }, { merge: true });
+          batch.update(teamRef, { memberCount: increment(1) });
         } else {
           const rosterLen = (reg.leader ? 1 : 0) + (reg.member2 ? 1 : 0) + (reg.member3 ? 1 : 0);
           batch.set(teamRef, { memberCount: rosterLen + 1 });
@@ -774,12 +801,51 @@
     });
 
     // ----- Remove member (leader only) -----
-    async function removeMember(slot, email, name) {
+    const removeModal = document.getElementById('remove-modal');
+    const removeModalMsg = document.getElementById('remove-modal-msg');
+    const btnRemoveClose = document.getElementById('btn-remove-close');
+    const btnRemoveCancel = document.getElementById('btn-remove-cancel');
+    const btnRemoveConfirm = document.getElementById('btn-remove-confirm');
+    const btnRemoveConfirmText = btnRemoveConfirm.querySelector('.btn-text');
+    const btnRemoveConfirmLoader = btnRemoveConfirm.querySelector('.btn-loader');
+
+    let pendingRemove = null;
+
+    function openRemoveModal(slot, email, name) {
       if (!isLeader || !registrationOpen) return;
-      if (!window.confirm(`Remove ${name} (${email}) from your team?\n\nThis will immediately revoke their access to the exam portal. This cannot be undone.`)) return;
+      pendingRemove = { slot, email, name };
+      removeModalMsg.textContent = `Remove ${name} (${email}) from your team? This will immediately revoke their access to the exam portal.`;
+      btnRemoveConfirm.disabled = false;
+      btnRemoveConfirmText.classList.remove('hidden');
+      btnRemoveConfirmLoader.classList.add('hidden');
+      removeModal.classList.remove('hidden');
+    }
+
+    function closeRemoveModal() {
+      removeModal.classList.add('hidden');
+      pendingRemove = null;
+    }
+
+    btnRemoveClose.addEventListener('click', closeRemoveModal);
+    btnRemoveCancel.addEventListener('click', closeRemoveModal);
+    removeModal.addEventListener('click', (e) => {
+      if (e.target === removeModal) closeRemoveModal();
+    });
+
+    async function removeMember(slot, email, name) {
+      openRemoveModal(slot, email, name);
+    }
+
+    btnRemoveConfirm.addEventListener('click', async () => {
+      if (!pendingRemove) return;
+      const { slot, email, name } = pendingRemove;
 
       const teamAlert = document.getElementById('team-alert');
       hideAlert(teamAlert);
+
+      btnRemoveConfirm.disabled = true;
+      btnRemoveConfirmText.classList.add('hidden');
+      btnRemoveConfirmLoader.classList.remove('hidden');
 
       try {
         // Find the member's uid so we can delete their teamMembers mapping.
@@ -800,7 +866,7 @@
         const teamRef = doc(db, 'teams', currentTeamId);
         const teamSnap = await getDoc(teamRef);
         if (teamSnap.exists()) {
-          batch.set(teamRef, { memberCount: increment(-1) }, { merge: true });
+          batch.update(teamRef, { memberCount: increment(-1) });
         } else {
           const regNow = currentRegData;
           const rosterLen = (regNow.leader ? 1 : 0) + (regNow.member2 ? 1 : 0) + (regNow.member3 ? 1 : 0);
@@ -823,15 +889,20 @@
         await batch.commit();
 
         showAlert(teamAlert, `${name} has been removed. Their portal access is now revoked.`, false);
+        closeRemoveModal();
 
         // Update the roster locally instead of re-reading the registration doc.
         currentRegData[slot] = null;
         renderDashboard(auth.currentUser);
       } catch (err) {
         console.error('Remove member error:', err);
-        showAlert(teamAlert, err.message || 'Could not remove the member. Please try again.');
+        const detail = err.code ? ` (${err.code})` : '';
+        showAlert(teamAlert, `Could not remove the member.${detail} Please try again.`);
+        btnRemoveConfirm.disabled = false;
+        btnRemoveConfirmText.classList.remove('hidden');
+        btnRemoveConfirmLoader.classList.add('hidden');
       }
-    }
+    });
 
     // Resolve a member's Auth uid without needing their password.
     // 1. Their registeredEmails doc stores the uid (post-registration).
@@ -856,7 +927,7 @@
     // same team. 1) the removal audit stores the email -> uid; 2) fallback:
     // the shared team password still opens the account, so sign in to learn
     // its uid.
-    async function findRemovedMemberUid(email, password) {
+    async function findRemovedMemberUid(email, password, teamId) {
       try {
         const snap = await getDoc(doc(db, 'removedEmails', norm(email)));
         if (snap.exists() && snap.data().uid) return snap.data().uid;
@@ -868,6 +939,17 @@
         const cred = await signInWithEmailAndPassword(rosterAuth, norm(email), password);
         return cred.user.uid;
       } catch (e) {
+        console.warn(`Password mismatch for ${email}, attempting reassign...`);
+      }
+      try {
+        const reassignMember = httpsCallable(rosterFunctions, 'reassignMember');
+        await reassignMember({ email: norm(email), newPassword: password, newTeamId: teamId });
+        await signOut(rosterAuth).catch(() => {});
+        const cred = await signInWithEmailAndPassword(rosterAuth, norm(email), password);
+        console.log(`Reassigned ${email} successfully, uid=${cred.user.uid}`);
+        return cred.user.uid;
+      } catch (e) {
+        console.error(`Reassign failed for ${email}:`, e);
         return null;
       }
     }

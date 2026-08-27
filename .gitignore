@@ -8,3 +8,7 @@ hosting-*.txt
 deploy-*.txt
 *.xlsx
 *.csv
+proctora-ref/
+temp-reset.*
+auth-export.json
+all-registered-emails.txt

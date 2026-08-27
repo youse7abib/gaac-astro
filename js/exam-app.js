@@ -1,23 +1,26 @@
 import { auth, db, storage } from './exam-shared.js';
 import { SecurityWrapper } from './security.js';
 import { AIMonitor } from './ai-monitor.js';
-import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, orderBy as orderByFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, increment, collection, getDocs, query, orderBy as orderByFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 let teamId, currentUser = null;
+let memberName = '', memberRole = '';
 let questions = [];
 let answers = {};
 let flagged = {};
-let timerInterval, endTime, examDocRef, pausedRemaining = null, questionOrder = [];
+let timerInterval, endTime, absoluteDeadline, examDocRef, pausedRemaining = null, questionOrder = [];
 let camStream = null, screenStream = null;
 let cameraActive = false, screenActive = false, fullscreenActive = false;
-let examPaused = false, examSubmitted = false, pauseResolve = null, healthInterval = null, countdownInterval = null;
+let examPaused = false, examSubmitted = false, pauseResolve = null, healthInterval = null, countdownInterval = null, autoSaveInterval = null;
+let _security = null, _aiMonitor = null;
+let currentLang = localStorage.getItem('gaac_lang') || 'en';
 const STORAGE_KEY = () => `gaac_exam_${teamId}_${currentUser ? currentUser.uid : 'anon'}`;
 
 const saveState = () => {
   try {
-    localStorage.setItem(STORAGE_KEY(), JSON.stringify({ answers, flagged, endTime, questionOrder }));
+    localStorage.setItem(STORAGE_KEY(), JSON.stringify({ answers, flagged, endTime, absoluteDeadline, questionOrder }));
   } catch {}
 };
 
@@ -28,8 +31,8 @@ const loadState = () => {
       const data = JSON.parse(raw);
       answers = data.answers || {};
       flagged = data.flagged || {};
+      if (data.absoluteDeadline) absoluteDeadline = data.absoluteDeadline;
       if (data.endTime) endTime = data.endTime;
-      // Restore question order so resume doesn't re-shuffle
       if (data.questionOrder && data.questionOrder.length > 0) questionOrder = data.questionOrder;
     }
   } catch {}
@@ -54,6 +57,22 @@ const init = async () => {
     // Must exist before any teams/ read — used by security rules to verify team membership
     await ensureTeamMembership();
 
+    // Resolve member name and role from registration
+    try {
+      const regSnap = await getDoc(doc(db, 'registrations', teamId));
+      if (regSnap.exists()) {
+        const reg = regSnap.data();
+        const members = [
+          { ...reg.leader, role: 'leader' },
+          reg.member2 ? { ...reg.member2, role: 'member2' } : null,
+          reg.member3 ? { ...reg.member3, role: 'member3' } : null
+        ].filter(Boolean);
+        const me = members.find(m => m.email === currentUser.email || m.uid === currentUser.uid);
+        if (me) { memberName = me.name || me.email || 'Unknown'; memberRole = me.role; }
+        else { memberName = currentUser.email; memberRole = 'member'; }
+      }
+    } catch (e) { console.warn('Failed to resolve member info:', e); memberName = currentUser.email; memberRole = 'member'; }
+
     examDocRef = doc(db, 'teams', teamId, 'exam', currentUser.uid);
 
     const existingExam = await getDoc(examDocRef);
@@ -68,7 +87,7 @@ const init = async () => {
     questions = [];
     qSnap.forEach(doc => {
       const q = doc.data();
-      questions.push({ id: doc.id, text: q.text, options: q.options });
+      questions.push({ id: doc.id, text: q.text, text_ar: q.text_ar || q.text, options: q.options, options_ar: q.options_ar || q.options });
     });
 
     // Restore saved state FIRST (before shuffle), so we know if this is a resume
@@ -87,20 +106,57 @@ const init = async () => {
       if (ordered.length === questions.length) questions = ordered;
     }
 
-    // Override localStorage endTime with Firestore's authoritative value
+    // Fetch authoritative deadline from Firestore (server-side, absolute)
     try {
       const examSnap = await getDoc(examDocRef);
       if (examSnap.exists()) {
         const examData = examSnap.data();
-        // If exam was paused, use pausedRemaining so page reload doesn't lose time
-        if (examData.pausedRemaining) {
-          endTime = Date.now() + examData.pausedRemaining;
+        if (examData.absoluteDeadline) {
+          absoluteDeadline = typeof examData.absoluteDeadline === 'number'
+            ? examData.absoluteDeadline
+            : new Date(examData.absoluteDeadline).getTime();
+          endTime = absoluteDeadline;
+          console.log('[init] Using absoluteDeadline from Firestore:', new Date(absoluteDeadline).toISOString());
         } else if (examData.endTime) {
-          endTime = examData.endTime;
+          // Backwards compat: old exams without absoluteDeadline
+          const storedEnd = typeof examData.endTime === 'number'
+            ? examData.endTime
+            : new Date(examData.endTime).getTime();
+          if (examData.pausedRemaining) {
+            endTime = storedEnd;
+            absoluteDeadline = storedEnd;
+          } else {
+            endTime = storedEnd;
+            absoluteDeadline = storedEnd;
+          }
+          console.log('[init] Using endTime from Firestore (legacy):', new Date(endTime).toISOString());
         }
       }
     } catch (e) {
       console.warn('Failed to fetch exam doc for timer:', e);
+    }
+
+    // Check if exam was reset by admin — clear stale localStorage
+    try {
+      const teamSnap = await getDoc(doc(db, 'teams', teamId));
+      if (teamSnap.exists()) {
+        const teamData = teamSnap.data();
+        if (teamData.resetAt) {
+          const saved = localStorage.getItem(STORAGE_KEY());
+          if (saved) {
+            const parsed = JSON.parse(saved);
+            if (parsed.endTime && parsed.endTime < teamData.resetAt) {
+              console.log('[init] Clearing stale localStorage (resetAt > saved state)');
+              clearState();
+              endTime = null;
+              absoluteDeadline = null;
+              questionOrder = [];
+            }
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to check resetAt:', e);
     }
 
     renderQuestions();
@@ -111,6 +167,22 @@ const init = async () => {
     document.getElementById('btn-cancel-submit').addEventListener('click', () => {
       document.getElementById('submit-modal').classList.add('hidden');
     });
+
+    const langBtn = document.getElementById('btn-lang-toggle');
+    if (langBtn) {
+      const updateLangBtn = () => {
+        langBtn.textContent = currentLang === 'ar' ? 'عربي' : 'EN';
+        langBtn.classList.toggle('active', currentLang === 'ar');
+      };
+      updateLangBtn();
+      langBtn.addEventListener('click', () => {
+        currentLang = currentLang === 'en' ? 'ar' : 'en';
+        localStorage.setItem('gaac_lang', currentLang);
+        updateLangBtn();
+        renderQuestions();
+        updateQuestionPalette();
+      });
+    }
 
     // If there's a saved exam in progress, skip verification
     if (endTime && endTime > Date.now()) {
@@ -123,6 +195,31 @@ const init = async () => {
     }
 
     document.getElementById('btn-start-exam').addEventListener('click', startExam);
+
+    const updateVerifyLabels = () => {
+      const isAr = currentLang === 'ar';
+      document.getElementById('btn-verify-lang').textContent = isAr ? 'EN' : 'AR';
+      document.getElementById('verify-instructions').textContent = isAr ? 'يجب عليك تفعيل المتطلبات التالية للبدء:' : 'You must enable the following to start:';
+      document.querySelector('#verify-modal h2').innerHTML = isAr ? 'متطلبات <span class="text-blue">الامتحان</span>' : 'Exam <span class="text-blue">Requirements</span>';
+      document.getElementById('btn-start-exam').textContent = isAr ? 'ابدأ الامتحان' : 'Start Exam';
+      const camLabel = document.querySelector('#v-camera');
+      const ssLabel = document.querySelector('#v-screenshare');
+      const fsLabel = document.querySelector('#v-fullscreen');
+      if (camLabel) camLabel.childNodes[1].textContent = isAr ? ' الوصول إلى الكاميرا' : ' Camera Access';
+      if (ssLabel) ssLabel.childNodes[1].textContent = isAr ? ' مشاركة الشاشة' : ' Screen Sharing';
+      if (fsLabel) fsLabel.childNodes[1].textContent = isAr ? ' وضع ملء الشاشة' : ' Fullscreen Mode';
+    };
+    updateVerifyLabels();
+    document.getElementById('btn-verify-lang').addEventListener('click', () => {
+      currentLang = currentLang === 'en' ? 'ar' : 'en';
+      localStorage.setItem('gaac_lang', currentLang);
+      updateVerifyLabels();
+      const langBtn = document.getElementById('btn-lang-toggle');
+      if (langBtn) {
+        langBtn.textContent = currentLang === 'ar' ? 'عربي' : 'EN';
+        langBtn.classList.toggle('active', currentLang === 'ar');
+      }
+    });
   } catch (e) {
     console.error('Exam init failed:', e);
     document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#ff6b6b;font-size:1.2rem;text-align:center;padding:40px;flex-direction:column;gap:12px;">
@@ -146,7 +243,7 @@ const startExam = async () => {
   let fullscreenOk = false, cameraOk = false, screenOk = false;
 
   try {
-    console.log('[startExam] requesting fullscreen...');
+    console.log('[startExam] requesting fullscreen (user gesture)...');
     await document.documentElement.requestFullscreen();
     fullscreenOk = true;
     setIcon('v-fs-icon', true);
@@ -171,7 +268,8 @@ const startExam = async () => {
 
   if (!fullscreenOk || !cameraOk || !screenOk) {
     console.log('[startExam] requirements NOT met: fullscreen=', fullscreenOk, 'camera=', cameraOk, 'screen=', screenOk);
-    errEl.textContent = 'Please enable all requirements above to start the exam.';
+    const isAr = currentLang === 'ar';
+    errEl.textContent = isAr ? 'يرجى تفعيل جميع المتطلبات أعلاه لبدء الامتحان.' : 'Please enable all requirements above to start the exam.';
     errEl.style.display = 'block';
     document.getElementById('btn-start-exam').disabled = false;
     return;
@@ -183,13 +281,15 @@ const startExam = async () => {
 
   const durationMs = 60 * 60 * 1000;
   endTime = Date.now() + durationMs;
+  absoluteDeadline = endTime;
 
-  // Write status + endTime to Firestore immediately (server-authoritative timer)
+  // Write status + endTime + absoluteDeadline to Firestore (server-authoritative timer)
   try {
       await setDoc(examDocRef, {
         status: 'in-progress',
         startedAt: serverTimestamp(),
-        endTime: new Date(endTime).toISOString()
+        endTime: new Date(endTime).toISOString(),
+        absoluteDeadline: absoluteDeadline
       }, { merge: true });
       // Mirror summary on the team parent doc so the admin dashboard can
       // render status with 2 queries instead of one read per team.
@@ -226,24 +326,26 @@ const captureSnapshot = async (msg) => {
   const now = Date.now();
   if (_lastSnapshot[msg] && now - _lastSnapshot[msg] < 10000) return;
   _lastSnapshot[msg] = now;
+  const safeName = (memberName || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+  const safeRole = (memberRole || 'member').replace(/[^a-zA-Z0-9]/g, '_');
+  const safeViolation = msg.replace(/[^a-zA-Z0-9-]/g, '_').substring(0, 40);
+  const folderName = `${safeName}_${safeRole}`;
+  const pathBase = `snapshots/round1/${teamId}/${folderName}/${safeViolation}_${Date.now()}`;
+
   try {
-    const eventType = msg;
-    const canvas = document.createElement('canvas');
-    canvas.width = 320;
-    canvas.height = 240;
-    const ctx = canvas.getContext('2d');
-    ctx.fillStyle = '#00020a';
-    ctx.fillRect(0, 0, 320, 240);
-    ctx.fillStyle = '#fff';
-    ctx.font = '14px sans-serif';
-    ctx.fillText(`Violation: ${eventType}`, 8, 20);
-    ctx.fillText(`Time: ${new Date().toISOString()}`, 8, 40);
-    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.5));
-    if (!blob) return;
-    const path = `snapshots/round1/${teamId}/${currentUser.uid}/${Date.now()}_${eventType}.jpg`;
-    await uploadBytes(ref(storage, path), blob);
+    let screenCanvas = null;
+    if (_aiMonitor) screenCanvas = _aiMonitor.captureScreenFrame();
+    if (!screenCanvas) {
+      console.warn('[captureSnapshot] No screen frame for', msg);
+      return;
+    }
+    const blob = await new Promise(r => screenCanvas.toBlob(r, 'image/jpeg', 0.8));
+    if (blob) {
+      await uploadBytes(ref(storage, `${pathBase}.jpg`), blob);
+      console.log('[captureSnapshot] Uploaded:', msg);
+    }
   } catch (e) {
-    console.warn('Snapshot upload failed:', e);
+    console.warn('[captureSnapshot] Failed:', e);
   }
 };
 
@@ -258,12 +360,12 @@ const showToast = (msg, severity = 'warning') => {
   void toast.offsetWidth;
   toast.classList.add('show');
   setTimeout(() => toast.classList.remove('show'), 5000);
-  if (severity === 'severe') captureSnapshot(msg);
 };
 
 const startSecurity = () => {
-  const security = new SecurityWrapper(teamId, currentUser.uid, db, (msg, severity) => {
+  _security = new SecurityWrapper(teamId, currentUser.uid, db, (msg, severity) => {
     showToast(msg, severity);
+    if (severity === 'severe') captureSnapshot(msg);
     if (msg.includes('switched away')) pauseExam('tab-hidden');
     else if (msg.includes('lost focus')) pauseExam('window-blur');
   }, {
@@ -273,12 +375,11 @@ const startSecurity = () => {
     'camera-stopped': 15,
     'screenshare-stopped': 15
   });
-  security.start();
-  window.security = security;
+  _security.start();
 
-  const aiMonitor = new AIMonitor(security, camStream, showToast);
-  aiMonitor.start();
-  window.aiMonitor = aiMonitor;
+  _aiMonitor = new AIMonitor(_security, camStream, showToast);
+  _aiMonitor.start();
+  if (screenStream) _aiMonitor.setScreenStream(screenStream);
 
   if (camStream) cameraActive = true;
   if (screenStream) screenActive = true;
@@ -288,13 +389,22 @@ const startSecurity = () => {
   // On page reload / saved-state restore, if streams are gone, pause immediately
   const missing = checkRequirements();
   if (missing) {
-    showToast(`${missing === 'fullscreen' ? 'Fullscreen' : missing === 'camera' ? 'Camera' : 'Screen sharing'} required. Exam paused.`, 'warning');
+    const isAr = currentLang === 'ar';
+    const names = isAr ? { fullscreen: 'ملء الشاشة', camera: 'الكاميرا', screenshare: 'مشاركة الشاشة' } : { fullscreen: 'Fullscreen', camera: 'Camera', screenshare: 'Screen sharing' };
+    showToast(`${names[missing] || missing}${isAr ? ' مطلوب. تم إيقاف الامتحان مؤقتًا.' : ' required. Exam paused.'}`, 'warning');
     pauseExam(missing);
   }
 
   // Poll track health every 3s — only pauses, does NOT log (onended handles logging)
   healthInterval = setInterval(() => {
-    if (examPaused || examSubmitted) return;
+    if (examSubmitted) return;
+    // Absolute deadline check — even if paused/offline, time runs out
+    if (absoluteDeadline && Date.now() >= absoluteDeadline && !examSubmitted) {
+      console.log('[healthInterval] Absolute deadline reached, auto-submitting');
+      submitExam();
+      return;
+    }
+    if (examPaused) return;
     const camTrack = camStream?.getVideoTracks()[0];
     const ssTrack = screenStream?.getVideoTracks()[0];
     if (camStream && camTrack?.readyState !== 'live') {
@@ -348,7 +458,7 @@ const startSecurity = () => {
   });
 
   window.addEventListener('beforeprint', () => {
-    if (window.security) window.security.logEvent('print-attempt', 'warning');
+    if (_security) _security.logEvent('print-attempt', 'warning');
   });
 };
 
@@ -359,7 +469,7 @@ const _monitorTracks = () => {
       t.onended = () => {
         if (examSubmitted) return;
         cameraActive = false;
-        if (window.security) window.security.logEvent('camera-stopped', 'severe');
+        if (_security) _security.logEvent('camera-stopped', 'severe');
         showToast('Camera disconnected. Exam paused.', 'severe');
         pauseExam('camera');
       };
@@ -371,7 +481,7 @@ const _monitorTracks = () => {
       t.onended = () => {
         if (examSubmitted) return;
         screenActive = false;
-        if (window.security) window.security.logEvent('screenshare-stopped', 'severe');
+        if (_security) _security.logEvent('screenshare-stopped', 'severe');
         showToast('Screen sharing stopped. Exam paused.', 'severe');
         pauseExam('screenshare');
       };
@@ -384,7 +494,7 @@ const pauseExam = (reason) => {
   if (examPaused) return;
   examPaused = true;
   if (timerInterval) clearInterval(timerInterval);
-  pausedRemaining = endTime - Date.now();
+  pausedRemaining = absoluteDeadline - Date.now();
   setDoc(examDocRef, { pausedRemaining }, { merge: true }).catch(() => {});
   showDisconnectModal(reason);
 };
@@ -395,11 +505,15 @@ const resumeExam = () => {
   if (!cameraActive || !screenActive || !fullscreenActive) return;
   examPaused = false;
   document.getElementById('disconnect-modal').classList.add('hidden');
-  if (pausedRemaining != null) {
-    endTime = Date.now() + pausedRemaining;
-    pausedRemaining = null;
-    saveState();
-    setDoc(examDocRef, { pausedRemaining: null }, { merge: true }).catch(() => {});
+  // Use absoluteDeadline — NEVER recalculate from now
+  endTime = absoluteDeadline;
+  pausedRemaining = null;
+  saveState();
+  setDoc(examDocRef, { pausedRemaining: null }, { merge: true }).catch(() => {});
+  // Check if deadline already passed while paused
+  if (Date.now() >= absoluteDeadline) {
+    submitExam();
+    return;
   }
   startTimer(endTime);
 };
@@ -407,7 +521,14 @@ const resumeExam = () => {
 const showDisconnectModal = (reason, countdownSecs = 15) => {
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
 
-  const labels = {
+  const labels = currentLang === 'ar' ? {
+    fullscreen: { label: 'وضع ملء الشاشة', title: 'فقدان ملء الشاشة', msg: 'لقد غادرت وضع ملء الشاشة.', btn: 'العودة لملء الشاشة', autoLabel: 'عد لملء الشاشة خلال {s}s للمتابعة تلقائيًا.' },
+    'tab-hidden': { label: 'تبويب الامتحان', title: 'تم التبديل', msg: 'لقد انتقلت بعيدًا عن تبويب الامتحان.', btn: 'المتابعة', autoLabel: 'عد لتبويب الامتحان خلال {s}s للمتابعة تلقائيًا.' },
+    'window-blur': { label: 'نافذة الامتحان', title: 'فقدان التركيز', msg: 'فقدت نافذة الامتحان التركيز.', btn: 'المتابعة', autoLabel: 'عد لنافذة الامتحان خلال {s}s للمتابعة تقائيًا.' },
+    camera: { label: 'الكاميرا', title: 'فقدان الكاميرا', msg: 'تم فصل الكاميرا.', btn: 'إعادة تنشيط الكاميرا', autoLabel: 'أعد تنشيط الكاميرا خلال {s}s.' },
+    screenshare: { label: 'مشاركة الشاشة', title: 'فقدان مشاركة الشاشة', msg: 'تم إيقاف مشاركة الشاشة.', btn: 'إعادة تنشيط مشاركة الشاشة', autoLabel: 'أعد تنشيط مشاركة الشاشة خلال {s}s.' },
+    offline: { label: 'الإنترنت', title: 'فقدان الاتصال', msg: 'انقطع اتصالك بالإنترنت.', btn: 'في الانتظار...', autoLabel: 'يرجى إعادة الاتصال بالإنترنت. متوقف مؤقتًا لمدة {s}s.' }
+  } : {
     fullscreen: { label: 'Fullscreen Mode', title: 'Fullscreen Lost', msg: 'You exited fullscreen mode.', btn: 'Re-enter Fullscreen', autoLabel: 'Return to fullscreen within {s}s to auto-resume.' },
     'tab-hidden': { label: 'Exam Tab', title: 'Tab Switched', msg: 'You switched away from the exam tab.', btn: 'Resume', autoLabel: 'Return to the exam tab within {s}s to auto-resume.' },
     'window-blur': { label: 'Exam Window', title: 'Focus Lost', msg: 'Exam window lost focus.', btn: 'Resume', autoLabel: 'Return to the exam window within {s}s to auto-resume.' },
@@ -419,6 +540,7 @@ const showDisconnectModal = (reason, countdownSecs = 15) => {
   document.getElementById('d-icon').style.background = '#ef4444';
   document.getElementById('d-label').textContent = info.label;
   document.getElementById('disconnect-title').textContent = info.title;
+  document.getElementById('disconnect-msg').textContent = info.msg;
   document.getElementById('btn-reenable').textContent = info.btn;
   document.getElementById('btn-reenable').onclick = () => reenable(reason);
   document.getElementById('disconnect-modal').classList.remove('hidden');
@@ -453,11 +575,15 @@ const autoResume = () => {
   if (!missing && examPaused) {
     examPaused = false;
     document.getElementById('disconnect-modal').classList.add('hidden');
-    if (pausedRemaining != null) {
-      endTime = Date.now() + pausedRemaining;
-      pausedRemaining = null;
-      saveState();
-      setDoc(examDocRef, { pausedRemaining: null }, { merge: true }).catch(() => {});
+    // Use absoluteDeadline — NEVER recalculate from now
+    endTime = absoluteDeadline;
+    pausedRemaining = null;
+    saveState();
+    setDoc(examDocRef, { pausedRemaining: null }, { merge: true }).catch(() => {});
+    // Check if deadline already passed while paused
+    if (Date.now() >= absoluteDeadline) {
+      submitExam();
+      return;
     }
     startTimer(endTime);
   }
@@ -478,12 +604,12 @@ const reenable = async (reason) => {
       cameraActive = true;
       newTrack.onended = () => {
         cameraActive = false;
-        if (window.security) window.security.logEvent('camera-stopped', 'severe');
+        if (_security) _security.logEvent('camera-stopped', 'severe');
         showToast('Camera disconnected. Exam paused.', 'severe');
         pauseExam('camera');
       };
-      if (window.security) window.security.setInactive('camera-stopped');
-      if (window.aiMonitor && window.aiMonitor.setStream) window.aiMonitor.setStream(camStream);
+      if (_security) _security.setInactive('camera-stopped');
+      if (_aiMonitor && _aiMonitor.setStream) _aiMonitor.setStream(camStream);
     } catch (e) {
       console.warn('Camera re-enable failed:', e);
     }
@@ -496,16 +622,16 @@ const reenable = async (reason) => {
       screenActive = true;
       newTrack.onended = () => {
         screenActive = false;
-        if (window.security) window.security.logEvent('screenshare-stopped', 'severe');
+        if (_security) _security.logEvent('screenshare-stopped', 'severe');
         showToast('Screen sharing stopped. Exam paused.', 'severe');
         pauseExam('screenshare');
       };
-      if (window.security) window.security.setInactive('screenshare-stopped');
+      if (_security) _security.setInactive('screenshare-stopped');
+      if (_aiMonitor && _aiMonitor.setScreenStream) _aiMonitor.setScreenStream(screenStream);
     } catch (e) {
       console.warn('Screenshare re-enable failed:', e);
     }
   } else if (reason === 'fullscreen') {
-    fullscreenActive = true;
     try { await document.documentElement.requestFullscreen(); } catch (e) { console.warn('Fullscreen re-entry failed:', e); }
   }
 
@@ -518,20 +644,29 @@ const reenable = async (reason) => {
   }
 };
 
+const escHtml = (s) => { const d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML; };
+
 const renderQuestions = () => {
   const container = document.getElementById('questions-container');
   const palette = document.getElementById('question-palette');
+  container.innerHTML = '';
+  palette.innerHTML = '';
+
+  const isAr = currentLang === 'ar';
 
   questions.forEach((q, idx) => {
     const card = document.createElement('div');
     card.className = 'question-card';
     card.id = `q-${idx}`;
+    if (isAr) card.style.direction = 'rtl';
+    const qText = isAr ? (q.text_ar || q.text) : q.text;
+    const qOpts = isAr ? (q.options_ar || q.options) : q.options;
     card.innerHTML = `
       <div class="q-header">
-        <span class="q-number">Question ${idx + 1}</span>
-        <button class="q-flag-btn ${flagged[idx] ? 'flagged' : ''}" data-idx="${idx}" title="Flag for review">&#9873;</button>
+        <span class="q-number">${isAr ? 'سؤال' : 'Question'} ${idx + 1}</span>
+        <button class="q-flag-btn ${flagged[idx] ? 'flagged' : ''}" data-idx="${idx}" title="${isAr ? 'تحديد للمراجعة' : 'Flag for review'}">&#9873;</button>
       </div>
-      <p class="q-text">${q.text}</p>
+      <p class="q-text">${escHtml(qText)}</p>
       <div class="q-options">
         ${['A', 'B', 'C', 'D'].map((letter, oi) => `
           <label class="q-option ${answers[idx] === letter ? 'selected' : ''}">
@@ -539,7 +674,7 @@ const renderQuestions = () => {
               ${answers[idx] === letter ? 'checked' : ''}
               data-idx="${idx}">
             <span class="opt-letter">${letter}</span>
-            <span class="opt-text">${q.options[oi]}</span>
+            <span class="opt-text">${escHtml(qOpts[oi])}</span>
           </label>
         `).join('')}
       </div>
@@ -591,6 +726,7 @@ const updateQuestionPalette = () => {
 };
 
 const startTimer = (end) => {
+  if (timerInterval) clearInterval(timerInterval);
   const update = () => {
     const remaining = Math.max(0, end - Date.now());
     const mins = Math.floor(remaining / 60000);
@@ -604,14 +740,20 @@ const startTimer = (end) => {
 };
 
 const startAutoSave = () => {
-  setInterval(() => saveState(), 10000);
+  autoSaveInterval = setInterval(() => saveState(), 10000);
 };
 
 const confirmSubmit = () => {
   const unanswered = questions.length - Object.keys(answers).length;
+  const isAr = currentLang === 'ar';
   document.getElementById('unanswered-warning').textContent =
-    unanswered > 0 ? `${unanswered} question${unanswered > 1 ? 's' : ''} unanswered.` : '';
-  document.getElementById('submit-modal').classList.remove('hidden');
+    unanswered > 0 ? (isAr ? `${unanswered} سؤال${unanswered > 1 ? 'ات' : ''} لم يتم الإجابة عليه.` : `${unanswered} question${unanswered > 1 ? 's' : ''} unanswered.`) : '';
+  const modal = document.getElementById('submit-modal');
+  modal.querySelector('h2').textContent = isAr ? 'تقديم الامتحان؟' : 'Submit Exam?';
+  modal.querySelector('p').textContent = isAr ? 'بمجرد التقديم، لا يمكنك تغيير إجاباتك.' : 'Once submitted, you cannot change your answers.';
+  modal.querySelector('#btn-cancel-submit').textContent = isAr ? 'إلغاء' : 'Cancel';
+  modal.querySelector('#btn-confirm-submit').textContent = isAr ? 'تأكيد التقديم' : 'Confirm Submit';
+  modal.classList.remove('hidden');
 };
 
 const submitExam = async () => {
@@ -620,10 +762,11 @@ const submitExam = async () => {
   document.getElementById('submit-modal').classList.add('hidden');
   document.getElementById('disconnect-modal').classList.add('hidden');
 
-  if (window.security) await window.security.stop();
-  if (window.aiMonitor) window.aiMonitor.stop();
+  if (_security) await _security.stop();
+  if (_aiMonitor) _aiMonitor.stop();
   if (timerInterval) clearInterval(timerInterval);
   if (healthInterval) clearInterval(healthInterval);
+  if (autoSaveInterval) clearInterval(autoSaveInterval);
   if (countdownInterval) { clearInterval(countdownInterval); countdownInterval = null; }
 
   // Release camera & screen so requirements are fully cancelled
@@ -633,7 +776,7 @@ const submitExam = async () => {
   try {
     await setDoc(examDocRef, {
       status: 'submitted',
-      submittedAt: new Date().toISOString(),
+      submittedAt: serverTimestamp(),
       answers,
       flagged,
       questionOrder,
@@ -659,17 +802,10 @@ const submitExam = async () => {
 
 const incrementTeamSubmittedCount = async () => {
   const pRef = doc(db, 'teams', teamId);
-  for (let attempt = 0; attempt < 5; attempt++) {
-    try {
-      const pSnap = await getDoc(pRef);
-      const next = (pSnap.exists() ? (pSnap.data().submittedCount || 0) : 0) + 1;
-      await setDoc(pRef, { submittedCount: next }, { merge: true });
-      return;
-    } catch (e) {
-      // Concurrent submit from a teammate or transient failure — retry
-      if (attempt === 4) console.warn('Failed to update submittedCount:', e);
-      await new Promise(r => setTimeout(r, 800));
-    }
+  try {
+    await setDoc(pRef, { submittedCount: increment(1) }, { merge: true });
+  } catch (e) {
+    console.warn('Failed to update submittedCount:', e);
   }
 };
 

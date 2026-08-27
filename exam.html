@@ -43,10 +43,20 @@
       padding: 10px 24px; background: rgba(0,2,10,0.95); border-bottom: 1px solid rgba(38,183,255,0.12);
       backdrop-filter: blur(12px);
     }
-    .exam-bar .logo-sm { height: 32px; }
+    .exam-bar .logo-sm { height: 42px; }
+    .lang-group { display: flex; align-items: center; gap: 10px; }
+    .lang-label { font-size: 0.82rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; white-space: nowrap; }
     .exam-bar .timer { font-family: 'Orbitron', monospace; font-size: 1.4rem; font-weight: 700; color: var(--blue-light); letter-spacing: 0.06em; }
     .exam-bar .timer.warning { color: #ff6b6b; animation: pulse 1s ease-in-out infinite; }
     .exam-bar .progress-text { font-size: 0.82rem; color: var(--muted); }
+    .lang-toggle {
+      padding: 4px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05); color: var(--muted); font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.04em; cursor: pointer; transition: all 200ms;
+      min-height: 30px; line-height: 1;
+    }
+    .lang-toggle.active { background: rgba(38,183,255,0.15); border-color: var(--blue-light); color: var(--blue-light); }
+    .lang-toggle:hover { border-color: var(--blue-light); }
     .exam-layout { display: flex; margin-top: 60px; min-height: calc(100vh - 60px); }
     .exam-sidebar {
       width: 90px; flex-shrink: 0; background: rgba(2,8,20,0.6); border-right: 1px solid rgba(38,183,255,0.08);
@@ -123,7 +133,11 @@
   <!-- Top Bar -->
   <div class="exam-bar">
     <img class="logo-sm" src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" />
-    <div style="text-align:center;">
+    <div class="lang-group">
+      <span class="lang-label">Language</span>
+      <button class="lang-toggle" id="btn-lang-toggle" title="Toggle Arabic / English">EN</button>
+    </div>
+    <div style="flex:1;text-align:center;">
       <div class="timer" id="timer-display">60:00</div>
       <div class="progress-text"><span id="answered-count">0</span> / <span id="total-count">40</span> answered</div>
     </div>
@@ -149,17 +163,20 @@
   <!-- Pre-Exam Verification -->
   <div id="verify-modal" class="modal-overlay">
     <div class="modal-box" style="max-width:500px;">
-      <h2>Exam <span class="text-blue">Requirements</span></h2>
-      <p style="margin-bottom:16px;">You must enable the following to start:</p>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+        <h2 style="margin-bottom:0;">Exam <span class="text-blue">Requirements</span></h2>
+        <button class="lang-toggle" id="btn-verify-lang">AR</button>
+      </div>
+      <p id="verify-instructions" style="margin-bottom:16px;">You must enable the following to start:</p>
       <div id="verify-status" style="text-align:left;margin:0 0 20px;">
-        <div id="v-fullscreen" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
-          <span id="v-fs-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Fullscreen Mode
-        </div>
         <div id="v-camera" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
           <span id="v-cam-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Camera Access
         </div>
         <div id="v-screenshare" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
           <span id="v-ss-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Screen Sharing
+        </div>
+        <div id="v-fullscreen" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
+          <span id="v-fs-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Fullscreen Mode
         </div>
       </div>
       <button class="button primary" id="btn-start-exam" style="width:100%;">Start Exam</button>
