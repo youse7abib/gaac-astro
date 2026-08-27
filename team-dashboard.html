@@ -304,7 +304,7 @@
               <h2><span class="text-blue">Competitions</span></h2>
               <p class="sub">Select a competition to open the exam portal.</p>
             </div>
-            <div class="comp-tabs" id="comp-tabs">
+            <div class="comp-list" id="comp-list" style="display:none;">
               <button type="button" class="comp-tab" data-round="mock"><span class="comp-tab-label">Mock Test</span><span class="comp-tab-status">Not started</span></button>
               <button type="button" class="comp-tab" data-round="round1"><span class="comp-tab-label">Round 1</span><span class="comp-tab-status">Not started</span></button>
               <button type="button" class="comp-tab" data-round="round2"><span class="comp-tab-label">Round 2</span><span class="comp-tab-status">Not started</span></button>
@@ -711,7 +711,7 @@
     }
 
     // ----- Competitions: navigate to the exam portal -----
-    document.querySelectorAll('.comp-tab').forEach((tab) => {
+    document.querySelectorAll('#comp-list .comp-tab').forEach((tab) => {
       tab.addEventListener('click', () => {
         const round = tab.dataset.round;
         const roundName = tab.querySelector('.comp-tab-label').textContent;
