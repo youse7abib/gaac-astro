@@ -53,14 +53,44 @@
     .member-card .m-row { font-size: 0.84rem; color: var(--muted); margin-top: 4px; word-break: break-word; }
     .member-card .m-row strong { color: var(--silver); font-weight: 600; }
     .member-card .m-actions { margin-top: 14px; text-align: right; }
+
+    /* Add-member toggle (plus) button */
+    #manage-panel .add-member-btn { margin-top: 20px; margin-bottom: 0; }
+    .add-member-sheet {
+      margin-top: 16px; padding: 20px; border: 1px solid rgba(38,183,255,0.2);
+      border-radius: 12px; background: rgba(10,14,23,0.5);
+    }
+    .add-member-sheet h2 { font-size: 1.05rem; margin: 0 0 4px; }
+    .add-member-sheet .sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 18px; }
+
+    /* Competitions panel */
+    .competitions-panel { margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); }
+    .comp-head h2 { font-size: 1.15rem; margin: 0 0 4px; }
+    .comp-head .sub { font-size: 0.84rem; color: var(--muted); margin-bottom: 18px; }
+    .comp-tabs { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin-bottom: 18px; }
+    .comp-tab {
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+      padding: 16px 12px; border-radius: 12px; border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(10,14,23,0.6); color: var(--text); cursor: pointer; transition: all 200ms;
+    }
+    .comp-tab:hover { border-color: var(--blue-light); transform: translateY(-2px); }
+    .comp-tab:disabled { opacity: 0.45; cursor: not-allowed; transform: none; }
+    .comp-tab .comp-tab-label { font-weight: 700; font-size: 0.9rem; }
+    .comp-tab .comp-tab-status { font-size: 0.68rem; color: var(--muted); letter-spacing: 0.04em; text-transform: uppercase; }
+    .comp-placeholder {
+      border: 1px dashed rgba(38,183,255,0.25); border-radius: 12px; padding: 28px 20px;
+      text-align: center; color: var(--muted); background: rgba(10,14,23,0.3);
+    }
+    .comp-placeholder svg { display: block; margin: 0 auto 12px; color: rgba(38,183,255,0.5); }
+    .comp-empty-msg { font-size: 1rem; font-weight: 700; color: var(--silver); margin: 0 0 6px; }
+    .comp-empty-sub { font-size: 0.8rem; color: var(--muted); margin: 0; max-width: 420px; margin: 0 auto; }
     .btn-danger {
       background: transparent; border: 1px solid rgba(255, 71, 87, 0.5); color: #ff6b7a;
       padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 200ms;
     }
     .btn-danger:hover { background: rgba(255, 71, 87, 0.12); }
     .manage-panel {
-      margin-top: 28px; background: rgba(10,14,23,0.6); border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 14px; padding: 24px; backdrop-filter: blur(12px);
+      margin-top: 28px; background: transparent; border: none; border-radius: 0; padding: 0; backdrop-filter: none;
     }
     .manage-panel h2 { font-size: 1rem; margin: 0 0 4px; }
     .manage-panel .sub { color: var(--muted); font-size: 0.82rem; margin-bottom: 20px; }
@@ -217,9 +247,13 @@
           <div class="roster-grid" id="roster-grid"></div>
 
           <div id="manage-panel" class="manage-panel hidden">
-            <h2>Add a <span class="text-blue">Team Member</span></h2>
-            <p class="sub">All team members sign in with the same team password.</p>
-            <form id="add-member-form" novalidate onsubmit="return false;">
+            <button type="button" id="btn-toggle-add" class="add-member-btn">
+              <span class="plus-icon">+</span> Add Team Member
+            </button>
+            <div id="add-member-sheet" class="add-member-sheet hidden">
+              <h2>Add a <span class="text-blue">Team Member</span></h2>
+              <p class="sub">All team members sign in with the same team password.</p>
+              <form id="add-member-form" novalidate onsubmit="return false;">
               <div class="form-group">
                 <label for="am-name">Full Name</label>
                 <input type="text" id="am-name" required placeholder="First and Last Name" />
@@ -263,6 +297,24 @@
               </div>
               <p class="info-note">The new member will receive a confirmation email with the team sign-in password (same as the exam portal). Maximum of 3 members per team.</p>
             </form>
+          </div>
+
+          <div id="competitions-panel" class="competitions-panel">
+            <div class="comp-head">
+              <h2><span class="text-blue">Competitions</span></h2>
+              <p class="sub">Select a competition to open the exam portal.</p>
+            </div>
+            <div class="comp-tabs" id="comp-tabs">
+              <button type="button" class="comp-tab" data-round="mock"><span class="comp-tab-label">Mock Test</span><span class="comp-tab-status">Not started</span></button>
+              <button type="button" class="comp-tab" data-round="round1"><span class="comp-tab-label">Round 1</span><span class="comp-tab-status">Not started</span></button>
+              <button type="button" class="comp-tab" data-round="round2"><span class="comp-tab-label">Round 2</span><span class="comp-tab-status">Not started</span></button>
+              <button type="button" class="comp-tab" data-round="round3"><span class="comp-tab-label">Round 3</span><span class="comp-tab-status">Not started</span></button>
+            </div>
+            <div class="comp-placeholder">
+              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
+              <p class="comp-empty-msg">No active competitions yet.</p>
+              <p class="comp-empty-sub">In the upcoming days, we will add the Mock Test, then Round 1, Round 2, and more. Clicking one of the tabs above will take you to the exam portal.</p>
+            </div>
           </div>
 
           <div id="remove-modal" class="modal-overlay hidden">
@@ -620,6 +672,8 @@
         const canAdd = !(hasMember2 && hasMember3);
         managePanel.classList.toggle('hidden', !canAdd);
         if (canAdd) {
+          // Reset the sheet to hidden each render so the + CTA is prominent.
+          document.getElementById('add-member-sheet').classList.add('hidden');
           document.querySelector('#add-member-form .info-note').textContent = hasMember2
             ? 'This will fill your 3rd member slot (maximum of 3 per team).'
             : 'This will fill your 2nd member slot (maximum of 3 per team).';
@@ -644,6 +698,27 @@
     // ----- Add member (leader only) -----
     const addForm = document.getElementById('add-member-form');
     const addBtn = document.getElementById('add-member-btn');
+    const addSheet = document.getElementById('add-member-sheet');
+    const btnToggleAdd = document.getElementById('btn-toggle-add');
+
+    if (btnToggleAdd) {
+      btnToggleAdd.addEventListener('click', () => {
+        const isOpen = !addSheet.classList.contains('hidden');
+        addSheet.classList.toggle('hidden', isOpen);
+        btnToggleAdd.querySelector('.plus-icon').textContent = isOpen ? '+' : '×';
+        btnToggleAdd.querySelector('.plus-icon').style.color = isOpen ? '' : '#ff4757';
+      });
+    }
+
+    // ----- Competitions: navigate to the exam portal -----
+    document.querySelectorAll('.comp-tab').forEach((tab) => {
+      tab.addEventListener('click', () => {
+        const round = tab.dataset.round;
+        const roundName = tab.querySelector('.comp-tab-label').textContent;
+        if (!window.confirm(`Open the ${roundName} exam portal?`)) return;
+        window.location.href = 'exam';
+      });
+    });
     const addBtnText = addBtn.querySelector('.btn-text');
     const addBtnLoader = addBtn.querySelector('.btn-loader');
     const addAlert = document.getElementById('add-alert');
