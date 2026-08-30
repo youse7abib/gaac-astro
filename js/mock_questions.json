@@ -1,0 +1,62 @@
+[
+  {
+    "id": "m1",
+    "text": "Which object is at the center of our solar system?",
+    "options": ["Earth", "The Sun", "Jupiter", "The Moon"],
+    "correctAnswer": "B"
+  },
+  {
+    "id": "m2",
+    "text": "What does a telescope mainly help us collect?",
+    "options": ["Sound", "Light", "Gravity", "Air"],
+    "correctAnswer": "B"
+  },
+  {
+    "id": "m3",
+    "text": "Which planet is known as the Red Planet?",
+    "options": ["Mars", "Venus", "Mercury", "Saturn"],
+    "correctAnswer": "A"
+  },
+  {
+    "id": "m4",
+    "text": "A light-year is a unit of:",
+    "options": ["Time", "Mass", "Distance", "Temperature"],
+    "correctAnswer": "C"
+  },
+  {
+    "id": "m5",
+    "text": "What causes day and night on Earth?",
+    "options": ["Earth's rotation", "Earth's orbit", "The Moon's gravity", "Solar eclipses"],
+    "correctAnswer": "A"
+  },
+  {
+    "id": "m6",
+    "text": "Which phase comes when the Moon appears fully illuminated?",
+    "options": ["New Moon", "First Quarter", "Full Moon", "Crescent"],
+    "correctAnswer": "C"
+  },
+  {
+    "id": "m7",
+    "text": "Which force keeps planets in orbit around the Sun?",
+    "options": ["Friction", "Gravity", "Electricity", "Pressure"],
+    "correctAnswer": "B"
+  },
+  {
+    "id": "m8",
+    "text": "What is a galaxy?",
+    "options": ["A single planet", "A group of comets", "A system of stars, gas, and dust", "A telescope lens"],
+    "correctAnswer": "C"
+  },
+  {
+    "id": "m9",
+    "text": "Which star is closest to Earth?",
+    "options": ["Sirius", "Polaris", "The Sun", "Proxima Centauri"],
+    "correctAnswer": "C"
+  },
+  {
+    "id": "m10",
+    "text": "What is the name of our galaxy?",
+    "options": ["Andromeda", "Milky Way", "Triangulum", "Sombrero"],
+    "correctAnswer": "B"
+  }
+]

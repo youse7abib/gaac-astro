@@ -25,6 +25,9 @@ export class SecurityWrapper {
     this._inFlight = new Set();
     // { localId: data } — updates that arrived while event was in-flight
     this._pendingUpdates = {};
+    this.transitionEventTypes = new Set(['fullscreen-exit', 'tab-hidden', 'window-blur']);
+    this.transitionCooldownMs = 2000;
+    this._lastTransitionEvent = null;
   }
 
   start() {
@@ -68,12 +71,25 @@ export class SecurityWrapper {
     if (this.eventCount >= this.maxEvents) return false;
     if (this.eventStates[type]?.state === 'active') return false;
 
+    if (this.transitionEventTypes.has(type)) {
+      const now = Date.now();
+      if (
+        this._lastTransitionEvent &&
+        this._lastTransitionEvent.type !== type &&
+        now - this._lastTransitionEvent.at < this.transitionCooldownMs
+      ) {
+        return false;
+      }
+      this._lastTransitionEvent = { type, at: now };
+    }
+
     this.eventCount++;
     const localId = ++this.nextLocalId;
     this.eventStates[type] = { state: 'active', startTime: Date.now(), localId };
 
     this.eventQueue.push({
       localId,
+      memberUid: this.memberUid,
       type,
       severity,
       timestamp: new Date().toISOString(),
@@ -129,7 +145,7 @@ export class SecurityWrapper {
 
   /** Backward-compatible wrapper — delegates to setActive */
   logEvent(type, severity = 'warning') {
-    this.setActive(type, severity);
+    return this.setActive(type, severity);
   }
 
   _resetOneShot(type, delayMs = 1000) {
@@ -155,8 +171,9 @@ export class SecurityWrapper {
         this.hasBeenFullscreen = true;
         this.setInactive('fullscreen-exit');
       } else if (this.active && this.hasBeenFullscreen) {
-        this.setActive('fullscreen-exit', 'severe');
-        if (this.onNotify) this.onNotify('You exited fullscreen mode. The exam has been paused.', 'severe');
+        if (this.setActive('fullscreen-exit', 'severe') && this.onNotify) {
+          this.onNotify('You exited fullscreen mode. The exam has been paused.', 'severe', 'fullscreen-exit');
+        }
       }
     });
   }
@@ -169,8 +186,9 @@ export class SecurityWrapper {
         this.setInactive('tab-hidden');
       } else if (this.active && this.hasBeenVisible) {
         this._lastTabEvent = Date.now();
-        this.setActive('tab-hidden', 'severe');
-        if (this.onNotify) this.onNotify('You switched away from the exam tab. This is being recorded.', 'severe');
+        if (this.setActive('tab-hidden', 'severe') && this.onNotify) {
+          this.onNotify('You switched away from the exam tab. This is being recorded.', 'severe', 'tab-hidden');
+        }
       }
     });
   }
@@ -179,8 +197,9 @@ export class SecurityWrapper {
     window.addEventListener('blur', () => {
       if (this.active && this.hasBeenFocused) {
         if (Date.now() - (this._lastTabEvent || 0) < 500) return;
-        this.setActive('window-blur', 'severe');
-        if (this.onNotify) this.onNotify('Exam window lost focus. Please return to the exam.', 'severe');
+        if (this.setActive('window-blur', 'severe') && this.onNotify) {
+          this.onNotify('Exam window lost focus. Please return to the exam.', 'severe', 'window-blur');
+        }
       }
     });
     window.addEventListener('focus', () => {
@@ -263,11 +282,6 @@ export class SecurityWrapper {
         const counterBatch = writeBatch(this.db);
         const examRef = doc(this.db, 'teams', this.teamId, 'exam', this.memberUid);
         counterBatch.set(examRef, {
-          eventCount: increment(batch.length),
-          severeEventCount: increment(severeCount)
-        }, { merge: true });
-        const teamRef = doc(this.db, 'teams', this.teamId);
-        counterBatch.set(teamRef, {
           eventCount: increment(batch.length),
           severeEventCount: increment(severeCount)
         }, { merge: true });

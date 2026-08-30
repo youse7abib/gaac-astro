@@ -41,6 +41,10 @@
         <a href="partners">Partners</a>
         <a href="awards">Awards</a>
         <a href="ambassador">Ambassador</a>
+        <div class="mobile-ctas">
+          <a class="nav-cta" href="register">Register</a>
+          <a class="nav-cta" href="team-dashboard">Log In</a>
+        </div>
       </nav>
       <div class="header-ctas">
         <a class="nav-cta header-cta" href="register">Register</a>
@@ -52,7 +56,7 @@
       <!-- ── HERO ── -->
       <section class="hero page-shell">
         <div class="hero-copy reveal">
-          <p class="eyebrow">STEM October Astronomy Club presents</p>
+          <p class="eyebrow" data-hero-scramble>STEM October Astronomy Club presents</p>
           <h1 class="home-title">
             Global Astronomy<br>
             <span class="text-silver">&amp;</span> <span class="text-blue">Astrophysics</span> <span class="text-silver">Challenge</span>
@@ -105,7 +109,7 @@
         <article class="stat-card reveal delay-4">
           <div class="stat-header" style="display:flex; align-items:center; gap:16px;">
             <svg class="stat-icon" viewBox="0 0 24 24" fill="none" stroke="var(--white)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="filter: drop-shadow(0 0 12px rgba(255,255,255,0.4));"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"/><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"/><path d="M4 22h16"/><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"/><path d="M14 14.66V17c0 .55.47.98.97 1.21C16.15 18.75 17 20.24 17 22"/><path d="M18 2H6v7a6 6 0 0 0 12 0V2Z"/></svg>
-            <strong><span class="counter" data-target="32">0</span></strong>
+            <strong><span class="counter" data-target="8">0</span></strong>
           </div>
           <span>Teams reach knockouts</span>
         </article>
@@ -118,30 +122,64 @@
           <h2>Individual qualification, then <span class="text-blue">collaborative knockouts</span>.</h2>
         </div>
         <div class="format-panel">
-          <article class="reveal delay-1">
+          <article class="tile">
             <span class="chip">Round 1 - 5 Sep</span>
             <h3>Individual Qualification</h3>
             <p>
               Each participant competes individually for <strong>1 hour</strong> across 40 multiple-choice questions.
-              The three scores are combined, and the top teams advance to Round 2.
+              The three scores are combined, and the top 16 teams advance to the Round of 16.
             </p>
           </article>
-          <article class="reveal delay-2">
-            <span class="chip">Round 2 - 10 Sep</span>
-            <h3>Team Challenge</h3>
+          <article class="tile">
+            <span class="chip">Round of 16 - 10 Sep</span>
+            <h3>Round-of-16 Qualifier</h3>
             <p>
-              Teams solve <strong>10 problem-solving questions</strong> together:
-              3 Observational Astronomy, 4 Astrophysics, 2 Cosmology, 1 Planetology.
-              Submitted as a single team response.
+              The top 16 teams compete individually in <strong>20 more-challenging multiple-choice
+              questions</strong> within a 30-minute limit.
             </p>
           </article>
-          <article class="reveal delay-3">
+          <article class="tile">
+            <span class="chip">Round 2 - 10 Sep</span>
+            <h3>Round 2 - Knockout</h3>
+            <p>
+              The <strong>8 strongest teams</strong> meet in supervised Zoom matches, solving
+              10 problem-solving questions together as a team.
+            </p>
+          </article>
+          <article class="tile">
             <span class="chip">Results - 15 Sep</span>
             <h3>Final Results &amp; Certificates</h3>
             <p>
               Winners are announced and all participants receive certificates of achievement.
             </p>
           </article>
+        </div>
+      </section>
+
+      <!-- ── OFFICIAL STRUCTURE & RULES ── -->
+      <section class="page-shell compact" id="structure">
+        <div class="section-heading centered reveal">
+          <p class="eyebrow">Official Rules</p>
+          <h2>The rulebook behind every <span class="text-blue">round</span>.</h2>
+        </div>
+
+        <div class="structure-wrap reveal-scale">
+          <div class="structure-doc">
+          <span class="doc-ribbon" aria-hidden="true">PDF</span>
+          <div class="doc-card-art" aria-hidden="true">
+            <span class="doc-icon"></span>
+          </div>
+          <div class="doc-card-body">
+            <span class="chip">Official Document</span>
+            <h3>Competition Structure &amp; Scoring System</h3>
+            <p>
+              The complete GAAC rulebook: the full round system, the unified scoring model,
+              proctoring conduct for every supervised session, the knockout ladder, and the
+              official rules at a glance.
+            </p>
+            <a class="button primary" href="pdf/GAAC_Competition_Structure.pdf" download>Download Rules PDF</a>
+          </div>
+        </div>
         </div>
       </section>
 
@@ -152,33 +190,33 @@
           <h2>Explore the <span class="text-silver">challenge</span>.</h2>
         </div>
         <div class="portal-grid">
-          <a class="portal-card reveal delay-1" href="syllabus">
-            <span>01</span>
+          <a class="portal-card tile" href="syllabus">
+            <span class="portal-num">01</span>
             <h3>Syllabus</h3>
             <p>The six domains tested across both rounds of GAAC.</p>
           </a>
-          <a class="portal-card reveal delay-2" href="timeline">
-            <span>02</span>
+          <a class="portal-card tile" href="timeline">
+            <span class="portal-num">02</span>
             <h3>Timeline</h3>
             <p>Registration dates, competition window, and stage progression.</p>
           </a>
-          <a class="portal-card reveal delay-3" href="awards">
-            <span>03</span>
+          <a class="portal-card tile" href="awards">
+            <span class="portal-num">03</span>
             <h3>Prizes</h3>
             <p>Trophies, medals, and awards for the top-scoring teams and ambassadors.</p>
           </a>
-          <a class="portal-card reveal delay-1" href="partners">
-            <span>04</span>
+          <a class="portal-card tile" href="partners">
+            <span class="portal-num">04</span>
             <h3>Partners</h3>
             <p>STEM October Astronomy Club and the organizations supporting the season.</p>
           </a>
-          <a class="portal-card reveal delay-2" href="ambassador">
-            <span>05</span>
+          <a class="portal-card tile" href="ambassador">
+            <span class="portal-num">05</span>
             <h3>Ambassador</h3>
             <p>Represent your school or region, help grow the community, and earn recognition.</p>
           </a>
-          <a class="portal-card reveal delay-3" href="team-dashboard">
-            <span>06</span>
+          <a class="portal-card tile" href="team-dashboard">
+            <span class="portal-num">06</span>
             <h3>Team Dashboard</h3>
             <p>View your team and let the leader manage the roster during registration.</p>
           </a>
@@ -229,9 +267,17 @@
       </nav>
       <a class="footer-email" href="mailto:astronomyclub64@gmail.com">astronomyclub64@gmail.com</a>
       <a class="footer-email" href="mailto:gaac@stemastronomyclub.org">gaac@stemastronomyclub.org</a>
+      <div class="footer-community">
+        <span class="foot-label">Join the community:</span>
+        <a href="https://whatsapp.com/channel/0029Vb882l9ElagzDJjLN92Q" target="_blank" rel="noreferrer">WhatsApp Channel</a>
+        <a href="https://t.me/GAACAstronomy" target="_blank" rel="noreferrer">Telegram Channel</a>
+        <a href="https://chat.whatsapp.com/GBiSiKCkhP8KcdsGFdYixQ" target="_blank" rel="noreferrer">WhatsApp Group 1</a>
+        <a href="https://chat.whatsapp.com/CHHfHi1q44b3dnDFwxnv5u" target="_blank" rel="noreferrer">WhatsApp Group 2</a>
+      </div>
       <p class="copyright">Copyright 2026 Global Astronomy &amp; Astrophysics Challenge.</p>
     </footer>
 
     <script src="script.js"></script>
+    <script src="js/motion.js"></script>
   </body>
 </html>

@@ -254,8 +254,8 @@ export class AIMonitor {
           if (this.faceState !== 'no-face' && this.noFaceDuration >= 15000) {
             this.faceState = 'no-face';
             console.log('[AIMonitor] TRIGGER: no-face-20s (mediapipe)');
-            this.security.setActive('no-face-20s', 'severe');
-            if (this.onNotify) this.onNotify('No face detected for 15 seconds. Ensure your camera is on you.', 'severe');
+            const logged = this.security.setActive('no-face-20s', 'severe');
+            if (logged && this.onNotify) this.onNotify('No face detected for 15 seconds. Ensure your camera is on you.', 'severe', 'no-face-20s');
           }
         } else {
           this.noFaceDuration = 0;
@@ -270,8 +270,8 @@ export class AIMonitor {
             if (this.multipleFacesDuration >= 5000 && !this.multipleFacesActive) {
               this.multipleFacesActive = true;
               console.log('[AIMonitor] TRIGGER: multiple-faces');
-              this.security.setActive('multiple-faces', 'severe');
-              if (this.onNotify) this.onNotify('Multiple faces detected. Only you should be visible.', 'severe');
+              const logged = this.security.setActive('multiple-faces', 'severe');
+              if (logged && this.onNotify) this.onNotify('Multiple faces detected. Only you should be visible.', 'severe', 'multiple-faces');
             }
           } else {
             this.multipleFacesDuration = 0;
@@ -320,7 +320,8 @@ export class AIMonitor {
         if (!this.cameraDisabledActive) {
           this.cameraDisabledActive = true;
           console.log('[AIMonitor] TRIGGER: camera-stopped (no track)');
-          this.security.logEvent('camera-stopped', 'severe');
+          const logged = this.security.logEvent('camera-stopped', 'severe');
+          if (logged && this.onNotify) this.onNotify('Camera stream stopped.', 'severe', 'camera-stopped');
         }
         return;
       }
@@ -328,7 +329,8 @@ export class AIMonitor {
         if (!this.cameraDisabledActive) {
           this.cameraDisabledActive = true;
           console.log('[AIMonitor] TRIGGER: camera-disabled');
-          this.security.setActive('camera-disabled', 'severe');
+          const logged = this.security.setActive('camera-disabled', 'severe');
+          if (logged && this.onNotify) this.onNotify('Camera was disabled.', 'severe', 'camera-disabled');
         }
         return;
       }
@@ -376,7 +378,8 @@ export class AIMonitor {
           if (lastLogType !== 'camera-covered') {
             lastLogType = 'camera-covered';
             console.log('[AIMonitor] TRIGGER: camera-covered (brightRatio=' + brightRatio.toFixed(3) + ')');
-            this.security.logEvent('camera-covered', 'severe');
+            const logged = this.security.logEvent('camera-covered', 'severe');
+            if (logged && this.onNotify) this.onNotify('Camera appears covered or too dark.', 'severe', 'camera-covered');
           }
           this.noFaceDuration = 0;
           return;
@@ -387,8 +390,8 @@ export class AIMonitor {
           if (this.faceState !== 'no-face' && this.noFaceDuration >= 15000) {
             this.faceState = 'no-face';
             console.log('[AIMonitor] TRIGGER: no-face-20s (canvas, skinRatio=' + skinRatio.toFixed(3) + ')');
-            this.security.setActive('no-face-20s', 'severe');
-            if (this.onNotify) this.onNotify('No face detected for 15 seconds. Ensure your camera shows your face.', 'severe');
+            const logged = this.security.setActive('no-face-20s', 'severe');
+            if (logged && this.onNotify) this.onNotify('No face detected for 15 seconds. Ensure your camera shows your face.', 'severe', 'no-face-20s');
           }
         } else {
           if (lastLogType === 'camera-covered') {

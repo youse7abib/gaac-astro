@@ -1,7 +1,7 @@
 import { auth, db, storage } from './exam-shared.js';
 import { SecurityWrapper } from './security.js';
 import { AIMonitor } from './ai-monitor.js';
-import { doc, getDoc, setDoc, serverTimestamp, increment, collection, getDocs, query, orderBy as orderByFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, orderBy as orderByFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
@@ -82,13 +82,7 @@ const init = async () => {
       return;
     }
 
-    // Fetch all 40 questions from Firestore (ordered by seed order)
-    const qSnap = await getDocs(query(collection(db, 'round1', 'round1', 'questions'), orderByFirestore('order')));
-    questions = [];
-    qSnap.forEach(doc => {
-      const q = doc.data();
-      questions.push({ id: doc.id, text: q.text, text_ar: q.text_ar || q.text, options: q.options, options_ar: q.options_ar || q.options });
-    });
+    questions = await loadRoundQuestions();
 
     // Restore saved state FIRST (before shuffle), so we know if this is a resume
     loadState();
@@ -198,16 +192,21 @@ const init = async () => {
 
     const updateVerifyLabels = () => {
       const isAr = currentLang === 'ar';
+      const setText = (selector, text) => {
+        const el = document.querySelector(selector);
+        if (el) el.textContent = text;
+      };
+      document.getElementById('verify-modal').dir = isAr ? 'rtl' : 'ltr';
       document.getElementById('btn-verify-lang').textContent = isAr ? 'EN' : 'AR';
-      document.getElementById('verify-instructions').textContent = isAr ? 'يجب عليك تفعيل المتطلبات التالية للبدء:' : 'You must enable the following to start:';
+      document.getElementById('verify-instructions').textContent = isAr ? 'فعّل المتطلبات بالترتيب. وضع ملء الشاشة يكون في النهاية.' : 'Enable each requirement in order. Fullscreen comes last.';
       document.querySelector('#verify-modal h2').innerHTML = isAr ? 'متطلبات <span class="text-blue">الامتحان</span>' : 'Exam <span class="text-blue">Requirements</span>';
       document.getElementById('btn-start-exam').textContent = isAr ? 'ابدأ الامتحان' : 'Start Exam';
-      const camLabel = document.querySelector('#v-camera');
-      const ssLabel = document.querySelector('#v-screenshare');
-      const fsLabel = document.querySelector('#v-fullscreen');
-      if (camLabel) camLabel.childNodes[1].textContent = isAr ? ' الوصول إلى الكاميرا' : ' Camera Access';
-      if (ssLabel) ssLabel.childNodes[1].textContent = isAr ? ' مشاركة الشاشة' : ' Screen Sharing';
-      if (fsLabel) fsLabel.childNodes[1].textContent = isAr ? ' وضع ملء الشاشة' : ' Fullscreen Mode';
+      setText('#v-camera .verify-label', isAr ? 'الوصول إلى الكاميرا' : 'Camera Access');
+      setText('#v-camera .verify-note', isAr ? 'اسمح باستخدام الكاميرا للتحقق من الهوية.' : 'Allow your webcam for identity checks.');
+      setText('#v-screenshare .verify-label', isAr ? 'مشاركة الشاشة' : 'Screen Sharing');
+      setText('#v-screenshare .verify-note', isAr ? 'شارك الشاشة بالكامل للمراقبة.' : 'Share your full screen for monitoring.');
+      setText('#v-fullscreen .verify-label', isAr ? 'وضع ملء الشاشة' : 'Fullscreen Mode');
+      setText('#v-fullscreen .verify-note', isAr ? 'ادخل وضع ملء الشاشة بعد الكاميرا ومشاركة الشاشة.' : 'Enter fullscreen after camera and screen share.');
     };
     updateVerifyLabels();
     document.getElementById('btn-verify-lang').addEventListener('click', () => {
@@ -241,14 +240,14 @@ const startExam = async () => {
   document.getElementById('btn-start-exam').disabled = true;
 
   let fullscreenOk = false, cameraOk = false, screenOk = false;
-
-  try {
-    console.log('[startExam] requesting fullscreen (user gesture)...');
-    await document.documentElement.requestFullscreen();
-    fullscreenOk = true;
-    setIcon('v-fs-icon', true);
-    console.log('[startExam] fullscreen OK');
-  } catch (e) { console.warn('[startExam] fullscreen FAILED:', e); setIcon('v-fs-icon', false); }
+  const cleanupFailedRequirements = () => {
+    if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+    if (screenStream) { screenStream.getTracks().forEach(t => t.stop()); screenStream = null; }
+    cameraActive = false;
+    screenActive = false;
+    fullscreenActive = false;
+    if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  };
 
   try {
     console.log('[startExam] requesting camera...');
@@ -258,19 +257,36 @@ const startExam = async () => {
     console.log('[startExam] camera OK');
   } catch (e) { console.warn('[startExam] camera FAILED:', e); setIcon('v-cam-icon', false); }
 
-  try {
-    console.log('[startExam] requesting screen share...');
-    screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
-    screenOk = true;
-    setIcon('v-ss-icon', true);
-    console.log('[startExam] screen share OK');
-  } catch (e) { console.warn('[startExam] screen share FAILED:', e); setIcon('v-ss-icon', false); }
+  if (cameraOk) {
+    try {
+      console.log('[startExam] requesting screen share...');
+      screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
+      screenOk = true;
+      setIcon('v-ss-icon', true);
+      console.log('[startExam] screen share OK');
+    } catch (e) { console.warn('[startExam] screen share FAILED:', e); setIcon('v-ss-icon', false); }
+  } else {
+    setIcon('v-ss-icon', false);
+  }
+
+  if (cameraOk && screenOk) {
+    try {
+      console.log('[startExam] requesting fullscreen (user gesture)...');
+      await document.documentElement.requestFullscreen();
+      fullscreenOk = true;
+      setIcon('v-fs-icon', true);
+      console.log('[startExam] fullscreen OK');
+    } catch (e) { console.warn('[startExam] fullscreen FAILED:', e); setIcon('v-fs-icon', false); }
+  } else {
+    setIcon('v-fs-icon', false);
+  }
 
   if (!fullscreenOk || !cameraOk || !screenOk) {
     console.log('[startExam] requirements NOT met: fullscreen=', fullscreenOk, 'camera=', cameraOk, 'screen=', screenOk);
     const isAr = currentLang === 'ar';
     errEl.textContent = isAr ? 'يرجى تفعيل جميع المتطلبات أعلاه لبدء الامتحان.' : 'Please enable all requirements above to start the exam.';
     errEl.style.display = 'block';
+    cleanupFailedRequirements();
     document.getElementById('btn-start-exam').disabled = false;
     return;
   }
@@ -287,6 +303,9 @@ const startExam = async () => {
   try {
       await setDoc(examDocRef, {
         status: 'in-progress',
+        memberUid: currentUser.uid,
+        memberEmail: currentUser.email,
+        memberRole,
         startedAt: serverTimestamp(),
         endTime: new Date(endTime).toISOString(),
         absoluteDeadline: absoluteDeadline
@@ -321,25 +340,70 @@ const ensureTeamMembership = async () => {
   }
 };
 
+const loadRoundQuestions = async () => {
+  try {
+    const res = await fetch('./js/r1_8f3kq_questions.json', { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      if (Array.isArray(data) && data.length > 0) {
+        return data
+          .map((q, i) => ({
+            id: q.id || `q${i + 1}`,
+            text: q.text,
+            text_ar: q.text_ar || q.text,
+            options: q.options,
+            options_ar: q.options_ar || q.options
+          }))
+          .filter(q => q.text && Array.isArray(q.options));
+      }
+    }
+  } catch (e) {
+    console.warn('Static question file unavailable, falling back to Firestore:', e);
+  }
+
+  const qSnap = await getDocs(query(collection(db, 'round1', 'round1', 'questions'), orderByFirestore('order')));
+  const fallbackQuestions = [];
+  qSnap.forEach(doc => {
+    const q = doc.data();
+    fallbackQuestions.push({ id: doc.id, text: q.text, text_ar: q.text_ar || q.text, options: q.options, options_ar: q.options_ar || q.options });
+  });
+  return fallbackQuestions;
+};
+
 const _lastSnapshot = {};
-const captureSnapshot = async (msg) => {
+let _lastSnapshotAt = 0;
+const CAMERA_SNAPSHOT_TYPES = new Set([
+  'no-face-20s',
+  'multiple-faces',
+  'camera-covered',
+  'camera-disabled',
+  'camera-stopped',
+  'camera-init-failed',
+  'camera-denied'
+]);
+const captureSnapshot = async (msg, eventType = msg) => {
   const now = Date.now();
-  if (_lastSnapshot[msg] && now - _lastSnapshot[msg] < 10000) return;
-  _lastSnapshot[msg] = now;
+  const snapshotKey = eventType || msg;
+  if (now - _lastSnapshotAt < 2000) return;
+  if (_lastSnapshot[snapshotKey] && now - _lastSnapshot[snapshotKey] < 10000) return;
+  _lastSnapshotAt = now;
+  _lastSnapshot[snapshotKey] = now;
   const safeName = (memberName || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
   const safeRole = (memberRole || 'member').replace(/[^a-zA-Z0-9]/g, '_');
-  const safeViolation = msg.replace(/[^a-zA-Z0-9-]/g, '_').substring(0, 40);
+  const safeViolation = String(snapshotKey).replace(/[^a-zA-Z0-9-]/g, '_').substring(0, 40);
   const folderName = `${safeName}_${safeRole}`;
   const pathBase = `snapshots/round1/${teamId}/${folderName}/${safeViolation}_${Date.now()}`;
 
   try {
-    let screenCanvas = null;
-    if (_aiMonitor) screenCanvas = _aiMonitor.captureScreenFrame();
-    if (!screenCanvas) {
-      console.warn('[captureSnapshot] No screen frame for', msg);
+    const shouldUseCamera = CAMERA_SNAPSHOT_TYPES.has(eventType) || /face|camera/i.test(String(msg));
+    let canvas = null;
+    if (_aiMonitor && shouldUseCamera) canvas = _aiMonitor.captureWebcamFrame();
+    if (_aiMonitor && !canvas) canvas = _aiMonitor.captureScreenFrame();
+    if (!canvas) {
+      console.warn('[captureSnapshot] No frame for', msg);
       return;
     }
-    const blob = await new Promise(r => screenCanvas.toBlob(r, 'image/jpeg', 0.8));
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.8));
     if (blob) {
       await uploadBytes(ref(storage, `${pathBase}.jpg`), blob);
       console.log('[captureSnapshot] Uploaded:', msg);
@@ -363,12 +427,14 @@ const showToast = (msg, severity = 'warning') => {
 };
 
 const startSecurity = () => {
-  _security = new SecurityWrapper(teamId, currentUser.uid, db, (msg, severity) => {
+  const handleSecurityNotice = (msg, severity, eventType = msg) => {
     showToast(msg, severity);
-    if (severity === 'severe') captureSnapshot(msg);
-    if (msg.includes('switched away')) pauseExam('tab-hidden');
-    else if (msg.includes('lost focus')) pauseExam('window-blur');
-  }, {
+    if (severity === 'severe') captureSnapshot(msg, eventType);
+    if (eventType === 'tab-hidden' || msg.includes('switched away')) pauseExam('tab-hidden');
+    else if (eventType === 'window-blur' || msg.includes('lost focus')) pauseExam('window-blur');
+  };
+
+  _security = new SecurityWrapper(teamId, currentUser.uid, db, handleSecurityNotice, {
     'fullscreen-exit': 15,
     'tab-hidden': 15,
     'window-blur': 15,
@@ -377,7 +443,7 @@ const startSecurity = () => {
   });
   _security.start();
 
-  _aiMonitor = new AIMonitor(_security, camStream, showToast);
+  _aiMonitor = new AIMonitor(_security, camStream, handleSecurityNotice);
   _aiMonitor.start();
   if (screenStream) _aiMonitor.setScreenStream(screenStream);
 
@@ -469,7 +535,7 @@ const _monitorTracks = () => {
       t.onended = () => {
         if (examSubmitted) return;
         cameraActive = false;
-        if (_security) _security.logEvent('camera-stopped', 'severe');
+        if (_security && _security.logEvent('camera-stopped', 'severe')) captureSnapshot('camera-stopped', 'camera-stopped');
         showToast('Camera disconnected. Exam paused.', 'severe');
         pauseExam('camera');
       };
@@ -481,7 +547,7 @@ const _monitorTracks = () => {
       t.onended = () => {
         if (examSubmitted) return;
         screenActive = false;
-        if (_security) _security.logEvent('screenshare-stopped', 'severe');
+        if (_security && _security.logEvent('screenshare-stopped', 'severe')) captureSnapshot('screenshare-stopped', 'screenshare-stopped');
         showToast('Screen sharing stopped. Exam paused.', 'severe');
         pauseExam('screenshare');
       };
@@ -776,16 +842,15 @@ const submitExam = async () => {
   try {
     await setDoc(examDocRef, {
       status: 'submitted',
+      memberUid: currentUser.uid,
+      memberEmail: currentUser.email,
+      memberRole,
       submittedAt: serverTimestamp(),
       answers,
       flagged,
       questionOrder,
       pausedRemaining: null
     }, { merge: true });
-    // Advance the team's submitted-member counter (rules allow +1 only).
-    // The team stays 'in-progress' until all registered members submit;
-    // the final average + completion is computed by the admin afterwards.
-    await incrementTeamSubmittedCount();
   } catch (e) {
     console.warn('Failed to save submission:', e);
   }
@@ -798,15 +863,6 @@ const submitExam = async () => {
   document.querySelector('.exam-layout')?.classList.add('hidden');
   document.querySelector('.exam-footer-bar')?.classList.add('hidden');
   document.getElementById('exam-submitted').classList.remove('hidden');
-};
-
-const incrementTeamSubmittedCount = async () => {
-  const pRef = doc(db, 'teams', teamId);
-  try {
-    await setDoc(pRef, { submittedCount: increment(1) }, { merge: true });
-  } catch (e) {
-    console.warn('Failed to update submittedCount:', e);
-  }
 };
 
 const showMessage = (msg) => {

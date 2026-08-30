@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="GAAC 2026 — admin roster / account maintenance tools." />
+    <title>GAAC Admin Tools</title>
+    <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <style>
+      :root {
+        --bg: #060a13; --panel: #0e1526; --line: rgba(255,255,255,0.12);
+        --blue: #0878ff; --cyan: #26b7ff; --white: #f2f7ff; --muted: #8ba3ba;
+        --red: #ff4757; --green: #2ed573; --silver: #b8ccdf;
+      }
+      * { box-sizing: border-box; }
+      body {
+        background: var(--bg); color: var(--white); font-family: 'Inter', system-ui, sans-serif;
+        margin: 0; min-height: 100vh; line-height: 1.6; font-size: 0.95rem;
+      }
+      .topbar {
+        display: flex; align-items: center; justify-content: space-between;
+        gap: 16px; padding: 18px 24px; background: rgba(0,2,10,0.72);
+        backdrop-filter: blur(20px); border-bottom: 1px solid var(--line);
+      }
+      .topbar h1 { margin: 0; font-family: 'Orbitron', sans-serif; font-size: 1rem; letter-spacing: 0.08em; }
+      .topbar a { color: var(--cyan); text-decoration: none; font-weight: 600; font-size: 0.8rem; }
+      .wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 80px; }
+      .card {
+        background: var(--panel); border: 1px solid var(--line); border-radius: 14px;
+        padding: 22px; margin-bottom: 22px; backdrop-filter: blur(10px);
+      }
+      .card h2 { margin: 0 0 4px; font-family: 'Orbitron', sans-serif; font-size: 0.85rem; letter-spacing: 0.06em; }
+      .card .sub { color: var(--muted); font-size: 0.82rem; margin: 0 0 16px; }
+      label { display: block; font-size: 0.75rem; color: var(--muted); margin: 10px 0 4px; font-weight: 600; }
+      input, select {
+        width: 100%; padding: 11px 14px; border-radius: 8px; border: 1px solid rgba(255,255,255,0.2);
+        background: rgba(0,0,0,0.3); color: var(--white); font-size: 0.9rem; font-family: inherit;
+      }
+      input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(38,183,255,0.18); }
+      .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 0 16px; }
+      button {
+        margin-top: 16px; padding: 12px 22px; border-radius: 10px; border: 1px solid rgba(38,183,255,0.55);
+        background: linear-gradient(135deg, var(--blue), var(--cyan)); color: #fff; font-weight: 700;
+        font-size: 0.85rem; cursor: pointer; letter-spacing: 0.05em;
+      }
+      button.secondary { background: rgba(38,183,255,0.12); border-color: rgba(38,183,255,0.4); color: var(--cyan); }
+      button.danger { background: linear-gradient(135deg, #c0392b, var(--red)); border-color: rgba(255,71,87,0.6); }
+      button:disabled { opacity: 0.55; cursor: not-allowed; }
+      .alert { margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 0.85rem; display: none; }
+      .alert.error { display: block; background: rgba(255,71,87,0.12); border: 1px solid rgba(255,71,87,0.4); color: var(--red); }
+      .alert.success { display: block; background: rgba(46,213,115,0.1); border: 1px solid rgba(46,213,115,0.4); color: var(--green); }
+      .alert.info { display: block; background: rgba(38,183,255,0.1); border: 1px solid rgba(38,183,255,0.35); color: var(--cyan); }
+      .hidden { display: none !important; }
+      .row { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+      .row button { margin-top: 0; }
+      pre.dossier {
+        background: rgba(0,0,0,0.3); border: 1px solid var(--line); border-radius: 10px;
+        padding: 14px; font-size: 0.78rem; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+        color: var(--silver); margin: 0; max-height: 320px; overflow-y: auto;
+      }
+      .badges { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0; }
+      .badge { font-size: 0.72rem; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--line); color: var(--silver); }
+      .badge.warn { border-color: rgba(255,193,7,0.5); color: #ffc107; }
+      .badge.good { border-color: rgba(46,213,115,0.5); color: var(--green); }
+      .badge.bad { border-color: rgba(255,71,87,0.5); color: var(--red); }
+    </style>
+  </head>
+  <body>
+    <header class="topbar">
+      <h1>GAAC 2026 — Admin Tools</h1>
+      <a href="index">Back to site</a>
+    </header>
+
+    <main class="wrap">
+      <!-- Login -->
+      <section id="panel-login" class="card">
+        <h2>Admin Login</h2>
+        <p class="sub">Restricted to the organizing account. All actions are logged server-side.</p>
+        <div class="grid">
+          <div>
+            <label for="admin-email">Email</label>
+            <input id="admin-email" type="email" value="astronomyclub64@gmail.com" autocomplete="email" />
+          </div>
+          <div>
+            <label for="admin-password">Password</label>
+            <input id="admin-password" type="password" autocomplete="current-password" />
+          </div>
+        </div>
+        <div class="row" style="margin-top:16px;">
+          <button id="btn-admin-login">Sign In</button>
+          <div class="alert error hidden" id="login-error" style="margin-top:0;"></div>
+        </div>
+      </section>
+
+      <!-- Tools -->
+      <section id="panel-tools" class="hidden">
+        <div class="card">
+          <h2>1 · Look up an email</h2>
+          <p class="sub">Shows the Auth account, email index, removal audits, and any team the person still appears in — including FULL orphans.</p>
+          <div class="grid">
+            <div>
+              <label for="lookup-email">Email</label>
+              <input id="lookup-email" type="email" placeholder="student@example.com" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:16px;">
+            <button id="btn-lookup">Look Up</button>
+            <div class="alert hidden" id="lookup-alert" style="margin-top:0;"></div>
+          </div>
+          <div id="lookup-result" class="hidden" style="margin-top:16px;">
+            <div class="badges" id="lookup-badges"></div>
+            <pre class="dossier" id="lookup-dossier"></pre>
+            <div class="row" style="margin-top:14px;">
+              <button class="danger" id="btn-release">Release Orphaned Account</button>
+              <button class="secondary" id="btn-fill-add">Use this email to add a member</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <h2>2 · Add a member to a team</h2>
+          <p class="sub">Directly registers a person into a team (leader flow not needed). Reuses an existing orphaned account when possible — stale passwords are aligned to the team password.</p>
+          <div class="grid">
+            <div>
+              <label for="add-email">Email *</label>
+              <input id="add-email" type="email" />
+            </div>
+            <div>
+              <label for="add-name">Full Name *</label>
+              <input id="add-name" type="text" />
+            </div>
+            <div>
+              <label for="add-country">Country *</label>
+              <input id="add-country" type="text" />
+            </div>
+            <div>
+              <label for="add-school">School *</label>
+              <input id="add-school" type="text" />
+            </div>
+            <div>
+              <label for="add-dob">Date of Birth *</label>
+              <input id="add-dob" type="date" />
+            </div>
+            <div>
+              <label for="add-grade">Grade *</label>
+              <input id="add-grade" type="text" />
+            </div>
+            <div>
+              <label for="add-teamid">Team ID (Registration ID) *</label>
+              <input id="add-teamid" type="text" placeholder="GAAC-2026-XXXX" style="text-transform: uppercase;" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:16px;">
+            <button id="btn-add">Add Member to Team</button>
+            <div class="alert hidden" id="add-alert" style="margin-top:0;"></div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script type="module">
+      import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+      import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+      import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+
+      const firebaseConfig = {
+        apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
+        authDomain: "gaac-registration-2026.firebaseapp.com",
+        projectId: "gaac-registration-2026",
+        storageBucket: "gaac-registration-2026.firebasestorage.app",
+        messagingSenderId: "542838311094",
+        appId: "1:542838311094:web:6104e2ed0d1cafa976be17",
+        measurementId: "G-CEB6Z0RF5E"
+      };
+
+      const app = initializeApp(firebaseConfig, 'admin-tools');
+      const auth = getAuth(app);
+      const functions = getFunctions(app, 'africa-south1');
+
+      const ADMIN_EMAIL = 'astronomyclub64@gmail.com';
+      const $ = (id) => document.getElementById(id);
+      const setAlert = (el, msg, type) => { el.textContent = msg; el.className = 'alert ' + type; };
+      const clearAlert = (el) => { el.className = 'alert hidden'; };
+
+      const getRegistrationInfo = httpsCallable(functions, 'getRegistrationInfo');
+      const removeOrphanedAccount = httpsCallable(functions, 'removeOrphanedAccount');
+      const adminAddMemberToTeam = httpsCallable(functions, 'adminAddMemberToTeam');
+
+      // ---- Auto-open tools when a persistent admin session is already active.
+      onAuthStateChanged(auth, (user) => {
+        if (user && user.email === ADMIN_EMAIL) {
+          $('panel-login').classList.add('hidden');
+          $('panel-tools').classList.remove('hidden');
+        }
+      });
+
+      $('btn-admin-login').addEventListener('click', async () => {
+        const email = $('admin-email').value.trim().toLowerCase();
+        const password = $('admin-password').value.trim();
+        const errEl = $('login-error');
+        clearAlert(errEl);
+        if (email !== ADMIN_EMAIL) { setAlert(errEl, 'Not authorized as admin.', 'error'); return; }
+        try {
+          await signInWithEmailAndPassword(auth, email, password);
+          $('panel-login').classList.add('hidden');
+          $('panel-tools').classList.remove('hidden');
+        } catch (e) {
+          setAlert(errEl, e.message || 'Login failed.', 'error');
+        }
+      });
+
+      let lastLookup = null;
+
+      function renderDossier(res) {
+        lastLookup = res;
+        const badges = $('lookup-badges');
+        const dossier = $('lookup-dossier');
+        badges.innerHTML = '';
+        const addBadge = (label, cls) => {
+          const b = document.createElement('span');
+          b.className = 'badge ' + cls;
+          b.textContent = label;
+          badges.appendChild(b);
+        };
+
+        if (res.auth.exists) addBadge(`Auth account exists (${res.auth.uid})`, 'bad');
+        else addBadge('No Auth account', 'good');
+
+        if (res.registeredEmails) addBadge(`Email index → ${res.registeredEmails.teamName || '?'} (${res.registeredEmails.registrationId || '?'})`, 'warn');
+        else addBadge('No registeredEmails record', 'good');
+
+        if (res.removedEmails) addBadge('Removed-audit exists', 'warn');
+        if (res.removedMembers) addBadge('Removed-member audit exists', 'warn');
+        if (res.teamMembers) addBadge(`teamMembers → ${res.teamMembers.teamId || '?'}`, 'warn');
+        else if (res.auth.exists) addBadge('No teamMembers mapping', 'warn');
+
+        (res.teams || []).forEach(t => {
+          addBadge(`In ${t.teamName} (${t.registrationId}) as ${t.role}`, 'bad');
+        });
+        if (!(res.teams || []).length) addBadge('Not in any team roster', 'good');
+
+        dossier.textContent = JSON.stringify(res, null, 2);
+        $('lookup-result').classList.remove('hidden');
+      }
+
+      $('btn-lookup').addEventListener('click', async () => {
+        const email = $('lookup-email').value.trim().toLowerCase();
+        const alertEl = $('lookup-alert');
+        clearAlert(alertEl);
+        $('lookup-result').classList.add('hidden');
+        if (!email) { setAlert(alertEl, 'Enter an email first.', 'error'); return; }
+        try {
+          const { data } = await getRegistrationInfo({ email });
+          renderDossier(data);
+        } catch (e) {
+          setAlert(alertEl, e.message || 'Lookup failed.', 'error');
+        }
+      });
+
+      $('btn-release').addEventListener('click', async () => {
+        if (!lastLookup || !lastLookup.email) return;
+        const email = lastLookup.email;
+        const alertEl = $('lookup-alert');
+        clearAlert(alertEl);
+        if (!confirm(`Permanently delete the orphaned account for ${email}?\n\nThis deletes the Firebase Auth account, any teamMembers mapping, email-index / removed-audit records, and removes them from any team roster. This CANNOT be undone.`)) return;
+        const btn = $('btn-release');
+        btn.disabled = true;
+        try {
+          const { data } = await removeOrphanedAccount({ email });
+          setAlert(alertEl, `Released. ${JSON.stringify(data)}`, 'success');
+        } catch (e) {
+          setAlert(alertEl, e.message || 'Release failed.', 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      $('btn-fill-add').addEventListener('click', () => {
+        if (!lastLookup || !lastLookup.email) return;
+        $('add-email').value = lastLookup.email;
+        const known = (lastLookup.teams || []).find(t => t.member);
+        if (known && known.member) {
+          $('add-name').value = known.member.name || '';
+          $('add-country').value = known.member.country || '';
+          $('add-school').value = known.member.school || '';
+          const dob = known.member.dob || '';
+          const dateVal = /^\d{4}-\d{2}-\d{2}$/.test(dob) ? dob : '';
+          $('add-dob').value = dateVal;
+          $('add-grade').value = known.member.grade || '';
+          $('add-teamid').value = known.registrationId || '';
+        }
+        $('panel-tools').scrollIntoView({ behavior: 'smooth', block: 'start' });
+      });
+
+      const required = ['add-email', 'add-name', 'add-country', 'add-school', 'add-dob', 'add-grade', 'add-teamid'];
+      $('btn-add').addEventListener('click', async () => {
+        const alertEl = $('add-alert');
+        clearAlert(alertEl);
+        const missing = required.some(id => !$(id).value.trim());
+        if (missing) { setAlert(alertEl, 'All fields are required.', 'error'); return; }
+
+        const payload = {
+          email: $('add-email').value.trim().toLowerCase(),
+          name: $('add-name').value.trim(),
+          country: $('add-country').value.trim(),
+          school: $('add-school').value.trim(),
+          dob: $('add-dob').value.trim(),
+          grade: $('add-grade').value.trim(),
+          teamId: $('add-teamid').value.trim()
+        };
+        const btn = $('btn-add');
+        btn.disabled = true;
+        try {
+          const { data } = await adminAddMemberToTeam(payload);
+          setAlert(alertEl,
+            `${payload.name} was added to ${payload.teamId} as ${data.slot}. ` +
+            `Login: ${payload.email} + shared team password. A credential email was queued.`, 'success');
+        } catch (e) {
+          setAlert(alertEl, e.message || 'Add failed.', 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -4,6 +4,109 @@ const admin = require('firebase-admin');
 admin.initializeApp();
 
 const db = admin.firestore();
+const deleteField = () => admin.firestore.FieldValue.delete();
+
+/* ─────────────────────────────────────────────────────────────
+   Roster / account helpers (admin cleanup + direct add-member)
+   ───────────────────────────────────────────────────────────── */
+const normalizeEmail = (e) => String(e || '').trim().toLowerCase();
+const crypto = require('crypto');
+
+// Resolve a person's Firebase Auth uid from either the email index doc or,
+// failing that, straight from Firebase Auth (handles FULL orphans whose
+// Firestore records were already deleted).
+async function resolveUidByEmail(email) {
+  if (!email) return null;
+  try {
+    const snap = await db.collection('registeredEmails').doc(email).get();
+    if (snap.exists && snap.data().uid) return snap.data().uid;
+  } catch (e) { /* ignore */ }
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+    return user.uid;
+  } catch (e) { return null; }
+}
+
+// Recursively delete a collection (subcollections under a team doc).
+async function deleteCollectionRecursive(path) {
+  const snap = await db.collection(path).get();
+  let batch = db.batch();
+  let count = 0;
+  snap.docs.forEach((d) => { batch.delete(d.ref); count++; });
+  await batch.commit();
+  if (count >= 400) await deleteCollectionRecursive(path);
+}
+
+// Remove a person from a registration doc by role. If that empties the team,
+// tear the ghost registration down (team-name index + registrations + teams
+// summary + exam/events subcollections).
+async function clearPersonFromRegistration(registrationId, email, outcome) {
+  const regSnap = await db.collection('registrations').doc(registrationId).get();
+  if (!regSnap.exists) return;
+  const reg = regSnap.data();
+
+  const updates = {};
+  if (reg.leader && normalizeEmail(reg.leader.email) === email) updates.leader = deleteField();
+  if (reg.member2 && normalizeEmail(reg.member2.email) === email) updates.member2 = deleteField();
+  if (reg.member3 && normalizeEmail(reg.member3.email) === email) updates.member3 = deleteField();
+  if (Object.keys(updates).length === 0) return;
+
+  await db.collection('registrations').doc(registrationId).update(updates);
+  outcome.clearedFromTeams = outcome.clearedFromTeams || [];
+  outcome.clearedFromTeams.push({ registrationId, teamName: reg.teamName || '', cleared: Object.keys(updates), clearedAll: false });
+
+  const fresh = (await db.collection('registrations').doc(registrationId).get()).data() || {};
+  const rosterCount = (fresh.leader ? 1 : 0) + (fresh.member2 ? 1 : 0) + (fresh.member3 ? 1 : 0);
+  if (rosterCount > 0) return;
+
+  // No members remain — the team is an empty ghost.
+  outcome.deletedTeams = outcome.deletedTeams || [];
+  outcome.deletedTeams.push(registrationId);
+  try { await db.collection('registeredTeams').doc(String((reg.teamName || '').toLowerCase().replace(/[/\\]/g, '-'))).delete(); } catch (e) { /* ignore */ }
+  try { await db.collection('registrations').doc(registrationId).delete(); } catch (e) { /* ignore */ }
+  try { await db.collection('teams').doc(registrationId).delete(); } catch (e) { /* ignore */ }
+  try { await deleteCollectionRecursive(`teams/${registrationId}/exam`); } catch (e) { /* ignore */ }
+  try { await deleteCollectionRecursive(`teams/${registrationId}/events`); } catch (e) { /* ignore */ }
+}
+
+// Generate a shared team-login password (same charset/length as registration).
+function genPassword() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
+  const arr = new Uint32Array(16);
+  crypto.randomFillSync(arr);
+  const length = 12 + (arr[0] % 5);
+  let pw = '';
+  for (let i = 0; i < length; i++) pw += chars[arr[i] % chars.length];
+  return pw;
+}
+
+// Branded credentials email body (mirrors the client-side add-member email).
+function memberCredentialEmail({ name, email, teamName, regId, password }) {
+  return `<div style="background-color:#070b14;padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
+  <div style="max-width:560px;margin:0 auto;background:#0e1526;border-radius:16px;overflow:hidden;border:1px solid #1b2540;">
+    <div style="background:#0a0f1e;padding:28px 32px;text-align:center;border-bottom:1px solid #1b2540;">
+      <img src="https://gaac.stemastronomyclub.org/images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" width="140" style="display:block;margin:0 auto;" />
+      <p style="margin:14px 0 0;color:#7a9bb5;font-size:12px;letter-spacing:3px;text-transform:uppercase;">Team Member Invitation</p>
+    </div>
+    <div style="padding:32px;">
+      <h1 style="margin:0 0 8px;color:#ffffff;font-size:22px;">Hi ${name},</h1>
+      <p style="color:#aec8e0;font-size:14px;line-height:1.7;margin:0 0 20px;">
+        The leader of <strong style="color:#e8f0f8;">${teamName}</strong> added you to their GAAC 2026 team. Use the details below to sign in to your team dashboard:
+      </p>
+      <div style="background:#0a0f1e;border:1px solid #1b2540;border-radius:10px;padding:18px 20px;margin-bottom:20px;">
+        <p style="margin:0 0 10px;color:#7a9bb5;font-size:12px;letter-spacing:2px;text-transform:uppercase;">Sign-in details</p>
+        <p style="margin:0 0 6px;color:#e8f0f8;font-size:14px;">Email: <strong style="color:#26b7ff;">${email}</strong></p>
+        <p style="margin:0 0 6px;color:#e8f0f8;font-size:14px;">Password: <strong style="color:#26b7ff;">${password}</strong></p>
+        <p style="margin:0;color:#e8f0f8;font-size:14px;">Team ID: <strong style="color:#26b7ff;">${regId}</strong></p>
+      </div>
+      <a href="https://gaac-registration-2026.web.app/team-dashboard" style="display:inline-block;background:linear-gradient(135deg,#26b7ff,#0878ff);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:14px;">Open Team Dashboard</a>
+    </div>
+    <div style="background:#0a0f1e;padding:20px 32px;text-align:center;border-top:1px solid #1b2540;">
+      <p style="margin:0;color:#4a5a7a;font-size:11px;">Questions? Email us at <a href="mailto:astronomyclub64@gmail.com" style="color:#26b7ff;text-decoration:none;">astronomyclub64@gmail.com</a></p>
+    </div>
+  </div>
+</div>`;
+}
 
 /**
  * Triggered when a team's exam status changes to 'submitted'.
@@ -109,15 +212,48 @@ exports.scoreExam = functions.firestore
         scoredAt: admin.firestore.FieldValue.serverTimestamp()
       });
 
+      const submittedSnap = await db
+        .collection('teams')
+        .doc(teamId)
+        .collection('exam')
+        .where('status', '==', 'submitted')
+        .get();
+
+      let scoredCount = 0;
+      let scoreSum = 0;
+      let teamCorrectCount = 0;
+      let teamTotalQuestions = 0;
+      let teamEventCount = 0;
+      let teamSevereEventCount = 0;
+      let teamDisqualified = false;
+
+      submittedSnap.forEach((doc) => {
+        const examData = doc.id === examId
+          ? { ...doc.data(), scored: true, score, correctCount, totalQuestions, eventCount: data.eventCount || 0, severeEventCount: data.severeEventCount || 0, disqualified: data.disqualified || false }
+          : doc.data();
+
+        if (examData.scored && typeof examData.score === 'number') {
+          scoredCount++;
+          scoreSum += examData.score;
+          teamCorrectCount += examData.correctCount || 0;
+          teamTotalQuestions += examData.totalQuestions || 0;
+        }
+        teamEventCount += examData.eventCount || 0;
+        teamSevereEventCount += examData.severeEventCount || 0;
+        teamDisqualified = teamDisqualified || examData.disqualified === true;
+      });
+
+      const teamScore = scoredCount > 0 ? Math.round(scoreSum / scoredCount) : score;
       await db.collection('teams').doc(teamId).set({
-        examScore: score,
-        examPassed: passed,
-        examStatus: 'scored',
-        correctCount,
-        totalQuestions,
-        eventCount: data.eventCount || 0,
-        severeEventCount: data.severeEventCount || 0,
-        disqualified: data.disqualified || false
+        examScore: teamScore,
+        examPassed: teamScore >= 40,
+        examStatus: scoredCount === submittedSnap.size ? 'scored' : 'scoring',
+        submittedCount: submittedSnap.size,
+        correctCount: teamCorrectCount || correctCount,
+        totalQuestions: teamTotalQuestions || totalQuestions,
+        eventCount: teamEventCount,
+        severeEventCount: teamSevereEventCount,
+        disqualified: teamDisqualified
       }, { merge: true });
 
       console.log(`Team ${teamId} scored ${score}% (${correctCount}/${totalQuestions})`);
@@ -443,8 +579,13 @@ exports.reassignMember = onCall({ region: 'africa-south1' }, async (request) => 
 });
 
 /**
- * Admin: Remove an orphaned Firebase Auth account + Firestore records
- * so the person can re-register with a different email.
+ * Admin: Remove an orphaned Firebase Auth account + every Firestore trace
+ * (email index, teamMembers, removal audits, roster slots) so the person can
+ * be re-registered / re-added cleanly.
+ *
+ * Works for FULL orphans whose Firestore records are already gone (e.g. the
+ * buyer of a deleted team), because the account is resolved straight from
+ * Firebase Auth via admin.auth().getUserByEmail(email).
  */
 exports.removeOrphanedAccount = onCall({ region: 'africa-south1' }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
@@ -454,47 +595,58 @@ exports.removeOrphanedAccount = onCall({ region: 'africa-south1' }, async (reque
   }
 
   const data = request.data || {};
-  const email = (data.email || '').trim().toLowerCase();
+  const email = normalizeEmail(data.email);
   if (!email) throw new HttpsError('invalid-argument', 'Email required.');
 
-  const emailSnap = await db.collection('registeredEmails').doc(email).get();
-  if (!emailSnap.exists) {
-    return { success: true, message: 'No registeredEmails record found.' };
-  }
-  const rec = emailSnap.data();
-  const uid = rec.uid;
-  const teamId = rec.registrationId;
+  const outcome = {
+    success: true,
+    email,
+    uid: null,
+    authDeleted: false,
+    teamMembersDeleted: false,
+    registeredEmailsDeleted: false,
+    removals: []
+  };
+
+  const uid = await resolveUidByEmail(email);
+  outcome.uid = uid;
 
   if (uid) {
-    try { await admin.auth().deleteUser(uid); console.log(`Deleted Auth user ${uid} (${email})`); }
-    catch (e) { console.warn(`Auth delete failed for ${uid}:`, e.message); }
-    try { await db.collection('teamMembers').doc(uid).delete(); console.log(`Deleted teamMembers/${uid}`); }
-    catch (e) { console.warn(`teamMembers delete failed:`, e.message); }
+    try { await admin.auth().deleteUser(uid); outcome.authDeleted = true; }
+    catch (e) { console.warn(`Auth delete failed for ${uid} (${email}):`, e.message); }
+    try { await db.collection('teamMembers').doc(uid).delete(); outcome.teamMembersDeleted = true; }
+    catch (e) { console.warn(`teamMembers delete failed (${uid}):`, e.message); }
+    try { await db.collection('removedMembers').doc(uid).delete(); outcome.removals.push(`removedMembers/${uid}`); }
+    catch (e) { /* ignore */ }
   }
 
-  try { await db.collection('registeredEmails').doc(email).delete(); console.log(`Deleted registeredEmails/${email}`); }
-  catch (e) { console.warn(`registeredEmails delete failed:`, e.message); }
+  try { await db.collection('registeredEmails').doc(email).delete(); outcome.registeredEmailsDeleted = true; }
+  catch (e) { console.warn(`registeredEmails delete failed (${email}):`, e.message); }
+  try { await db.collection('removedEmails').doc(email).delete(); outcome.removals.push(`removedEmails/${email}`); }
+  catch (e) { /* ignore */ }
 
-  if (teamId) {
-    const regSnap = await db.collection('registrations').doc(teamId).get();
-    if (regSnap.exists) {
-      const reg = regSnap.data();
-      const updates = {};
-      if (reg.leader && reg.leader.email === email) updates.leader = deleteField();
-      if (reg.member2 && reg.member2.email === email) updates.member2 = deleteField();
-      if (reg.member3 && reg.member3.email === email) updates.member3 = deleteField();
-      if (Object.keys(updates).length > 0) {
-        await db.collection('registrations').doc(teamId).update(updates);
-        console.log(`Cleared ${email} from registrations/${teamId}`);
-      }
+  // Strip the person from any registration they still belong to (leader /
+  // member2 / member3), deleting the team as a ghost if it becomes empty.
+  const roles = ['leader', 'member2', 'member3'];
+  const seen = new Set();
+  for (const role of roles) {
+    const snaps = await db.collection('registrations').where(`${role}.email`, '==', email).get();
+    for (const d of snaps.docs) {
+      if (seen.has(d.id)) continue;
+      seen.add(d.id);
+      await clearPersonFromRegistration(d.id, email, outcome);
     }
   }
 
-  return { success: true, uid, teamId };
+  console.log(`removeOrphanedAccount(${email}) ->`, outcome);
+  return outcome;
 });
 
 /**
- * Admin: Look up registration info for an email.
+ * Admin: Look up EVERYTHING known about an email — Auth account, email index,
+ * teamMembers, removal audits, and any team they still appear in. Works even
+ * for FULL orphans (Firestore records already gone) by resolving the Auth
+ * user via admin.auth().getUserByEmail(email).
  */
 exports.getRegistrationInfo = onCall({ region: 'africa-south1' }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
@@ -504,34 +656,167 @@ exports.getRegistrationInfo = onCall({ region: 'africa-south1' }, async (request
   }
 
   const data = request.data || {};
-  const email = (data.email || '').trim().toLowerCase();
+  const email = normalizeEmail(data.email);
   if (!email) throw new HttpsError('invalid-argument', 'Email required.');
 
-  const emailSnap = await db.collection('registeredEmails').doc(email).get();
-  if (!emailSnap.exists) {
-    return { found: false, email };
-  }
-  const rec = emailSnap.data();
+  const out = { found: false, email, auth: { exists: false, uid: null } };
 
-  let teamInfo = null;
-  if (rec.registrationId) {
-    const regSnap = await db.collection('registrations').doc(rec.registrationId).get();
-    if (regSnap.exists) teamInfo = regSnap.data();
+  try {
+    const user = await admin.auth().getUserByEmail(email);
+    out.auth = { exists: true, uid: user.uid, email: user.email, disabled: user.disabled };
+  } catch (e) { /* no Auth user for this email */ }
+
+  // Email index + removal audits.
+  try {
+    const emailSnap = await db.collection('registeredEmails').doc(email).get();
+    out.registeredEmails = emailSnap.exists ? emailSnap.data() : null;
+  } catch (e) { out.registeredEmails = null; }
+  try {
+    const removedEmailSnap = await db.collection('removedEmails').doc(email).get();
+    out.removedEmails = removedEmailSnap.exists ? removedEmailSnap.data() : null;
+  } catch (e) { out.removedEmails = null; }
+
+  const uid = out.auth.uid || (out.registeredEmails && out.registeredEmails.uid) || null;
+  if (uid) {
+    try {
+      const tmSnap = await db.collection('teamMembers').doc(uid).get();
+      out.teamMembers = tmSnap.exists ? tmSnap.data() : null;
+    } catch (e) { out.teamMembers = null; }
+    try {
+      const rmSnap = await db.collection('removedMembers').doc(uid).get();
+      out.removedMembers = rmSnap.exists ? rmSnap.data() : null;
+    } catch (e) { out.removedMembers = null; }
   }
 
-  return {
-    found: true,
-    email,
-    uid: rec.uid,
-    registrationId: rec.registrationId,
-    teamName: rec.teamName,
-    teamInfo: teamInfo ? {
-      teamName: teamInfo.teamName,
-      password: teamInfo.password,
-      status: teamInfo.status,
-      leader: teamInfo.leader,
-      member2: teamInfo.member2,
-      member3: teamInfo.member3
-    } : null
+  // Any registration that still contains this email (leader / member2 / member3).
+  out.teams = [];
+  const seen = new Set();
+  for (const role of ['leader', 'member2', 'member3']) {
+    const snaps = await db.collection('registrations').where(`${role}.email`, '==', email).get();
+    for (const d of snaps.docs) {
+      if (seen.has(d.id)) continue;
+      seen.add(d.id);
+      const reg = d.data();
+      out.teams.push({
+        registrationId: d.id,
+        teamName: reg.teamName || '',
+        status: reg.status || 'registered',
+        role,
+        matchingEmail: email,
+        member: reg[role] || null
+      });
+    }
+  }
+
+  out.found = out.auth.exists || !!out.registeredEmails || out.teams.length > 0 || !!out.removedEmails;
+  return out;
+});
+
+/**
+ * Admin: Add a member DIRECTLY to a team (same atomic stamping the leader's
+ * dashboard does: email index, teamMembers, roster slot, memberCount, and a
+ * credential email). This is the tool used to place an orphaned person into a
+ * team without depending on the leader's own add flow.
+ *
+ * If a Firebase Auth account already exists for the email (e.g. orphaned from
+ * a deleted team) it is REUSED — the identity is kept and its password is
+ * forced to the team's shared password so roster sign-in works. Otherwise a
+ * brand-new Auth account is created with the team password.
+ */
+exports.adminAddMemberToTeam = onCall({ region: 'africa-south1' }, async (request) => {
+  if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+  if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+
+  const data = request.data || {};
+  const email = normalizeEmail(data.email);
+  const teamId = String(data.teamId || '').trim().toUpperCase();
+  const member = {
+    name: String(data.name || '').trim(),
+    country: String(data.country || '').trim(),
+    school: String(data.school || '').trim(),
+    dob: String(data.dob || '').trim(),
+    grade: String(data.grade || '').trim(),
+    email
   };
+  if (!email) throw new HttpsError('invalid-argument', 'Email required.');
+  if (!teamId) throw new HttpsError('invalid-argument', 'Team ID required.');
+  if (!member.name) throw new HttpsError('invalid-argument', 'Member name required.');
+
+  const regSnap = await db.collection('registrations').doc(teamId).get();
+  if (!regSnap.exists) throw new HttpsError('not-found', `Registration ${teamId} does not exist.`);
+  const reg = regSnap.data();
+
+  // Duplicate-email guard (global uniqueness, same rule the app enforces).
+  const emailSnap = await db.collection('registeredEmails').doc(email).get();
+  if (emailSnap.exists) {
+    const rec = emailSnap.data();
+    if (String(rec.registrationId || '').toUpperCase() === teamId) {
+      throw new HttpsError('already-exists', 'This email already belongs to this team.');
+    }
+    throw new HttpsError('already-exists',
+      `This email is already registered to ${rec.teamName || 'another team'} (${rec.registrationId}). ` +
+      `Release it with the orphan tool first, or remove it from that team.`);
+  }
+
+  const slot = !reg.member2 ? 'member2' : (!reg.member3 ? 'member3' : null);
+  if (!slot) throw new HttpsError('failed-precondition', 'This team already has the maximum of 3 members.');
+
+  const teamPassword = reg.password || genPassword();
+
+  // Reuse an existing (possibly orphaned) Auth account, resetting its password
+  // to the team's; otherwise create a fresh account for the member.
+  let uid = null;
+  const authAdmin = admin.auth();
+  try {
+    const user = await authAdmin.getUserByEmail(email);
+    uid = user.uid;
+    await authAdmin.updateUser(uid, { password: teamPassword });
+  } catch (e) {
+    const created = await authAdmin.createUser({ email, password: teamPassword, displayName: member.name });
+    uid = created.uid;
+  }
+
+  const batch = db.batch();
+  batch.set(db.collection('registeredEmails').doc(email), {
+    teamName: reg.teamName,
+    registrationId: teamId,
+    uid
+  });
+  batch.set(db.collection('teamMembers').doc(uid), {
+    teamId,
+    email,
+    role: slot,
+    createdAt: admin.firestore.FieldValue.serverTimestamp()
+  });
+  batch.update(regSnap.ref, { [slot]: member });
+
+  const teamRef = db.collection('teams').doc(teamId);
+  const teamSnap = await teamRef.get();
+  if (teamSnap.exists) {
+    batch.update(teamRef, { memberCount: admin.firestore.FieldValue.increment(1) });
+  } else {
+    const rosterLen = (reg.leader ? 1 : 0) + (reg.member2 ? 1 : 0) + (reg.member3 ? 1 : 0);
+    batch.set(teamRef, { memberCount: rosterLen + 1 });
+  }
+
+  batch.set(db.collection('mail').doc(`admin-add-${teamId}-${Date.now()}`), {
+    to: [email],
+    message: {
+      subject: `GAAC 2026 — You have been added to Team ${reg.teamName}`,
+      html: memberCredentialEmail({
+        name: member.name,
+        email,
+        teamName: reg.teamName,
+        regId: teamId,
+        password: teamPassword
+      })
+    }
+  });
+
+  await batch.commit();
+  console.log(`adminAddMemberToTeam: ${email} (uid=${uid}) added to ${teamId} as ${slot}`);
+  return { success: true, uid, slot };
 });

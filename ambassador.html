@@ -43,6 +43,20 @@
       .leaderboard-table {
         width: 100%;
         border-collapse: collapse;
+        min-width: 520px;
+      }
+      .lb-table-scroll {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+      }
+      @media (max-width: 620px) {
+        .leaderboard-card { padding: 12px; }
+        .lb-table-scroll { margin: -4px; padding: 4px; }
+        .leaderboard-table { min-width: 480px; }
+        .leaderboard-table th,
+        .leaderboard-table td { padding: 12px 12px; }
+        .lb-loader, .leaderboard-empty { padding: 28px 12px; }
       }
       .leaderboard-table th {
         text-align: left;
@@ -245,6 +259,10 @@
         <a href="partners">Partners</a>
         <a href="awards">Awards</a>
         <a class="active" href="ambassador">Ambassador</a>
+        <div class="mobile-ctas">
+          <a class="nav-cta" href="register">Register</a>
+          <a class="nav-cta" href="team-dashboard">Log In</a>
+        </div>
       </nav>
       <div class="header-ctas">
         <a class="nav-cta header-cta" href="register">Register</a>
@@ -344,7 +362,7 @@
           <h2>Ambassador <span class="text-blue">Rewards</span>.</h2>
           <p>Climb the leaderboard and earn exclusive prizes.</p>
         </div>
-        <div class="prize-grid reveal delay-1">
+        <div class="prize-grid tile">
           <div class="prize-card gold">
             <div class="prize-medal">🥇</div>
             <h3>1st Place</h3>
@@ -366,7 +384,7 @@
             <div class="prize-item"><img src="images/partners/siril.png" alt="Siril" /><span>Siril Book</span></div>
           </div>
         </div>
-        <div class="bonus-prizes reveal delay-2">
+        <div class="bonus-prizes tile-lift">
           <h3>Bonus Rewards</h3>
           <div class="bonus-row">
             <span class="bonus-threshold">20+ Referrals</span>
@@ -387,11 +405,12 @@
           <h2>Top <span class="text-blue">Ambassadors</span>.</h2>
           <p>Ambassadors ranked by accepted referrals.</p>
         </div>
-        <div class="leaderboard-card reveal delay-1">
+        <div class="leaderboard-card tile-scale">
           <div id="lb-loader" class="lb-loader">
             <p>Loading leaderboard...</p>
           </div>
           <div id="lb-content" class="hidden">
+            <div class="lb-table-scroll">
             <table class="leaderboard-table">
               <thead>
                 <tr>
@@ -403,6 +422,7 @@
               </thead>
               <tbody id="lb-body"></tbody>
             </table>
+            </div>
           </div>
           <div id="lb-empty" class="leaderboard-empty hidden">
             <p>No ambassadors registered yet. Be the first!</p>
@@ -428,6 +448,14 @@
       </nav>
       <a class="footer-email" href="mailto:astronomyclub64@gmail.com">astronomyclub64@gmail.com</a>
       <a class="footer-email" href="mailto:gaac@stemastronomyclub.org">gaac@stemastronomyclub.org</a>
+      
+      <div class="footer-community">
+        <span class="foot-label">Join the community:</span>
+        <a href="https://whatsapp.com/channel/0029Vb882l9ElagzDJjLN92Q" target="_blank" rel="noreferrer">WhatsApp Channel</a>
+        <a href="https://t.me/GAACAstronomy" target="_blank" rel="noreferrer">Telegram Channel</a>
+        <a href="https://chat.whatsapp.com/GBiSiKCkhP8KcdsGFdYixQ" target="_blank" rel="noreferrer">WhatsApp Group 1</a>
+        <a href="https://chat.whatsapp.com/CHHfHi1q44b3dnDFwxnv5u" target="_blank" rel="noreferrer">WhatsApp Group 2</a>
+      </div>
       <p class="copyright">Copyright 2026 Global Astronomy &amp; Astrophysics Challenge.</p>
     </footer>
 

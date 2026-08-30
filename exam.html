@@ -116,6 +116,25 @@
     .modal-box h2 { margin-bottom: 12px; }
     .modal-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
     .modal-box .modal-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
+    .verify-box { max-width: 560px; text-align: left; }
+    .verify-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
+    .verify-head h2 { margin: 0; line-height: 1.15; }
+    .verify-copy { margin-bottom: 18px; line-height: 1.5; }
+    .verify-list { display: grid; gap: 10px; margin: 0 0 22px; }
+    .verify-item {
+      display: grid; grid-template-columns: 30px 1fr 18px; align-items: center; gap: 12px;
+      padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.035);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    .verify-step {
+      width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
+      background: rgba(38,183,255,0.12); color: var(--blue-light); font: 700 0.78rem Orbitron, monospace;
+    }
+    .verify-label { display: block; color: var(--text); font-weight: 700; font-size: 0.92rem; line-height: 1.25; }
+    .verify-note { display: block; margin-top: 3px; color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
+    .verify-dot { width: 18px; height: 18px; border-radius: 50%; background: #555; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08); }
+    #verify-error { min-height: 1.2em; line-height: 1.4; text-align: center; }
+    #verify-modal[dir="rtl"] .verify-box { text-align: right; }
     .submitted-state { display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 999; background: #00020a; text-align: center; padding: 40px; animation: fadeIn 0.4s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .submitted-state h1 { margin-bottom: 12px; }
@@ -126,6 +145,11 @@
       .exam-main { padding: 16px; }
       .exam-bar { padding: 8px 12px; }
       .exam-bar .timer { font-size: 1.1rem; }
+      .modal-overlay { padding: 16px; }
+      .modal-box { width: 100%; padding: 22px; }
+      .verify-head { align-items: flex-start; }
+      .verify-item { grid-template-columns: 28px 1fr 16px; padding: 11px 12px; }
+      .verify-step { width: 28px; height: 28px; }
     }
   </style>
 </head>
@@ -162,21 +186,27 @@
 
   <!-- Pre-Exam Verification -->
   <div id="verify-modal" class="modal-overlay">
-    <div class="modal-box" style="max-width:500px;">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
-        <h2 style="margin-bottom:0;">Exam <span class="text-blue">Requirements</span></h2>
+    <div class="modal-box verify-box">
+      <div class="verify-head">
+        <h2>Exam <span class="text-blue">Requirements</span></h2>
         <button class="lang-toggle" id="btn-verify-lang">AR</button>
       </div>
-      <p id="verify-instructions" style="margin-bottom:16px;">You must enable the following to start:</p>
-      <div id="verify-status" style="text-align:left;margin:0 0 20px;">
-        <div id="v-camera" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
-          <span id="v-cam-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Camera Access
+      <p id="verify-instructions" class="verify-copy">Enable each requirement in order. Fullscreen comes last.</p>
+      <div id="verify-status" class="verify-list">
+        <div id="v-camera" class="verify-item">
+          <span class="verify-step">1</span>
+          <span><span class="verify-label">Camera Access</span><span class="verify-note">Allow your webcam for identity checks.</span></span>
+          <span id="v-cam-icon" class="verify-dot"></span>
         </div>
-        <div id="v-screenshare" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
-          <span id="v-ss-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Screen Sharing
+        <div id="v-screenshare" class="verify-item">
+          <span class="verify-step">2</span>
+          <span><span class="verify-label">Screen Sharing</span><span class="verify-note">Share your full screen for monitoring.</span></span>
+          <span id="v-ss-icon" class="verify-dot"></span>
         </div>
-        <div id="v-fullscreen" style="padding:10px 14px;margin-bottom:8px;border-radius:8px;background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.08);display:flex;align-items:center;gap:10px;">
-          <span id="v-fs-icon" style="width:20px;height:20px;border-radius:50%;background:#555;flex-shrink:0;"></span> Fullscreen Mode
+        <div id="v-fullscreen" class="verify-item">
+          <span class="verify-step">3</span>
+          <span><span class="verify-label">Fullscreen Mode</span><span class="verify-note">Enter fullscreen after camera and screen share.</span></span>
+          <span id="v-fs-icon" class="verify-dot"></span>
         </div>
       </div>
       <button class="button primary" id="btn-start-exam" style="width:100%;">Start Exam</button>

@@ -37,6 +37,8 @@ ul, ol, li { list-style: none; }
 /* ================================================================
    BODY + NEBULA BASE
    ================================================================ */
+html { overflow-x: clip; }
+
 body {
   min-height: 100vh;
   color: var(--text);
@@ -329,6 +331,9 @@ p  { overflow-wrap: anywhere; }
 }
 .header-cta { justify-self: end; }
 .header-ctas { justify-self: end; display: inline-flex; align-items: center; gap: 10px; }
+
+/* Mobile-only CTA pair (lives inside .site-nav dropdown) */
+.mobile-ctas { display: none; }
 
 /* Mobile hamburger */
 .nav-toggle {
@@ -697,6 +702,35 @@ p  { overflow-wrap: anywhere; }
   font-size: 0.92rem;
 }
 
+.format-panel article {
+  border-left: 3px solid transparent;
+  transition:
+    border-color 300ms ease,
+    border-left-color 300ms ease,
+    box-shadow 300ms ease,
+    background-color 300ms ease;
+}
+.format-panel article:hover {
+  border-color: rgba(38,183,255,0.38);
+  border-left-color: var(--cyan);
+  background:
+    linear-gradient(145deg, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0.025) 100%),
+    rgba(2,8,20,0.72);
+}
+.format-panel article:hover .chip {
+  color: #03121c;
+  border-color: rgba(0,229,255,0.95);
+  background: rgba(0,229,255,0.92);
+  box-shadow: 0 0 24px rgba(0,229,255,0.4);
+}
+.chip {
+  transition:
+    color 260ms ease,
+    border-color 260ms ease,
+    background 260ms ease,
+    box-shadow 260ms ease;
+}
+
 /* ================================================================
    SYLLABUS GRID
    ================================================================ */
@@ -731,8 +765,8 @@ p  { overflow-wrap: anywhere; }
 .icon-cosmology::after  { width:6px;height:6px;border-radius:50%;background:var(--white);box-shadow:-12px 7px 0 rgba(38,183,255,0.85), 11px -8px 0 rgba(180,210,230,0.9); }
 .icon-observation::before { width:32px;height:20px;border:2px solid var(--silver);border-radius:50% 50% 42% 42%; }
 .icon-observation::after  { width:10px;height:10px;border:2px solid var(--blue-light);border-radius:50%;background:rgba(38,183,255,0.15); }
-.icon-computation::before { width:30px;height:23px;border:2px solid var(--blue-light);border-radius:6px; }
-.icon-computation::after  { width:18px;height:2px;background:var(--silver);box-shadow:0 5px 0 var(--silver),0 -5px 0 var(--silver); }
+.icon-orbital::before { width:34px;height:17px;border:2px solid var(--blue-light);border-radius:50%;transform:rotate(-24deg); }
+.icon-orbital::after  { width:7px;height:7px;border-radius:50%;background:var(--silver);transform:translate(12px,-7px); }
 
 /* Round syllabus */
 .round-syllabus { display: grid; grid-template-columns: minmax(0,0.9fr) minmax(0,1.1fr); gap: 16px; margin-top: 18px; }
@@ -883,12 +917,6 @@ p  { overflow-wrap: anywhere; }
   text-shadow: 0 0 22px rgba(0,229,255,0.35);
 }
 
-.cover-rule {
-  width: 64px;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(174,183,194,0.9), transparent);
-}
-
 .cover-sub {
   color: rgba(216,221,227,0.88);
   font-size: 0.55rem;
@@ -915,13 +943,31 @@ p  { overflow-wrap: anywhere; }
 .portal-grid { grid-template-columns: repeat(3, minmax(0,1fr)); }
 .portal-card { min-height: 230px; }
 .portal-card > .portal-num {
+  position: relative;
+  display: inline-block;
   color: var(--blue-light);
   font-family: var(--font-h);
   font-size: 0.75rem;
   font-weight: 700;
   letter-spacing: 0.1em;
+  transition: color 280ms ease, transform 320ms cubic-bezier(0.16,1,0.3,1);
 }
-.portal-card h3 { margin-top: 42px; margin-bottom: 10px; }
+.portal-card:hover > .portal-num { color: var(--cyan); }
+.portal-card h3 { position: relative; margin-top: 42px; margin-bottom: 16px; }
+.portal-card h3::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  bottom: -8px;
+  width: 26px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--blue-light), var(--cyan));
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 380ms cubic-bezier(0.16,1,0.3,1);
+}
+.portal-card:hover h3::after { transform: scaleX(1); }
 
 /* ================================================================
    ORGANIZER
@@ -992,12 +1038,140 @@ p  { overflow-wrap: anywhere; }
   border: 1px solid rgba(38,183,255,0.12);
   border-radius: var(--r);
   background: linear-gradient(135deg, rgba(8,120,255,0.06) 0%, rgba(0,229,255,0.03) 100%);
+  transition: border-color 300ms ease, box-shadow 300ms ease;
+}
+.ambassador-callout:hover {
+  border-color: rgba(0,229,255,0.35);
+  box-shadow: 0 30px 90px rgba(8,120,255,0.22), var(--shadow-glow);
 }
 .ambassador-callout p {
   color: var(--muted);
   line-height: 1.8;
   font-size: 0.95rem;
   margin-bottom: 24px;
+}
+
+/* ================================================================
+   STRUCTURE RULEBOOK  (PDF doc card)
+   ================================================================ */
+.structure-wrap {
+  position: relative;
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 1.5px;
+  border-radius: calc(var(--r) + 2px);
+  background: linear-gradient(115deg,
+    rgba(255,255,255,0.22) 0%,
+    rgba(255,255,255,0.07) 26%,
+    rgba(222,198,158,0.28) 60%,
+    rgba(255,255,255,0.05) 100%);
+  perspective: 1400px;
+}
+.structure-doc {
+  position: relative;
+  display: grid;
+  grid-template-columns: 200px minmax(0,1fr);
+  gap: clamp(22px,3vw,42px);
+  align-items: center;
+  padding: clamp(26px,4vw,42px);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: var(--r);
+  background:
+    linear-gradient(135deg, rgba(8,120,255,0.10), rgba(0,229,255,0.03)),
+    rgba(2,8,20,0.92);
+  box-shadow: var(--shadow-card);
+  backdrop-filter: blur(22px);
+  overflow: hidden;
+  transform-style: preserve-3d;
+  transition:
+    transform 180ms ease-out,
+    border-color 300ms ease,
+    box-shadow 300ms ease;
+}
+.structure-doc:hover {
+  transform: translateY(-4px);
+  border-color: rgba(255,255,255,0.22);
+  box-shadow: 0 34px 90px rgba(8,120,255,0.22), var(--shadow-glow);
+}
+.structure-doc::before {
+  content: "";
+  position: absolute;
+  top: 0; left: 12%; right: 12%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(38,183,255,0.6), transparent);
+}
+.structure-doc::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at var(--mx, 12%) var(--my, 45%), rgba(38,183,255,0.16), transparent 44%);
+  pointer-events: none;
+}
+
+.doc-ribbon {
+  position: absolute;
+  top: 22px;
+  right: -38px;
+  z-index: 2;
+  transform: rotate(45deg);
+  padding: 7px 48px;
+  background: linear-gradient(90deg, rgba(38,183,255,0.9), rgba(0,229,255,0.8));
+  color: #02101f;
+  font-size: 0.7rem;
+  font-weight: 800;
+  letter-spacing: 0.2em;
+  box-shadow: 0 8px 22px rgba(8,120,255,0.4);
+}
+.doc-card-art {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-height: 190px;
+}
+.doc-icon {
+  position: relative;
+  width: 92px;
+  height: 122px;
+  border: 2px solid rgba(38,183,255,0.55);
+  border-radius: 8px;
+  background: linear-gradient(145deg, rgba(8,120,255,0.22) 0%, rgba(0,229,255,0.05) 100%);
+  box-shadow: inset 0 0 24px rgba(38,183,255,0.14), 0 20px 46px rgba(8,120,255,0.3);
+  animation: floatDoc 5s ease-in-out infinite;
+}
+.doc-icon::before, .doc-icon::after { position: absolute; content: ""; }
+.doc-icon::before {
+  top: -2px; right: -2px;
+  width: 0; height: 0;
+  border-style: solid;
+  border-width: 0 26px 26px 0;
+  border-color: transparent rgba(2,8,20,0.85) transparent transparent;
+}
+.doc-icon::after {
+  left: 16px; right: 16px; top: 46px;
+  height: 2px;
+  background: var(--silver);
+  box-shadow:
+    0 10px 0 rgba(38,183,255,0.7),
+    0 20px 0 rgba(38,183,255,0.45),
+    0 30px 0 rgba(38,183,255,0.3);
+}
+@keyframes floatDoc {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
+.doc-card-body h3 { margin: 6px 0 12px; }
+.doc-card-body p {
+  color: var(--muted);
+  line-height: 1.74;
+  font-size: 0.95rem;
+  max-width: 54ch;
+}
+.doc-card-body .button { margin-top: 20px; }
+
+@media (max-width: 620px) {
+  .structure-doc { grid-template-columns: 1fr; text-align: center; }
+  .doc-card-art { min-height: 150px; }
+  .doc-card-body p { margin: 0 auto; }
 }
 
 /* ================================================================
@@ -1071,6 +1245,34 @@ p  { overflow-wrap: anywhere; }
 .site-footer a { transition: color 180ms ease, transform 180ms ease; }
 .site-footer a:hover { color: var(--cyan); transform: translateX(4px); }
 .footer-email { align-self: end; color: var(--blue-light); font-weight: 700; font-size: 0.88rem; }
+.footer-community {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.footer-community .foot-label {
+  color: var(--muted); font-size: 0.8rem; font-weight: 800;
+  letter-spacing: 0.05em; text-transform: uppercase; margin-right: 4px;
+}
+.footer-community a {
+  padding: 8px 16px;
+  border-radius: 999px;
+  border: 1px solid rgba(38,183,255,0.35);
+  background: rgba(38,183,255,0.08);
+  color: var(--blue-light);
+  font-size: 0.8rem;
+  font-weight: 700;
+  transition: background 180ms ease, color 180ms ease, transform 180ms ease;
+}
+.footer-community a:hover {
+  background: rgba(38,183,255,0.18);
+  color: var(--cyan);
+  transform: translateY(-2px);
+}
 .copyright { grid-column: 1/-1; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.84rem; color: var(--muted); }
 
 /* ================================================================
@@ -1125,6 +1327,81 @@ body.js-ready .reveal-right.visible { opacity: 1; transform: none; }
 body.js-ready .reveal-scale.visible { opacity: 1; transform: none; }
 body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
 
+/* ================================================================
+   TILE MOTION  (scroll reveals for block content)
+   - .tile       rise + tilt + scale  — energetic cascade
+   - .tile-scale rise + scale          — gallery / wide cards
+   - .tile-lift  quiet rise            — lists, forms, text blocks
+   ================================================================ */
+body.js-ready .tile,
+body.js-ready .tile-scale,
+body.js-ready .tile-lift {
+  opacity: 0;
+  transition-delay: var(--tile-delay, 0ms);
+}
+
+body.js-ready .tile {
+  transform: translateY(48px) rotate(1.6deg) scale(0.98);
+  transition:
+    opacity   760ms cubic-bezier(0.16,1,0.3,1),
+    transform 760ms cubic-bezier(0.16,1,0.3,1),
+    border-color 260ms ease,
+    border-left-color 260ms ease,
+    box-shadow 260ms ease;
+}
+body.js-ready .tile-scale {
+  transform: translateY(34px) scale(0.96);
+  transition:
+    opacity   720ms cubic-bezier(0.16,1,0.3,1),
+    transform 720ms cubic-bezier(0.16,1,0.3,1),
+    border-color 260ms ease,
+    box-shadow 260ms ease;
+}
+body.js-ready .tile-lift {
+  transform: translateY(28px);
+  transition:
+    opacity   740ms cubic-bezier(0.16,1,0.3,1),
+    transform 740ms cubic-bezier(0.16,1,0.3,1);
+}
+
+body.js-ready .tile.visible,
+body.js-ready .tile-scale.visible,
+body.js-ready .tile-lift.visible {
+  opacity: 1;
+  transform: none;
+}
+body.js-ready .tile.visible:hover,
+body.js-ready .tile-scale.visible:hover {
+  transition-delay: 0ms;
+  transition-duration: 260ms;
+}
+
+/* Generic cascade stagger (up to 8 direct children) */
+.tile:nth-child(1),
+.tile-scale:nth-child(1),
+.tile-lift:nth-child(1) { --tile-delay: 0ms; }
+.tile:nth-child(2),
+.tile-scale:nth-child(2),
+.tile-lift:nth-child(2) { --tile-delay: 90ms; }
+.tile:nth-child(3),
+.tile-scale:nth-child(3),
+.tile-lift:nth-child(3) { --tile-delay: 180ms; }
+.tile:nth-child(4),
+.tile-scale:nth-child(4),
+.tile-lift:nth-child(4) { --tile-delay: 270ms; }
+.tile:nth-child(5),
+.tile-scale:nth-child(5),
+.tile-lift:nth-child(5) { --tile-delay: 360ms; }
+.tile:nth-child(6),
+.tile-scale:nth-child(6),
+.tile-lift:nth-child(6) { --tile-delay: 450ms; }
+.tile:nth-child(7),
+.tile-scale:nth-child(7),
+.tile-lift:nth-child(7) { --tile-delay: 540ms; }
+.tile:nth-child(8),
+.tile-scale:nth-child(8),
+.tile-lift:nth-child(8) { --tile-delay: 630ms; }
+
 /* Stagger delays */
 .delay-1 { transition-delay: 70ms  !important; }
 .delay-2 { transition-delay: 140ms !important; }
@@ -1132,6 +1409,7 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
 .delay-4 { transition-delay: 280ms !important; }
 .delay-5 { transition-delay: 350ms !important; }
 .delay-6 { transition-delay: 420ms !important; }
+.delay-7 { transition-delay: 490ms !important; }
 
 /* ================================================================
    SHOOTING STAR
@@ -1184,7 +1462,7 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
 @media (max-width: 980px) {
   .site-header { grid-template-columns: auto 1fr auto; }
   .brand-lockup { grid-column: 1; }
-  .header-ctas { grid-column: 2; justify-self: end; margin-right: 10px; }
+  .header-ctas { display: none; }
   .nav-toggle { grid-column: 3; justify-self: end; display: block; }
 
   .site-nav {
@@ -1204,6 +1482,15 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
   }
   .site-nav.open  { display: flex; }
   .site-nav a     { padding: 13px 14px; }
+  .mobile-ctas {
+    display: grid;
+    gap: 10px;
+    margin-top: 8px;
+    padding: 14px;
+    border-top: 1px solid var(--line);
+  }
+  .mobile-ctas .nav-cta { padding: 12px 20px; }
+  .mobile-ctas .nav-cta::after { display: none; }
 
   .hero, .split-section, .organizer, .subhero { grid-template-columns: 1fr; }
   .hero { min-height: auto; }
@@ -1247,4 +1534,62 @@ body.js-ready .reveal-clip.visible  { clip-path: inset(0 0 0% 0); }
   .timeline-track::before { display: none; }
   .timeline-track li { padding: 22px; }
   .timeline-track li::before { position: static; display: block; margin-bottom: 14px; }
+}
+
+/* ================================================================
+   CURSOR FX — mouse interplay for the block sections.
+   Pointer-only (guarded in JS), vanilla, subtle by design.
+   - tilt + glare ........... portal & syllabus cards
+   - content micro-parallax . portal numbers & domain icons
+   - light beam ............. format cards (follows --mx)
+   - logo parallax .......... partner cards
+   ================================================================ */
+.tilt-glare {
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  pointer-events: none;
+  border-radius: inherit;
+  background: radial-gradient(260px circle at var(--mx, 50%) var(--my, 50%),
+    rgba(255,255,255,0.10), transparent 62%);
+  opacity: 0;
+  transition: opacity 320ms ease;
+}
+.portal-card:hover > .tilt-glare,
+.syllabus-card:hover > .tilt-glare { opacity: 1; }
+
+/* Content micro-parallax — pulls softly against the cursor */
+.portal-card > .portal-num {
+  transform: translate(var(--pxa, 0px), var(--pya, 0px));
+  transition: color 280ms ease, transform 320ms cubic-bezier(0.16,1,0.3,1);
+}
+.syllabus-card .domain-icon {
+  transform: translate(var(--pxa, 0px), var(--pya, 0px));
+  transition: transform 320ms cubic-bezier(0.16,1,0.3,1);
+}
+.syllabus-card:hover .domain-icon {
+  border-color: rgba(0,229,255,0.6);
+  box-shadow: inset 0 0 22px rgba(0,229,255,0.16), 0 12px 30px rgba(8,120,255,0.28);
+}
+
+/* Format cards — a light beam that trails the cursor horizontally */
+.format-panel article::before {
+  left: var(--mx, 50%);
+  right: auto;
+  width: 160px;
+  transform: translateX(-50%);
+  transition: left 260ms cubic-bezier(0.16,1,0.3,1);
+}
+
+/* Partner cards — logo parallax + warm glow */
+.partner-card img {
+  transition:
+    transform 360ms cubic-bezier(0.16,1,0.3,1),
+    box-shadow 360ms ease,
+    filter 360ms ease;
+}
+.partner-card:hover img {
+  transform: translate(var(--px, 0px), var(--py, 0px)) scale(1.06);
+  box-shadow: 0 16px 40px rgba(8,120,255,0.25);
+  filter: drop-shadow(0 0 14px rgba(38,183,255,0.35));
 }

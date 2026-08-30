@@ -171,8 +171,9 @@
         }
       } catch (e) { console.warn('Failed to create team membership doc:', e); }
 
-      // Each member takes the exam individually (teams/{teamId}/exam/{uid}).
-      window.location.href = `exam.html?team=${teamId}`;
+      const params = new URLSearchParams(window.location.search);
+      const mode = params.get('mode');
+      window.location.href = mode === 'mock' ? `mock-exam.html?team=${teamId}` : `exam.html?team=${teamId}`;
     }
 
     const norm = (s) => (s || '').trim().toLowerCase();

@@ -207,6 +207,79 @@
   margin-bottom: 40px;
 }
 
+/* Registration Closed */
+.closed-card {
+  background: rgba(10, 14, 23, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  padding: 44px 40px;
+  backdrop-filter: blur(12px);
+  max-width: 800px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.closed-icon {
+  width: 58px;
+  height: 58px;
+  margin: 0 auto 18px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 71, 87, 0.12);
+  border: 1px solid rgba(255, 71, 87, 0.4);
+  color: #ff8a94;
+}
+
+.closed-icon svg {
+  width: 28px;
+  height: 28px;
+}
+
+.closed-card h2 {
+  font-family: var(--font-orbitron);
+  font-size: 1.4rem;
+  letter-spacing: 0.05em;
+  color: var(--white);
+  text-transform: uppercase;
+  margin: 0 0 4px;
+}
+
+.community-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 20px;
+}
+
+.community-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  padding: 11px 20px;
+  border-radius: 999px;
+  border: 1px solid rgba(38, 183, 255, 0.4);
+  background: rgba(8, 120, 255, 0.12);
+  color: var(--blue-light);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: transform 180ms ease, background 180ms ease, border-color 180ms ease;
+}
+
+.community-link svg {
+  width: 17px;
+  height: 17px;
+}
+
+.community-link:hover {
+  transform: translateY(-2px);
+  background: rgba(8, 120, 255, 0.22);
+  border-color: rgba(38, 183, 255, 0.7);
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .form-row {
@@ -216,6 +289,10 @@
   
   .registration-card {
     padding: 24px;
+  }
+
+  .closed-card {
+    padding: 30px 20px;
   }
 }
 

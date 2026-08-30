@@ -217,38 +217,31 @@ service cloud.firestore {
     // ================================================================
     match /teams/{teamId} {
       allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
-      // memberCount is admin-set (precomputed from registeredEmails); the
-      // submittedCount counter may only advance by +1 (submit event).
+      // memberCount is leader/admin managed. Submitted/event totals are
+      // written by Cloud Functions after member submissions are scored.
       allow create: if isAuthenticated() && (
         isAdmin()
         || (isTeamMember(teamId)
-            && !request.resource.data.keys().hasAny([
-              'examScore', 'examPassed', 'examStatus', 'correctCount', 'totalQuestions',
-              'memberCount'
+            && request.resource.data.keys().hasOnly([
+              'status', 'startedAt'
             ])
-            && (!request.resource.data.keys().hasAny(['submittedCount'])
-                || request.resource.data.submittedCount == 1))
+            && (!request.resource.data.keys().hasAny(['status'])
+                || request.resource.data.status in ['registered', 'in-progress']))
         || (isTeamMember(teamId) && isLeader(teamId)
             && request.resource.data.keys().hasOnly(['memberCount']))
       );
       allow update: if isAuthenticated() && (
         isAdmin()
-        || (isTeamMember(teamId)
-            && !request.resource.data.keys().hasAny([
-              'examScore', 'examPassed', 'examStatus', 'correctCount', 'totalQuestions'
-            ])
-            && (
-              // Regular member updates (e.g. submittedCount +1) — never memberCount
-              ((!request.resource.data.keys().hasAny(['submittedCount'])
-                  || request.resource.data.submittedCount - resource.data.get('submittedCount', 0) == 1)
-                && !request.resource.data.keys().hasAny(['memberCount']))
-              ||
-              // Leader roster management: adjust memberCount by exactly +1 / -1
-              (isLeader(teamId)
-                && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount'])
-                && (request.resource.data.memberCount - resource.data.get('memberCount', 0) == 1
-                    || request.resource.data.memberCount - resource.data.get('memberCount', 0) == -1))
-            ))
+        || (isTeamMember(teamId) && (
+          (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'startedAt'])
+            && (!request.resource.data.keys().hasAny(['status'])
+                || request.resource.data.status in ['registered', 'in-progress']))
+          ||
+          (isLeader(teamId)
+            && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['memberCount'])
+            && (request.resource.data.memberCount - resource.data.get('memberCount', 0) == 1
+                || request.resource.data.memberCount - resource.data.get('memberCount', 0) == -1))
+        ))
       );
       allow delete: if isAdmin() || isSoloLeader(teamId);
 
@@ -258,13 +251,22 @@ service cloud.firestore {
       match /exam/{examId} {
         allow read: if isAuthenticated() && (isAdmin() || (isTeamMember(teamId) && request.auth.uid == examId));
         // Create allowed for own member doc only; scoring fields are reserved
-        // for the admin scoring pipeline (no Cloud Function in this plan).
+        // for the admin scoring pipeline.
         allow create: if isAuthenticated() && (
           isAdmin()
-          || (isTeamMember(teamId) && request.auth.uid == examId && !request.resource.data.keys().hasAny([
-            'scored', 'score', 'correctCount', 'incorrectCount',
-            'unansweredCount', 'totalQuestions', 'passed', 'details', 'scoredAt'
-          ]))
+          || (isTeamMember(teamId) && request.auth.uid == examId
+              && request.resource.data.keys().hasOnly([
+                'status', 'startedAt', 'endTime', 'absoluteDeadline',
+                'memberUid', 'memberEmail', 'memberRole',
+                'answers', 'flagged', 'questionOrder', 'pausedRemaining',
+                'submittedAt', 'eventCount', 'severeEventCount'
+              ])
+              && (!request.resource.data.keys().hasAny(['memberUid'])
+                  || request.resource.data.memberUid == request.auth.uid)
+              && (!request.resource.data.keys().hasAny(['eventCount'])
+                  || request.resource.data.eventCount == 0)
+              && (!request.resource.data.keys().hasAny(['severeEventCount'])
+                  || request.resource.data.severeEventCount == 0))
         );
         // Update: admin may write anything (scoring); a member may only
         // update their OWN doc while IT is not submitted, and never
@@ -272,10 +274,20 @@ service cloud.firestore {
         allow update: if isAuthenticated() && (
           isAdmin()
           || (isTeamMember(teamId) && request.auth.uid == examId
-              && !request.resource.data.keys().hasAny([
-                'scored', 'score', 'correctCount', 'incorrectCount',
-                'unansweredCount', 'totalQuestions', 'passed', 'details', 'scoredAt'
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'status', 'memberUid', 'memberEmail', 'memberRole',
+                'answers', 'flagged', 'questionOrder', 'pausedRemaining',
+                'submittedAt', 'eventCount', 'severeEventCount'
               ])
+              && (!request.resource.data.keys().hasAny(['memberUid'])
+                  || request.resource.data.memberUid == request.auth.uid)
+              && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['eventCount'])
+                  || (request.resource.data.eventCount - resource.data.get('eventCount', 0) >= 0
+                      && request.resource.data.eventCount - resource.data.get('eventCount', 0) <= 10))
+              && (!request.resource.data.diff(resource.data).affectedKeys().hasAny(['severeEventCount'])
+                  || (request.resource.data.severeEventCount - resource.data.get('severeEventCount', 0) >= 0
+                      && request.resource.data.severeEventCount - resource.data.get('severeEventCount', 0) <=
+                        request.resource.data.eventCount - resource.data.get('eventCount', 0)))
               && resource.data.status != 'submitted')
         );
         allow delete: if isAdmin();
@@ -284,9 +296,27 @@ service cloud.firestore {
       // Events subcollection
       match /events/{eventId} {
         allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
-        allow create: if isAuthenticated() && isTeamMember(teamId);
+        allow create: if isAuthenticated() && isTeamMember(teamId)
+          && (!request.resource.data.keys().hasAny(['memberUid'])
+              || request.resource.data.memberUid == request.auth.uid);
         allow update: if isAuthenticated() && isTeamMember(teamId)
+          && (!resource.data.keys().hasAny(['memberUid'])
+              || resource.data.memberUid == request.auth.uid)
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['actualSecs']);
+        allow delete: if isAdmin();
+      }
+
+      // Mock test — stores final score only, no answers/proctoring data.
+      match /mock/{mockId} {
+        allow read: if isAuthenticated() && (isAdmin() || (isTeamMember(teamId) && request.auth.uid == mockId));
+        allow create, update: if isAuthenticated()
+          && isTeamMember(teamId)
+          && request.auth.uid == mockId
+          && request.resource.data.keys().hasOnly([
+            'status', 'memberUid', 'memberEmail', 'memberRole',
+            'score', 'correctCount', 'totalQuestions', 'answersCount', 'submittedAt'
+          ])
+          && request.resource.data.memberUid == request.auth.uid;
         allow delete: if isAdmin();
       }
     }

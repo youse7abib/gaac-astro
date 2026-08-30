@@ -143,7 +143,7 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, query, orderBy, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, query, where, orderBy, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getStorage, ref as storageRef, listAll, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -213,16 +213,22 @@
     };
 
     const fmtTimeOnly = (d) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
+    const normEmail = (email) => (email || '').trim().toLowerCase();
+    const eventBelongsToMember = (evt, memberUid) => {
+      const eventUid = evt.memberUid || evt.uid || '';
+      return !!memberUid && !!eventUid && eventUid === memberUid;
+    };
 
     const loadMyTeam = async () => {
       const container = document.getElementById('my-team-view');
       container.innerHTML = '<div class="empty-state">Loading team data...</div>';
       try {
-        const [regSnap, teamSnap, examSnap, eventsSnap] = await Promise.all([
+        const [regSnap, teamSnap, examSnap, eventsSnap, teamMembersSnap] = await Promise.all([
           getDoc(doc(db, 'registrations', MY_TEAM_ID)),
           getDoc(doc(db, 'teams', MY_TEAM_ID)),
           getDocs(collection(db, 'teams', MY_TEAM_ID, 'exam')),
-          getDocs(query(collection(db, 'teams', MY_TEAM_ID, 'events'), orderBy('timestamp', 'desc')))
+          getDocs(query(collection(db, 'teams', MY_TEAM_ID, 'events'), orderBy('timestamp', 'desc'))),
+          getDocs(query(collection(db, 'teamMembers'), where('teamId', '==', MY_TEAM_ID)))
         ]);
         if (!regSnap.exists()) { container.innerHTML = '<div class="empty-state">Team not found.</div>'; return; }
         const reg = regSnap.data();
@@ -235,8 +241,33 @@
           reg.member2 ? { ...reg.member2, role: 'member2', roleIdx: 1 } : null,
           reg.member3 ? { ...reg.member3, role: 'member3', roleIdx: 2 } : null
         ].filter(Boolean);
+        const uidByEmail = {};
+        teamMembersSnap.forEach(d => {
+          const data = d.data();
+          if (data.email) uidByEmail[normEmail(data.email)] = d.id;
+        });
+        await Promise.all(members.map(async (m) => {
+          if (!m.uid && m.email && uidByEmail[normEmail(m.email)]) m.uid = uidByEmail[normEmail(m.email)];
+          if (m.uid || !m.email) return;
+          try {
+            const emailSnap = await getDoc(doc(db, 'registeredEmails', normEmail(m.email)));
+            if (emailSnap.exists() && emailSnap.data().uid) m.uid = emailSnap.data().uid;
+          } catch (e) {
+            console.warn('Failed to resolve member uid:', m.email, e);
+          }
+        }));
         const memberExams = [];
         examSnap.forEach(d => memberExams.push({ uid: d.id, ...d.data() }));
+        members.forEach(m => {
+          if (m.uid) return;
+          const byEmail = memberExams.find(e => normEmail(e.memberEmail) === normEmail(m.email));
+          if (byEmail) {
+            m.uid = byEmail.uid;
+            return;
+          }
+          const byRole = memberExams.filter(e => e.memberRole === m.role);
+          if (byRole.length === 1) m.uid = byRole[0].uid;
+        });
         const allEvents = [];
         eventsSnap.forEach(d => allEvents.push({ id: d.id, ...d.data() }));
         const status = team.disqualified ? 'disqualified' : (team.examStatus || team.status || 'registered');
@@ -258,7 +289,7 @@
 
         html += '<div id="member-tabs" style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;">';
         members.forEach((m, i) => {
-          html += `<button class="tab-btn member-tab active-tab" data-tab="${i}" style="flex:1;min-width:120px;">${roleLabels[i]}: ${m.name || m.email || '?'}</button>`;
+          html += `<button class="tab-btn member-tab ${i === 0 ? 'active-tab' : ''}" data-tab="${i}" style="flex:1;min-width:120px;">${roleLabels[i]}: ${m.name || m.email || '?'}</button>`;
         });
         html += '</div>';
 
@@ -268,8 +299,9 @@
         const viewsEl = document.getElementById('member-views');
 
         members.forEach((m, i) => {
-          const mEvents = allEvents.filter(e => e.uid === m.uid);
-          const mExam = memberExams.find(e => e.uid === m.uid);
+          const mUid = m.uid || '';
+          let mEvents = allEvents.filter(e => eventBelongsToMember(e, mUid));
+          const mExam = memberExams.find(e => mUid && e.uid === mUid);
           const answered = mExam && mExam.answers ? Object.keys(mExam.answers).length : 0;
           const subAt = mExam && mExam.submittedAt ? (mExam.submittedAt.seconds ? new Date(mExam.submittedAt.seconds * 1000) : new Date(mExam.submittedAt)) : null;
 
@@ -394,7 +426,7 @@
           const safeName = (m.name || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
           const safeRole = (m.role || 'member').replace(/[^a-zA-Z0-9]/g, '_');
           folderMap[`${safeName}_${safeRole}`] = i;
-          folderMap[m.uid] = i;
+          if (m.uid) folderMap[m.uid] = i;
         });
 
         const memberFolders = result.prefixes.length > 0 ? result.prefixes : [listRef];

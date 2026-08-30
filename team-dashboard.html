@@ -54,7 +54,8 @@
     .member-card .m-row strong { color: var(--silver); font-weight: 600; }
     .member-card .m-actions { margin-top: 14px; text-align: right; }
 
-    /* Add-member toggle (plus) button */
+    /* Add-member toggle (plus) button — disabled (registration closed) */
+    #btn-toggle-add, #add-member-sheet { display: none !important; }
     #manage-panel .add-member-btn { margin-top: 20px; margin-bottom: 0; }
     .add-member-sheet {
       margin-top: 16px; padding: 20px; border: 1px solid rgba(38,183,255,0.2);
@@ -716,7 +717,11 @@
         const round = tab.dataset.round;
         const roundName = tab.querySelector('.comp-tab-label').textContent;
         if (!window.confirm(`Open the ${roundName} exam portal?`)) return;
-        window.location.href = 'exam';
+        if (round === 'mock') {
+          window.location.href = `mock-exam.html?team=${encodeURIComponent(currentTeamId)}`;
+        } else {
+          window.location.href = 'exam-login.html';
+        }
       });
     });
     const addBtnText = addBtn.querySelector('.btn-text');

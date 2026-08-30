@@ -50,7 +50,7 @@ document.querySelectorAll('[data-countdown]').forEach(function (el) {
 });
 
 /* ── 4. SCROLL REVEAL (all 5 variants) ── */
-var allRevealClasses = ['.reveal', '.reveal-left', '.reveal-right', '.reveal-scale', '.reveal-flip'];
+var allRevealClasses = ['.reveal', '.reveal-left', '.reveal-right', '.reveal-scale', '.reveal-flip', '.tile', '.tile-scale', '.tile-lift'];
 var revealEls = document.querySelectorAll(allRevealClasses.join(','));
 
 if ('IntersectionObserver' in window) {
