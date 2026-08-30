@@ -1233,8 +1233,8 @@ p  { overflow-wrap: anywhere; }
    ================================================================ */
 .site-footer {
   display: grid;
-  grid-template-columns: minmax(0,1.3fr) minmax(190px,0.7fr);
-  gap: 28px;
+  grid-template-columns: minmax(0,1.4fr) minmax(150px,0.6fr) minmax(200px,0.75fr);
+  gap: 32px;
   padding: 42px clamp(18px,4vw,68px);
   border-top: 1px solid var(--line);
   background: rgba(0,1,6,0.88);
@@ -1244,32 +1244,50 @@ p  { overflow-wrap: anywhere; }
 .site-footer nav { display: grid; gap: 9px; align-content: start; color: #b8d0ea; font-weight: 600; font-size: 0.88rem; }
 .site-footer a { transition: color 180ms ease, transform 180ms ease; }
 .site-footer a:hover { color: var(--cyan); transform: translateX(4px); }
-.footer-email { align-self: end; color: var(--blue-light); font-weight: 700; font-size: 0.88rem; }
-.footer-community {
+.footer-contacts { display: grid; gap: 8px; align-content: start; align-self: center; }
+.footer-contacts .feet-logo {
+  grid-column: 1 / -1;
+  font-family: var(--font-orbitron);
+  font-size: 0.72rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--cyan);
+  margin: 0 0 2px;
+}
+.footer-contacts a {
+  color: var(--blue-light);
+  font-weight: 600;
+  font-size: 0.88rem;
+  width: max-content;
+}
+.footer-contacts .footer-email { align-self: auto; color: var(--blue-light); font-weight: 700; font-size: 0.88rem; }
+.footer-social {
   grid-column: 1 / -1;
   display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
   align-items: center;
-  padding-top: 18px;
-  border-top: 1px solid var(--line);
+  gap: 10px;
+  margin-top: 10px;
+  padding-top: 0;
 }
-.footer-community .foot-label {
-  color: var(--muted); font-size: 0.8rem; font-weight: 800;
-  letter-spacing: 0.05em; text-transform: uppercase; margin-right: 4px;
+.footer-social .foot-label {
+  color: var(--muted); font-size: 0.75rem; font-weight: 800;
+  letter-spacing: 0.08em; text-transform: uppercase; margin-right: 2px;
 }
-.footer-community a {
-  padding: 8px 16px;
-  border-radius: 999px;
+.social-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
   border: 1px solid rgba(38,183,255,0.35);
   background: rgba(38,183,255,0.08);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   color: var(--blue-light);
-  font-size: 0.8rem;
-  font-weight: 700;
   transition: background 180ms ease, color 180ms ease, transform 180ms ease;
 }
-.footer-community a:hover {
-  background: rgba(38,183,255,0.18);
+.social-icon svg { width: 18px; height: 18px; }
+.social-icon:hover {
+  background: rgba(38,183,255,0.2);
   color: var(--cyan);
   transform: translateY(-2px);
 }

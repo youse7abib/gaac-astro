@@ -2,6 +2,8 @@
 
 This document is a complete technical reference for the **Global Astronomy & Astrophysics Challenge (GAAC) 2026** registration + exam platform. It is written for an AI assistant (or new developer) to understand the system without reading every file.
 
+> **CURRENT STATE (30 Aug 2026):** Team & ambassador registration are **CLOSED**. `register.html` and `ambassador-register.html` show a "closed" card with community channel links (WhatsApp Channel, Telegram) instead of a form. The footer on all public pages now has a **Contacts** column (channels + WhatsApp Group 1/2) plus social icons (Instagram, Facebook, LinkedIn). In the team dashboard, add-member is hidden (CSS) and the delete-team/withdraw controls were fully removed.
+
 ---
 
 ## 1. What This Platform Does
@@ -126,6 +128,8 @@ File: `register.html` + `registration.js`.
    - If `auth/email-already-in-use`: tries `signInWithEmailAndPassword` with the team password to reuse the existing account; if that fails, calls the Cloud Function **`reassignMember`** (resets that Auth account's password to the team password server-side), then signs in.
    - Stamps `teamMembers/{uid} = { teamId, email }` and `registeredEmails/{email}.uid = uid`.
 8. On success: shows success state. If a valid `?ref=CODE` referral was given, awards ambassador points in the **gaac-ambassador** project.
+
+> **Registration is now CLOSED (30 Aug 2026).** The `register.html` form is replaced by a `.closed-card` listing the WhatsApp Channel + Telegram Channel. New registrations are only possible via the admin function `adminAddMemberToTeam` (existing teams).
 
 Registration IDs are sequential; the admin team is `GAAC-2026-0605` (used as `MY_TEAM_ID` in the admin page for validation).
 
@@ -262,11 +266,13 @@ File: `team-dashboard.html` (self-contained).
 - Login (email + team password) → resolves team from `teamMembers/{uid}` → loads `registrations/{teamId}`.
 - Shows team roster with per-member cards; each member's sign-in email shown; role badges (Leader/Member 2/Member 3).
 - **Leader controls** (registrationOpen + not full):
-  - `#btn-toggle-add` **+ Add Team Member** button toggles an `#add-member-sheet` form.
+  - `#btn-toggle-add` **+ Add Team Member** button toggles an `#add-member-sheet` form. **Now hidden via CSS** (`#btn-toggle-add, #add-member-sheet { display: none !important; }`) — registration is closed.
   - Add-member flow (server-assisted): checks `settings/competition.registrationOpen`, reads registration, verifies slot availability, offers a **team-password preview**, on submit:
     1. If email already exists in `registeredEmails` with a `uid` → checks whether the existing Auth account opens with the team password; if not, calls **`reassignMember`** to force the password. Removed-member records (`removedMembers`, `removedEmails`) are checked to restore the same uid.
     2. Creates/reuses the Auth account, then a **batch** writes: `registeredEmails/{email}`, `teamMembers/{uid}`, `registrations/{teamId}.{slot}`, increments `teams/{teamId}.memberCount` (or seeds the doc), and queues a credential email via `mail`.
   - Remove-member flow: deletes `teamMembers/{uid}`, `registeredEmails/{email}`, writes `removedMembers/{uid}` + `removedEmails/{email}`, decrements `memberCount`.
+- **Delete team / withdraw — REMOVED (30 Aug 2026):** the top-right delete-icon button, the `#delete-modal`, and all its JS (`openDeleteModal`, `closeDeleteModal`, `btnDeleteConfirm`, `withdrawLeader`, `deleteEntireTeam`) were deleted from `team-dashboard.html`.
+- The dashboard **loading screen** is a branded "mission boot" splash (orbiting ring + planet + progress bar, GAAC 2026 motif) instead of plain "Loading…".
 - **Competitions panel** (`#competitions-panel`): tabs for Mock Test, Round 1, Round 2, Round 3 (`#comp-list`, currently `display:none`) inside a placeholder "No active competitions yet." — the list will replace the placeholder when competitions become active. Clicking a tab navigates to the exam portal.
 - Password change for the leader syncs the shared team `password` in `registrations`.
 - `change-password.html` — forgot password using **email + registration ID only** → calls `sendPasswordReset`.
@@ -316,7 +322,7 @@ The user asked for these changes, then asked to revert the working tree to the l
 - Rules deploy: `firebase deploy --only firestore:rules,storage`.
 - **Git hygiene:** the user wants **manual/asked pushes only** — never auto-push; committing locally is fine but confirm before pushing.
 - Temp/secret files are git-ignored (`auth-export.json`, `all-registered-emails.txt`, `temp-reset.*`, `proctora-ref/`).
-- Last known git state (before any pending working-tree changes): `HEAD` at `7ded5b5` "Hide competition blocks until active" (+ `1350b7d` before it). The three files `admin-exam.html`, `js/exam-app.js`, `js/security.js` were reverted to committed state — `git status` should show a clean tree.
+- Last pushed state: `HEAD` at **`baeb781`** ("Close team registration…"). Working tree has uncommitted changes (footer Contacts/social redesign, ambassador + ambassador-register closed cards, dashboard delete-team removal + boot loader) — push before relying on Vercel.
 
 ---
 

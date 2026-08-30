@@ -33,74 +33,35 @@
         <div class="reveal">
           <p class="eyebrow">Ambassador Program</p>
           <h1>Join the <span class="text-blue">Mission</span>.</h1>
-          <p>Register as an ambassador to help grow the GAAC community.</p>
+          <p>Ambassador applications for GAAC 2026 are now closed.</p>
         </div>
       </section>
 
       <section class="page-shell compact">
-        <div class="registration-card tile-scale">
-          <form id="ambassador-register-form" class="registration-form" novalidate>
-            <div class="form-section">
-              <h2>Ambassador Application</h2>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="fullName">Full Name <span class="required">*</span></label>
-                  <input type="text" id="fullName" name="fullName" required />
-                  <span class="error-msg" id="error-fullName"></span>
-                </div>
-                <div class="form-group">
-                  <label for="email">Email Address <span class="required">*</span></label>
-                  <input type="email" id="email" name="email" required />
-                  <span class="error-msg" id="error-email"></span>
-                </div>
+        <div>
+          <div class="closed-card" style="padding: 36px 28px;">
+              <div class="closed-icon">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0110 0v4"></path></svg>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="password">Password <span class="required">*</span></label>
-                  <input type="password" id="password" name="password" required minlength="6" />
-                  <span class="error-msg" id="error-password"></span>
-                </div>
-                <div class="form-group">
-                  <label for="phone">Phone Number <span class="required">*</span></label>
-                  <input type="tel" id="phone" name="phone" required />
-                  <span class="error-msg" id="error-phone"></span>
-                </div>
+              <h2>Ambassador Applications Closed</h2>
+              <p style="color: var(--silver); max-width: 480px; margin: 10px auto 6px;">
+                New ambassador applications for GAAC 2026 have closed. Thank you to everyone who joined the mission — active ambassadors keep earning referrals.
+              </p>
+              <p style="color: var(--muted); font-size: 0.9rem; margin: 14px auto 6px; max-width: 480px;">
+                Stay close to the competition through our community channels:
+              </p>
+              <div class="community-links">
+                <a class="community-link" href="https://whatsapp.com/channel/0029Vb882l9ElagzDJjLN92Q" target="_blank" rel="noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
+                  WhatsApp Channel</a>
+                <a class="community-link" href="https://t.me/GAACAstronomy" target="_blank" rel="noreferrer">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z"/></svg>
+                  Telegram Channel</a>
               </div>
-              <div class="form-row">
-                <div class="form-group">
-                  <label for="country">Country <span class="required">*</span></label>
-                  <input type="text" id="country" name="country" list="country-list" required autocomplete="off" />
-                  <span class="error-msg" id="error-country"></span>
-                </div>
-                <div class="form-group">
-                  <label for="school">School or University <span class="required">*</span></label>
-                  <input type="text" id="school" name="school" required />
-                  <span class="error-msg" id="error-school"></span>
-                </div>
-              </div>
+              <p style="text-align:center; margin-top:22px; font-size:0.85rem; color: var(--muted);">
+                Already an ambassador? <a href="ambassador-login" style="color: var(--blue-light);">Login here</a>.
+              </p>
             </div>
-
-            <datalist id="country-list"></datalist>
-
-            <div class="form-actions">
-              <div id="form-alert" class="form-alert hidden"></div>
-              <button type="submit" id="submit-btn" class="button primary submit-btn">
-                <span class="btn-text">Apply Now</span>
-                <span class="btn-loader hidden"></span>
-              </button>
-            </div>
-            
-            <p style="text-align: center; margin-top: 20px; color: var(--silver);">
-              Already an ambassador? <a href="ambassador-login" style="color: var(--blue);">Login here</a>.
-            </p>
-          </form>
-
-          <div id="success-state" class="success-state hidden">
-            <svg class="success-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-            <h2>Application Successful!</h2>
-            <p>Welcome to the GAAC Ambassador Program.</p>
-            <a href="ambassador-dashboard" class="button primary" style="margin-top: 24px;">Go to Dashboard</a>
-          </div>
         </div>
       </section>
     </main>
@@ -139,8 +100,8 @@
 
       const form = document.getElementById('ambassador-register-form');
       const submitBtn = document.getElementById('submit-btn');
-      const btnText = submitBtn.querySelector('.btn-text');
-      const btnLoader = submitBtn.querySelector('.btn-loader');
+      const btnText = submitBtn ? submitBtn.querySelector('.btn-text') : null;
+      const btnLoader = submitBtn ? submitBtn.querySelector('.btn-loader') : null;
       const formAlert = document.getElementById('form-alert');
       const successState = document.getElementById('success-state');
 
@@ -157,7 +118,7 @@
         btnLoader.classList.toggle('hidden', !isLoading);
       };
 
-      form.addEventListener('submit', async (e) => {
+      if (form) form.addEventListener('submit', async (e) => {
         e.preventDefault();
         hideAlert();
         document.querySelectorAll('.error-msg').forEach(el => el.textContent = '');

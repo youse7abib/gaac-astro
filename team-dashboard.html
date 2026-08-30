@@ -64,6 +64,27 @@
     .add-member-sheet h2 { font-size: 1.05rem; margin: 0 0 4px; }
     .add-member-sheet .sub { font-size: 0.82rem; color: var(--muted); margin-bottom: 18px; }
 
+    /* Mission boot splash (dashboard loading state) */
+    .boot-splash { max-width: 420px; margin: 0 auto; }
+    .boot-eyebrow { font-size: 0.68rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--cyan); margin: 0 0 10px; }
+    .boot-title { font-family: var(--font-orbitron); font-size: 1.9rem; letter-spacing: 0.14em; color: var(--white); margin: 0 0 18px; }
+    .boot-orbit { width: 88px; height: 88px; margin: 0 auto 20px; position: relative; }
+    .boot-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(38,183,255,0.35); animation: boot-spin 8s linear infinite; }
+    .boot-ring::after { content: ""; position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
+    .boot-planet { position: absolute; inset: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #7fc4ff, #0878ff 60%, #043a75); box-shadow: 0 0 22px rgba(38,183,255,0.45); animation: boot-pulse 2.4s ease-in-out infinite; }
+    .boot-star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: 0.6; }
+    .boot-star.s1 { top: 6px; right: 14px; animation: boot-twinkle 2.2s ease-in-out infinite; }
+    .boot-star.s2 { bottom: 10px; left: 8px; animation: boot-twinkle 1.7s ease-in-out 0.4s infinite; }
+    .boot-star.s3 { top: 18px; left: 4px; animation: boot-twinkle 1.9s ease-in-out 0.8s infinite; }
+    .boot-bar { width: min(84%, 300px); height: 4px; margin: 0 auto 16px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; position: relative; }
+    .boot-bar-fill { position: absolute; inset: 0; width: 40%; border-radius: inherit; background: linear-gradient(90deg, transparent, var(--cyan), transparent); animation: boot-slide 1.4s ease-in-out infinite; }
+    .boot-motto { margin: 0; color: var(--muted); font-size: 0.9rem; letter-spacing: 0.04em; }
+    @keyframes boot-spin { to { transform: rotate(360deg); } }
+    @keyframes boot-pulse { 0%,100% { box-shadow: 0 0 18px rgba(38,183,255,0.4); } 50% { box-shadow: 0 0 34px rgba(38,183,255,0.75); } }
+    @keyframes boot-twinkle { 0%,100% { opacity: 0.25; } 50% { opacity: 0.9; } }
+    @keyframes boot-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+    @media (prefers-reduced-motion: reduce) { .boot-ring, .boot-planet, .boot-star, .boot-bar-fill { animation: none; } }
+
     /* Competitions panel */
     .competitions-panel { margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); }
     .comp-head h2 { font-size: 1.15rem; margin: 0 0 4px; }
@@ -219,20 +240,25 @@
     <!-- ================= DASHBOARD STATE ================= -->
     <div id="dashboard-state" class="hidden">
       <div style="max-width: 720px; margin: 0 auto;">
-        <div id="loading-state" style="text-align: center; padding: 60px;"><p>Loading dashboard data...</p></div>
+        <div id="loading-state" style="text-align: center; padding: 60px 20px;">
+          <div class="boot-splash">
+            <div class="boot-orbit" aria-hidden="true">
+              <span class="boot-ring"></span>
+              <span class="boot-planet"></span>
+              <span class="boot-star s1"></span>
+              <span class="boot-star s2"></span>
+              <span class="boot-star s3"></span>
+            </div>
+            <p class="boot-eyebrow">Global Astronomy &amp; Astrophysics Challenge</p>
+            <p class="boot-title">GAAC 2026</p>
+            <div class="boot-bar"><span class="boot-bar-fill"></span></div>
+            <p class="boot-motto">Preparing your mission dossier&hellip;</p>
+          </div>
+        </div>
         <div id="dashboard-content" class="hidden">
           <div class="team-banner">
-            <button type="button" id="btn-delete-team-top" class="delete-icon-btn hidden" title="Delete Team / Withdraw" aria-label="Delete team or withdraw">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 6h18"></path>
-                <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"></path>
-                <line x1="10" y1="11" x2="10" y2="17"></line>
-                <line x1="14" y1="11" x2="14" y2="17"></line>
-              </svg>
-            </button>
             <p class="eyebrow" id="user-greeting">Welcome</p>
-            <h1 id="team-name">Loading...</h1>
+            <h1 id="team-name">GAAC 2026</h1>
             <div class="reg-id" id="team-reg-id">GAAC-2026-XXXX</div>
             <div class="member-count" id="team-member-count"></div>
             <div id="leader-badge" class="hidden" style="margin-top:12px;">
@@ -343,32 +369,7 @@
             </div>
           </div>
 
-          <div id="delete-modal" class="modal-overlay hidden">
-            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="delete-modal-title">
-              <button type="button" class="modal-close" id="btn-delete-close" aria-label="Close">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-              <div class="modal-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                  <line x1="12" y1="9" x2="12" y2="13"></line>
-                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                </svg>
-              </div>
-              <h2 id="delete-modal-title">Delete Team</h2>
-              <p class="modal-team" id="delete-modal-team"></p>
-              <p class="modal-msg" id="delete-modal-msg"></p>
-              <p class="modal-note">This action cannot be undone.</p>
-              <div class="modal-actions">
-                <button type="button" class="btn-secondary" id="btn-delete-cancel">Cancel</button>
-                <button type="button" class="btn-danger-solid" id="btn-delete-confirm">
-                  <span class="btn-text">Delete Team</span>
-                  <span class="btn-loader hidden"></span>
-                </button>
-              </div>
-            </div>
           </div>
-        </div>
       </div>
     </div>
   </main>
@@ -683,8 +684,7 @@
         managePanel.classList.add('hidden');
       }
 
-      // Delete/withdraw control (top-right icon) — leader only.
-      document.getElementById('btn-delete-team-top').classList.toggle('hidden', !isLeader);
+      // Delete/withdraw control (top-right icon) — removed for GAAC 2026.
 
       loadingState.classList.add('hidden');
       dashContent.classList.remove('hidden');
@@ -1035,157 +1035,8 @@
     }
 
     // ----- Delete team / withdraw (leader only) -----
-    const btnDeleteTeamTop = document.getElementById('btn-delete-team-top');
-    const teamAlert = document.getElementById('team-alert');
-    const deleteModal = document.getElementById('delete-modal');
-    const deleteModalTitle = document.getElementById('delete-modal-title');
-    const deleteModalTeam = document.getElementById('delete-modal-team');
-    const deleteModalMsg = document.getElementById('delete-modal-msg');
-    const btnDeleteClose = document.getElementById('btn-delete-close');
-    const btnDeleteCancel = document.getElementById('btn-delete-cancel');
-    const btnDeleteConfirm = document.getElementById('btn-delete-confirm');
-    const btnDeleteConfirmText = btnDeleteConfirm.querySelector('.btn-text');
-    const btnDeleteConfirmLoader = btnDeleteConfirm.querySelector('.btn-loader');
-
-    let pendingDelete = null;
-
-    function openDeleteModal() {
-      if (!isLeader) return;
-      const reg = currentRegData;
-      const members = [reg.leader, reg.member2, reg.member3].filter(Boolean);
-      const nextLeader = reg.member2 || reg.member3;
-      const willTransfer = members.length > 1;
-
-      pendingDelete = { willTransfer, reg, nextLeader };
-      deleteModalTeam.textContent = `${reg.teamName} — ${reg.registrationId}`;
-      if (willTransfer) {
-        deleteModalTitle.textContent = 'Withdraw from Team';
-        deleteModalMsg.textContent =
-          `You are about to withdraw from "${reg.teamName}". Leadership will be transferred to ` +
-          `${nextLeader.name} (${nextLeader.email}), and you will be removed from the team roster. ` +
-          `You will lose access to the exam portal and this dashboard.`;
-        btnDeleteConfirmText.textContent = 'Yes, Withdraw';
-      } else {
-        deleteModalTitle.textContent = 'Delete Team';
-        deleteModalMsg.textContent =
-          `You are about to permanently delete "${reg.teamName}". You are the only member, ` +
-          `so the team and all of its data will be erased. You will lose access to the exam portal and this dashboard.`;
-        btnDeleteConfirmText.textContent = 'Yes, Delete';
-      }
-      deleteModal.classList.remove('hidden');
-    }
-
-    function closeDeleteModal() {
-      deleteModal.classList.add('hidden');
-      pendingDelete = null;
-    }
-
-    btnDeleteTeamTop.addEventListener('click', openDeleteModal);
-    btnDeleteClose.addEventListener('click', closeDeleteModal);
-    btnDeleteCancel.addEventListener('click', closeDeleteModal);
-    deleteModal.addEventListener('click', (e) => {
-      if (e.target === deleteModal) closeDeleteModal();
-    });
-
-    btnDeleteConfirm.addEventListener('click', async () => {
-      if (!pendingDelete) return;
-      const { willTransfer, reg, nextLeader } = pendingDelete;
-      hideAlert(teamAlert);
-
-      btnDeleteConfirm.disabled = true;
-      btnDeleteConfirmText.classList.add('hidden');
-      btnDeleteConfirmLoader.classList.remove('hidden');
-
-      try {
-        if (willTransfer) {
-          await withdrawLeader(reg, nextLeader);
-          showAlert(teamAlert, `You have withdrawn from ${reg.teamName}. Leadership was transferred to ${nextLeader.name}.`, false);
-        } else {
-          await deleteEntireTeam(reg);
-          showAlert(teamAlert, `Team "${reg.teamName}" has been deleted.`, false);
-        }
-        closeDeleteModal();
-        sessionStorage.removeItem('gaac.teamId');
-        signOut(auth).catch(() => {});
-        clearUrlIdentity();
-        setTimeout(() => window.location.reload(), 1600);
-      } catch (err) {
-        console.error('Delete team error:', err);
-        if (/permission-denied|PERMISSION_DENIED/i.test(err.message)) {
-          showAlert(teamAlert, 'You do not have permission to do this.');
-        } else {
-          showAlert(teamAlert, err.message || 'Could not complete the request. Please try again.');
-        }
-        btnDeleteConfirm.disabled = false;
-        btnDeleteConfirmText.classList.remove('hidden');
-        btnDeleteConfirmLoader.classList.add('hidden');
-        closeDeleteModal();
-      }
-    });
-
-    // Promote the next member to leader, remove the withdrawing leader from
-    // the roster, and revoke their access. All in one atomic batch.
-    async function withdrawLeader(reg, nextLeader) {
-      const oldEmail = norm(auth.currentUser.email);
-      // Resolve the leader's own uid (legacy registrations may lack it).
-      const oldUid = await resolveMemberUid(oldEmail, reg.password);
-
-      // Shift members up: leader = next member, member3 fills member2, and
-      // the old leader's slot disappears.
-      const upd = { leader: nextLeader, member3: deleteField() };
-      upd.member2 = reg.member3 ? reg.member3 : deleteField();
-
-      const batch = writeBatch(db);
-      batch.update(doc(db, 'registrations', currentTeamId), upd);
-      batch.delete(doc(db, 'registeredEmails', oldEmail));
-      if (oldUid) {
-        batch.delete(doc(db, 'teamMembers', oldUid));
-        batch.set(doc(db, 'removedMembers', oldUid), {
-          email: oldEmail,
-          teamId: currentTeamId,
-          removedAt: serverTimestamp()
-        });
-        batch.set(doc(db, 'removedEmails', oldEmail), {
-          uid: oldUid,
-          email: oldEmail,
-          teamId: currentTeamId,
-          removedAt: serverTimestamp()
-        });
-      }
-      // Notify the new leader.
-      const mailId = `leader-${currentTeamId}-${Date.now()}`;
-      batch.set(doc(db, 'mail', mailId), {
-        to: nextLeader.email,
-        message: {
-          subject: 'GAAC 2026 — You are now the leader of Team ' + reg.teamName,
-          html: leaderTransferHtml({ name: nextLeader.name, teamName: reg.teamName, regId: currentTeamId })
-        }
-      });
-      await batch.commit();
-    }
-
-    // Solo leader: permanently delete the whole team in one atomic batch.
-    async function deleteEntireTeam(reg) {
-      const lowerTeamName = reg.teamName.toLowerCase().replace(/[/\\]/g, '-');
-      const emailSnap = await getDoc(doc(db, 'registeredEmails', norm(reg.leader.email)));
-      const leaderUid = emailSnap.exists() ? emailSnap.data().uid : null;
-
-      const batch = writeBatch(db);
-      batch.delete(doc(db, 'registrations', currentTeamId));
-      batch.delete(doc(db, 'registeredTeams', lowerTeamName));
-      batch.delete(doc(db, 'mail', currentTeamId));
-      batch.delete(doc(db, 'teams', currentTeamId));
-      batch.delete(doc(db, 'registeredEmails', norm(reg.leader.email)));
-      if (leaderUid) {
-        batch.delete(doc(db, 'teamMembers', leaderUid));
-        batch.set(doc(db, 'removedMembers', leaderUid), {
-          email: norm(reg.leader.email),
-          teamId: currentTeamId,
-          removedAt: serverTimestamp()
-        });
-      }
-      await batch.commit();
-    }
+    // Removed for GAAC 2026: teams can no longer be deleted or withdrawn from
+    // the dashboard. The related modal markup remains dead behind CSS.
 
     // ----- Email template for newly added members -----
     function memberEmailHtml({ name, email, teamName, regId, password }) {
