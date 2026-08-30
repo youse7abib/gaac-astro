@@ -1233,7 +1233,8 @@ p  { overflow-wrap: anywhere; }
    ================================================================ */
 .site-footer {
   display: grid;
-  grid-template-columns: minmax(0,1.4fr) minmax(150px,0.6fr) minmax(200px,0.75fr);
+  grid-template-columns: minmax(0,1.4fr) minmax(150px,0.6fr) minmax(200px,0.9fr);
+  align-items: start;
   gap: 32px;
   padding: 42px clamp(18px,4vw,68px);
   border-top: 1px solid var(--line);
@@ -1241,44 +1242,60 @@ p  { overflow-wrap: anywhere; }
 }
 .site-footer img { width: 84px; margin-bottom: 13px; }
 .site-footer > div > p { max-width: 580px; color: var(--muted); line-height: 1.64; font-size: 0.88rem; }
-.site-footer nav { display: grid; gap: 9px; align-content: start; color: #b8d0ea; font-weight: 600; font-size: 0.88rem; }
+.site-footer nav { display: grid; gap: 9px; color: #b8d0ea; font-weight: 600; font-size: 0.88rem; }
 .site-footer a { transition: color 180ms ease, transform 180ms ease; }
 .site-footer a:hover { color: var(--cyan); transform: translateX(4px); }
-.footer-contacts { display: grid; gap: 8px; align-content: start; align-self: center; }
+.footer-contacts { display: grid; gap: 9px; align-content: start; }
 .footer-contacts .feet-logo {
-  grid-column: 1 / -1;
-  font-family: var(--font-orbitron);
-  font-size: 0.72rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: var(--cyan);
-  margin: 0 0 2px;
+  color: #b8d0ea;
+  font-weight: 700;
+  font-size: 0.88rem;
+  letter-spacing: 0.02em;
+  text-transform: none;
+  margin: 0;
 }
-.footer-contacts a {
-  color: var(--blue-light);
+.footer-contacts .footer-link,
+.footer-contacts .footer-email,
+.site-footer .footer-email {
+  color: #b8d0ea;
   font-weight: 600;
   font-size: 0.88rem;
   width: max-content;
 }
-.footer-contacts .footer-email { align-self: auto; color: var(--blue-light); font-weight: 700; font-size: 0.88rem; }
+.site-footer > div:first-child {
+  display: grid;
+  gap: 9px;
+  justify-items: start;
+  align-content: start;
+}
+.site-footer > div:first-child > img { margin-bottom: 0; }
+.site-footer > div:first-child > .footer-social { margin-top: 12px; }
+.site-footer > div:first-child > .copyright { margin-top: 0; }
+.footer-contacts .footer-bottom {
+  display: grid;
+  gap: 8px;
+  justify-items: start;
+  margin-top: 18px;
+}
 .footer-social {
-  grid-column: 1 / -1;
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
-  margin-top: 10px;
-  padding-top: 0;
+  margin-top: 6px;
 }
 .footer-social .foot-label {
   color: var(--muted); font-size: 0.75rem; font-weight: 800;
   letter-spacing: 0.08em; text-transform: uppercase; margin-right: 2px;
 }
 .social-icon {
-  width: 36px;
-  height: 36px;
+  flex: 0 0 auto;
+  width: 38px;
+  height: 38px;
+  aspect-ratio: 1 / 1;
   border-radius: 50%;
-  border: 1px solid rgba(38,183,255,0.35);
-  background: rgba(38,183,255,0.08);
+  border: 2px solid rgba(38,183,255,0.45);
+  background: rgba(38,183,255,0.1);
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1291,7 +1308,7 @@ p  { overflow-wrap: anywhere; }
   color: var(--cyan);
   transform: translateY(-2px);
 }
-.copyright { grid-column: 1/-1; padding-top: 20px; border-top: 1px solid var(--line); font-size: 0.84rem; color: var(--muted); }
+.copyright { margin: 14px 0 0; font-size: 0.84rem; color: var(--muted); }
 
 /* ================================================================
    REVEAL ANIMATIONS  (no blur — clean professional transitions)

@@ -68,22 +68,13 @@
     .boot-splash { max-width: 420px; margin: 0 auto; }
     .boot-eyebrow { font-size: 0.68rem; letter-spacing: 0.34em; text-transform: uppercase; color: var(--cyan); margin: 0 0 10px; }
     .boot-title { font-family: var(--font-orbitron); font-size: 1.9rem; letter-spacing: 0.14em; color: var(--white); margin: 0 0 18px; }
-    .boot-orbit { width: 88px; height: 88px; margin: 0 auto 20px; position: relative; }
-    .boot-ring { position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(38,183,255,0.35); animation: boot-spin 8s linear infinite; }
-    .boot-ring::after { content: ""; position: absolute; top: -3px; left: 50%; width: 6px; height: 6px; border-radius: 50%; background: var(--cyan); box-shadow: 0 0 12px var(--cyan); }
-    .boot-planet { position: absolute; inset: 22px; border-radius: 50%; background: radial-gradient(circle at 35% 30%, #7fc4ff, #0878ff 60%, #043a75); box-shadow: 0 0 22px rgba(38,183,255,0.45); animation: boot-pulse 2.4s ease-in-out infinite; }
-    .boot-star { position: absolute; width: 3px; height: 3px; border-radius: 50%; background: #fff; opacity: 0.6; }
-    .boot-star.s1 { top: 6px; right: 14px; animation: boot-twinkle 2.2s ease-in-out infinite; }
-    .boot-star.s2 { bottom: 10px; left: 8px; animation: boot-twinkle 1.7s ease-in-out 0.4s infinite; }
-    .boot-star.s3 { top: 18px; left: 4px; animation: boot-twinkle 1.9s ease-in-out 0.8s infinite; }
+    .boot-logo-wrap { position: relative; width: 150px; height: 150px; margin: 0 auto 22px; }
+    .boot-logo { position: absolute; inset: 22px; width: 106px; height: 106px; object-fit: contain; filter: drop-shadow(0 0 16px rgba(38,183,255,0.35)); }
     .boot-bar { width: min(84%, 300px); height: 4px; margin: 0 auto 16px; border-radius: 999px; background: rgba(255,255,255,0.08); overflow: hidden; position: relative; }
     .boot-bar-fill { position: absolute; inset: 0; width: 40%; border-radius: inherit; background: linear-gradient(90deg, transparent, var(--cyan), transparent); animation: boot-slide 1.4s ease-in-out infinite; }
     .boot-motto { margin: 0; color: var(--muted); font-size: 0.9rem; letter-spacing: 0.04em; }
-    @keyframes boot-spin { to { transform: rotate(360deg); } }
-    @keyframes boot-pulse { 0%,100% { box-shadow: 0 0 18px rgba(38,183,255,0.4); } 50% { box-shadow: 0 0 34px rgba(38,183,255,0.75); } }
-    @keyframes boot-twinkle { 0%,100% { opacity: 0.25; } 50% { opacity: 0.9; } }
     @keyframes boot-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
-    @media (prefers-reduced-motion: reduce) { .boot-ring, .boot-planet, .boot-star, .boot-bar-fill { animation: none; } }
+    @media (prefers-reduced-motion: reduce) { .boot-bar-fill { animation: none; } }
 
     /* Competitions panel */
     .competitions-panel { margin-top: 32px; padding-top: 24px; border-top: 1px solid rgba(255,255,255,0.08); }
@@ -106,11 +97,6 @@
     .comp-placeholder svg { display: block; margin: 0 auto 12px; color: rgba(38,183,255,0.5); }
     .comp-empty-msg { font-size: 1rem; font-weight: 700; color: var(--silver); margin: 0 0 6px; }
     .comp-empty-sub { font-size: 0.8rem; color: var(--muted); margin: 0; max-width: 420px; margin: 0 auto; }
-    .btn-danger {
-      background: transparent; border: 1px solid rgba(255, 71, 87, 0.5); color: #ff6b7a;
-      padding: 8px 16px; border-radius: 8px; font-size: 0.8rem; font-weight: 600; transition: all 200ms;
-    }
-    .btn-danger:hover { background: rgba(255, 71, 87, 0.12); }
     .manage-panel {
       margin-top: 28px; background: transparent; border: none; border-radius: 0; padding: 0; backdrop-filter: none;
     }
@@ -122,58 +108,24 @@
     .info-note { color: var(--muted); font-size: 0.78rem; line-height: 1.6; margin-top: 12px; }
     .notice { color: var(--muted); font-size: 0.85rem; text-align: center; padding: 40px 20px; line-height: 1.7; }
     .badge-warn { color: #ffc26b; }
-    .modal-overlay {
-      position: fixed; inset: 0; z-index: 1000;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(5, 8, 14, 0.78); backdrop-filter: blur(6px); padding: 20px;
+    .announce-banner {
+      text-align: left;
+      background: rgba(38, 183, 255, 0.06);
+      border: 1px solid rgba(38, 183, 255, 0.22);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 22px;
     }
-    .modal-card {
-      width: 100%; max-width: 460px; position: relative;
-      background: linear-gradient(160deg, #121a28, #0a0e17);
-      border: 1px solid rgba(255, 71, 87, 0.35); border-radius: 16px;
-      padding: 34px 28px 26px; text-align: center;
-      box-shadow: 0 24px 64px rgba(0, 0, 0, 0.65);
+    .announce-head { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+    .announce-pill {
+      background: rgba(38, 183, 255, 0.12); color: var(--blue-light);
+      border: 1px solid rgba(38, 183, 255, 0.35);
+      font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+      padding: 3px 9px; border-radius: 999px; white-space: nowrap;
     }
-    .modal-close {
-      position: absolute; top: 12px; right: 12px;
-      width: 30px; height: 30px; border-radius: 8px;
-      display: inline-flex; align-items: center; justify-content: center;
-      background: transparent; border: none; color: #7a9bb5;
-    }
-    .modal-close:hover { color: #fff; background: rgba(255, 255, 255, 0.08); }
-    .modal-icon {
-      width: 58px; height: 58px; margin: 0 auto 16px; border-radius: 14px;
-      display: flex; align-items: center; justify-content: center;
-      background: rgba(255, 71, 87, 0.1); border: 1px solid rgba(255, 71, 87, 0.4); color: #ff6b7a;
-    }
-    .modal-card h2 {
-      margin: 0 0 8px; font-size: 1.15rem;
-      font-family: var(--font-orbitron); font-weight: 700; color: #ffffff; letter-spacing: 0.04em;
-    }
-    .modal-team {
-      margin: 0 0 14px; font-family: var(--font-orbitron); font-size: 0.82rem;
-      color: #26b7ff; font-weight: 700; letter-spacing: 0.08em; word-break: break-word;
-    }
-    .modal-msg { margin: 0 0 18px; color: #aec8e0; font-size: 0.9rem; line-height: 1.75; }
-    .modal-note { margin: 0 0 24px; color: #ff6b7a; font-size: 0.78rem; }
-    .modal-actions { display: flex; gap: 12px; }
-    .modal-actions button {
-      flex: 1; padding: 12px; border-radius: 10px;
-      font-size: 0.85rem; font-weight: 700; transition: all 200ms;
-    }
-    .btn-secondary {
-      background: rgba(255, 255, 255, 0.06); color: #e8f0f8;
-      border: 1px solid rgba(255, 255, 255, 0.16);
-    }
-    .btn-secondary:hover { background: rgba(255, 255, 255, 0.12); }
-    .btn-danger-solid {
-      background: #ff4757; color: #fff; border: none; display: inline-flex;
-      align-items: center; justify-content: center; gap: 8px;
-    }
-    .btn-danger-solid:hover { background: #ff5c6b; }
-    .btn-danger-solid:disabled { opacity: 0.6; cursor: not-allowed !important; }
-    .modal-actions .btn-loader { width: 16px; height: 16px; border-width: 2px; }
-  </style>
+    .announce-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--silver); }
+    .announce-body { margin: 0; color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
+    </style>
 </head>
 <body class="page-home">
   <canvas class="space-canvas" data-space-canvas aria-hidden="true"></canvas>
@@ -195,7 +147,7 @@
       <a href="awards">Awards</a>
       <a href="ambassador">Ambassador</a>
     </nav>
-    <button id="btn-logout" class="button secondary" style="padding: 5px 10px; font-size: 0.75rem; display: none;">Logout</button>
+    <button id="btn-logout" class="button secondary" style="width: max-content; justify-self: end; padding: 5px 14px; font-size: 0.72rem; min-height: 0; line-height: 1.4; white-space: nowrap; display: none;">Logout</button>
   </header>
 
   <main class="td-wrapper">
@@ -242,12 +194,8 @@
       <div style="max-width: 720px; margin: 0 auto;">
         <div id="loading-state" style="text-align: center; padding: 60px 20px;">
           <div class="boot-splash">
-            <div class="boot-orbit" aria-hidden="true">
-              <span class="boot-ring"></span>
-              <span class="boot-planet"></span>
-              <span class="boot-star s1"></span>
-              <span class="boot-star s2"></span>
-              <span class="boot-star s3"></span>
+            <div class="boot-logo-wrap">
+              <img src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" class="boot-logo" />
             </div>
             <p class="boot-eyebrow">Global Astronomy &amp; Astrophysics Challenge</p>
             <p class="boot-title">GAAC 2026</p>
@@ -256,6 +204,13 @@
           </div>
         </div>
         <div id="dashboard-content" class="hidden">
+          <div id="announcement-banner" class="announce-banner">
+            <div class="announce-head">
+              <span class="announce-pill">Announcement</span>
+              <h2 class="announce-title">Welcome to your GAAC 2026 Team Dashboard</h2>
+            </div>
+            <p class="announce-body">This page displays your team roster. Mock Test availability, Round 1, and Round 2 will be announced to the registered team email, and each round will open from the tabs above when it becomes active.</p>
+          </div>
           <div class="team-banner">
             <p class="eyebrow" id="user-greeting">Welcome</p>
             <h1 id="team-name">GAAC 2026</h1>
@@ -265,7 +220,7 @@
               <span class="m-role" style="display:inline-block;">You are the Team Leader</span>
             </div>
             <div id="registration-closed-note" class="hidden" style="margin-top:12px;">
-              <span class="m-role badge-warn" style="display:inline-block;">Registration is closed — roster is locked</span>
+              <span class="m-role badge-warn" style="display:inline-block;">Registration is closed: roster is locked</span>
             </div>
           </div>
 
@@ -340,34 +295,10 @@
             <div class="comp-placeholder">
               <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
               <p class="comp-empty-msg">No active competitions yet.</p>
-              <p class="comp-empty-sub">In the upcoming days, we will add the Mock Test, then Round 1, Round 2, and more. Clicking one of the tabs above will take you to the exam portal.</p>
+              <p class="comp-empty-sub">Monitor your primary email: Mock Test availability, Round 1, and Round 2 will be announced to the registered team email, and each round will open from the tabs above when it becomes active.</p>
             </div>
           </div>
-
-          <div id="remove-modal" class="modal-overlay hidden">
-            <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="remove-modal-title">
-              <button type="button" class="modal-close" id="btn-remove-close" aria-label="Close">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
-              </button>
-              <div class="modal-icon">
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
-                  <line x1="12" y1="9" x2="12" y2="13"></line>
-                  <line x1="12" y1="17" x2="12.01" y2="17"></line>
-                </svg>
-              </div>
-              <h2 id="remove-modal-title">Remove Member</h2>
-              <p class="modal-msg" id="remove-modal-msg"></p>
-              <p class="modal-note">This action cannot be undone.</p>
-              <div class="modal-actions">
-                <button type="button" class="btn-secondary" id="btn-remove-cancel">Cancel</button>
-                <button type="button" class="btn-danger-solid" id="btn-remove-confirm">
-                  <span class="btn-text">Remove</span>
-                  <span class="btn-loader hidden"></span>
-                </button>
-              </div>
-            </div>
-          </div>
+        </div>
 
           </div>
       </div>
@@ -375,22 +306,37 @@
   </main>
 
   <footer class="site-footer">
-    <div>
-      <img src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
-      <p>Global Astronomy &amp; Astrophysics Challenge, organized by STEM October Astronomy Club.</p>
-    </div>
-    <nav aria-label="Footer navigation">
-      <a href="index">Home</a>
-      <a href="syllabus">Syllabus</a>
-      <a href="timeline">Timeline</a>
-      <a href="partners">Partners</a>
-      <a href="awards">Awards</a>
-      <a href="ambassador">Ambassador</a>
-    </nav>
+  <div>
+    <img src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC logo" />
+    <p>Global Astronomy &amp; Astrophysics Challenge, organized by STEM October Astronomy Club.</p>
     <a class="footer-email" href="mailto:astronomyclub64@gmail.com">astronomyclub64@gmail.com</a>
     <a class="footer-email" href="mailto:gaac@stemastronomyclub.org">gaac@stemastronomyclub.org</a>
+    <div class="footer-social">
+        <span class="foot-label">Follow us:</span>
+        <a class="social-icon" href="https://www.instagram.com/stemoct_astro" target="_blank" rel="noreferrer" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"></rect><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"></path><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"></line></svg></a>
+        <a class="social-icon" href="https://www.facebook.com/share/p/1CRnMmvYNz/" target="_blank" rel="noreferrer" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></svg></a>
+        <a class="social-icon" href="https://www.linkedin.com/company/stem-october-astronomy-club/" target="_blank" rel="noreferrer" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path><rect x="2" y="9" width="4" height="12"></rect><circle cx="4" cy="4" r="2"></circle></svg></a>
+      </div>
     <p class="copyright">Copyright 2026 Global Astronomy &amp; Astrophysics Challenge.</p>
-  </footer>
+  </div>
+  <nav aria-label="Footer navigation">
+    <a href="index">Home</a>
+    <a href="syllabus">Syllabus</a>
+    <a href="timeline">Timeline</a>
+    <a href="partners">Partners</a>
+    <a href="awards">Awards</a>
+    <a href="ambassador">Ambassador</a>
+  </nav>
+  <div class="footer-contacts">
+    <p class="feet-logo">Contacts</p>
+    <a class="footer-link" href="https://whatsapp.com/channel/0029Vb882l9ElagzDJjLN92Q" target="_blank" rel="noreferrer">WhatsApp Channel</a>
+    <a class="footer-link" href="https://t.me/GAACAstronomy" target="_blank" rel="noreferrer">Telegram Channel</a>
+    <a class="footer-link" href="https://chat.whatsapp.com/GBiSiKCkhP8KcdsGFdYixQ" target="_blank" rel="noreferrer">WhatsApp Group 1</a>
+    <a class="footer-link" href="https://chat.whatsapp.com/CHHfHi1q44b3dnDFwxnv5u" target="_blank" rel="noreferrer">WhatsApp Group 2</a>
+    
+  </div>
+  
+</footer>
 
   <datalist id="country-list"></datalist>
 
@@ -648,20 +594,8 @@
             <div class="m-role">${m.label}</div>
           </div>
           <div class="m-row"><strong>Email:</strong> ${escapeHtml(m.data.email)}</div>`;
-        if (!isLeaderCard && isLeader && registrationOpen) {
-          html += `<div class="m-actions">
-            <button class="btn-danger" data-remove="${m.key}" data-email="${escapeHtml(m.data.email)}" data-name="${escapeHtml(m.data.name)}">Remove Member</button>
-          </div>`;
-        }
         card.innerHTML = html;
         grid.appendChild(card);
-      });
-
-      // Bind remove buttons
-      grid.querySelectorAll('[data-remove]').forEach((btn) => {
-        btn.addEventListener('click', () => {
-          removeMember(btn.getAttribute('data-remove'), btn.getAttribute('data-email'), btn.getAttribute('data-name'));
-        });
       });
 
       // Leader controls
@@ -733,7 +667,7 @@
       hideAlert(addAlert);
 
       if (!isLeader) return;
-      if (!registrationOpen) { showAlert(addAlert, 'Registration is currently closed — the roster is locked.'); return; }
+      if (!registrationOpen) { showAlert(addAlert, 'Registration is currently closed. The roster is locked.'); return; }
 
       const name = document.getElementById('am-name').value.trim();
       const email = document.getElementById('am-email').value.trim().toLowerCase();
@@ -880,128 +814,7 @@
       }
     });
 
-    // ----- Remove member (leader only) -----
-    const removeModal = document.getElementById('remove-modal');
-    const removeModalMsg = document.getElementById('remove-modal-msg');
-    const btnRemoveClose = document.getElementById('btn-remove-close');
-    const btnRemoveCancel = document.getElementById('btn-remove-cancel');
-    const btnRemoveConfirm = document.getElementById('btn-remove-confirm');
-    const btnRemoveConfirmText = btnRemoveConfirm.querySelector('.btn-text');
-    const btnRemoveConfirmLoader = btnRemoveConfirm.querySelector('.btn-loader');
-
-    let pendingRemove = null;
-
-    function openRemoveModal(slot, email, name) {
-      if (!isLeader || !registrationOpen) return;
-      pendingRemove = { slot, email, name };
-      removeModalMsg.textContent = `Remove ${name} (${email}) from your team? This will immediately revoke their access to the exam portal.`;
-      btnRemoveConfirm.disabled = false;
-      btnRemoveConfirmText.classList.remove('hidden');
-      btnRemoveConfirmLoader.classList.add('hidden');
-      removeModal.classList.remove('hidden');
-    }
-
-    function closeRemoveModal() {
-      removeModal.classList.add('hidden');
-      pendingRemove = null;
-    }
-
-    btnRemoveClose.addEventListener('click', closeRemoveModal);
-    btnRemoveCancel.addEventListener('click', closeRemoveModal);
-    removeModal.addEventListener('click', (e) => {
-      if (e.target === removeModal) closeRemoveModal();
-    });
-
-    async function removeMember(slot, email, name) {
-      openRemoveModal(slot, email, name);
-    }
-
-    btnRemoveConfirm.addEventListener('click', async () => {
-      if (!pendingRemove) return;
-      const { slot, email, name } = pendingRemove;
-
-      const teamAlert = document.getElementById('team-alert');
-      hideAlert(teamAlert);
-
-      btnRemoveConfirm.disabled = true;
-      btnRemoveConfirmText.classList.add('hidden');
-      btnRemoveConfirmLoader.classList.remove('hidden');
-
-      try {
-        // Find the member's uid so we can delete their teamMembers mapping.
-        // Legacy teams registered before uids were stored don't have one on
-        // the email doc — discover it by signing in with the shared password.
-        const uid = await resolveMemberUid(email, currentRegData.password);
-        if (!uid) {
-          showAlert(teamAlert, `Could not resolve ${email}'s account to remove them. Please contact us so we can remove them manually.`);
-          return;
-        }
-
-        const batch = writeBatch(db);
-        batch.delete(doc(db, 'registeredEmails', norm(email)));
-        batch.delete(doc(db, 'teamMembers', uid));
-        batch.update(doc(db, 'registrations', currentTeamId), { [slot]: deleteField() });
-        // memberCount: decrement an existing teams doc, or seed the doc with
-        // the exact new count if it does not exist yet.
-        const teamRef = doc(db, 'teams', currentTeamId);
-        const teamSnap = await getDoc(teamRef);
-        if (teamSnap.exists()) {
-          batch.update(teamRef, { memberCount: increment(-1) });
-        } else {
-          const regNow = currentRegData;
-          const rosterLen = (regNow.leader ? 1 : 0) + (regNow.member2 ? 1 : 0) + (regNow.member3 ? 1 : 0);
-          batch.set(teamRef, { memberCount: rosterLen - 1 });
-        }
-        // Audit logs so the admin can lock the account and the leader can
-        // re-add the member later without needing their password.
-        batch.set(doc(db, 'removedMembers', uid), {
-          email: norm(email),
-          teamId: currentTeamId,
-          removedAt: serverTimestamp()
-        });
-        batch.set(doc(db, 'removedEmails', norm(email)), {
-          uid,
-          email: norm(email),
-          teamId: currentTeamId,
-          removedAt: serverTimestamp()
-        });
-
-        await batch.commit();
-
-        showAlert(teamAlert, `${name} has been removed. Their portal access is now revoked.`, false);
-        closeRemoveModal();
-
-        // Update the roster locally instead of re-reading the registration doc.
-        currentRegData[slot] = null;
-        renderDashboard(auth.currentUser);
-      } catch (err) {
-        console.error('Remove member error:', err);
-        const detail = err.code ? ` (${err.code})` : '';
-        showAlert(teamAlert, `Could not remove the member.${detail} Please try again.`);
-        btnRemoveConfirm.disabled = false;
-        btnRemoveConfirmText.classList.remove('hidden');
-        btnRemoveConfirmLoader.classList.add('hidden');
-      }
-    });
-
-    // Resolve a member's Auth uid without needing their password.
-    // 1. Their registeredEmails doc stores the uid (post-registration).
-    // 2. Legacy fallback: the shared team password opens the account, so
-    //    signing in on the roster app reveals its uid.
-    async function resolveMemberUid(email, teamPassword) {
-      try {
-        const snap = await getDoc(doc(db, 'registeredEmails', norm(email)));
-        if (snap.exists() && snap.data().uid) return snap.data().uid;
-      } catch (e) { /* doc missing or unreadable */ }
-      if (teamPassword) {
-        await signOut(rosterAuth).catch(() => {});
-        try {
-          const cred = await signInWithEmailAndPassword(rosterAuth, norm(email), teamPassword);
-          return cred.user.uid;
-        } catch (e) { /* wrong password / no account */ }
-      }
-      return null;
-    }
+    // Member removal is disabled for GAAC 2026: with registration closed the roster is locked.
 
     // Find a previously-removed member's uid so they can be re-added to the
     // same team. 1) the removal audit stores the email -> uid; 2) fallback:
