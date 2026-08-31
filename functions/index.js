@@ -81,7 +81,7 @@ function genPassword() {
 }
 
 // Branded credentials email body (mirrors the client-side add-member email).
-function memberCredentialEmail({ name, email, teamName, regId, password }) {
+function memberCredentialEmail({ name, email, teamName, regId, password, resetLink }) {
   return `<div style="background-color:#070b14;padding:40px 16px;font-family:Arial,Helvetica,sans-serif;">
   <div style="max-width:560px;margin:0 auto;background:#0e1526;border-radius:16px;overflow:hidden;border:1px solid #1b2540;">
     <div style="background:#0a0f1e;padding:28px 32px;text-align:center;border-bottom:1px solid #1b2540;">
@@ -99,6 +99,7 @@ function memberCredentialEmail({ name, email, teamName, regId, password }) {
         <p style="margin:0 0 6px;color:#e8f0f8;font-size:14px;">Password: <strong style="color:#26b7ff;">${password}</strong></p>
         <p style="margin:0;color:#e8f0f8;font-size:14px;">Team ID: <strong style="color:#26b7ff;">${regId}</strong></p>
       </div>
+      ${resetLink ? `<p style="margin:0 0 20px;color:#aec8e0;font-size:14px;line-height:1.7;">Forgot your password or want to change it? <a href="${resetLink}" style="color:#26b7ff;text-decoration:underline;">Set a new one here</a>.</p>` : ''}
       <a href="https://gaac-registration-2026.web.app/team-dashboard" style="display:inline-block;background:linear-gradient(135deg,#26b7ff,#0878ff);color:#ffffff;text-decoration:none;padding:14px 32px;border-radius:8px;font-weight:bold;font-size:14px;">Open Team Dashboard</a>
     </div>
     <div style="background:#0a0f1e;padding:20px 32px;text-align:center;border-top:1px solid #1b2540;">
@@ -820,3 +821,143 @@ exports.adminAddMemberToTeam = onCall({ region: 'africa-south1' }, async (reques
   console.log(`adminAddMemberToTeam: ${email} (uid=${uid}) added to ${teamId} as ${slot}`);
   return { success: true, uid, slot };
 });
+
+/**
+ * Admin-only bulk credentials mailer.
+ *
+ * For each target team (registration ids given, or ALL teams when none are):
+ *   1. ensures the leader + members each have a usable Auth account:
+ *        - existing account  → password aligned to the shared team password
+ *        - missing account   → created with the team password (repairs the
+ *                              truly-no-account cases) and the
+ *                              `registeredEmails` / `teamMembers` indexes rebuilt
+ *   2. skips anyone with a `removedEmails` removal-audit record
+ *   3. queues a branded credentials email to every member containing the team
+ *      password AND a password-reset link (Trigger Email extension)
+ *
+ * Idempotent: mail docs use deterministic ids, so re-running refreshes the
+ * same jobs instead of duplicating them.
+ */
+exports.sendCredentials = onCall(
+  { region: 'africa-south1', timeoutSeconds: 540, memory: '1GiB' },
+  async (request) => {
+    if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
+    const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+    if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+      throw new HttpsError('permission-denied', 'Admin only.');
+    }
+
+    const data = request.data || {};
+    let regIds = null;
+    if (typeof data.regIds === 'string' && data.regIds.trim()) {
+      regIds = data.regIds.split(/[\n,;]+/).map(s => s.trim().replace(/["'`]/g, '')).filter(Boolean);
+    } else if (Array.isArray(data.regIds)) {
+      regIds = data.regIds.map(s => String(s).trim()).filter(Boolean);
+    }
+    if (regIds && regIds.length > 500) throw new HttpsError('invalid-argument', 'Max 500 teams per run.');
+    const maxTeams = Math.min(Number(data.limit) || 200, 500);
+
+    const result = { teamsProcessed: 0, accountsCreated: 0, emailsQueued: 0, skipped: [], errors: [] };
+    const removedMemo = {};
+
+    const wasRemoved = async (email) => {
+      if (removedMemo[email] !== undefined) return removedMemo[email];
+      const snap = await db.collection('removedEmails').doc(email).get();
+      removedMemo[email] = snap.exists;
+      return snap.exists;
+    };
+
+    const collections = db.collection('registrations');
+    const query = regIds && regIds.length
+      ? collections.where(admin.firestore.FieldPath.documentId(), 'in', regIds)
+      : collections;
+
+    const snap = await query.get();
+
+    for (const doc of snap.docs) {
+      if (result.teamsProcessed >= maxTeams) break;
+      if (doc.id.indexOf('=') === 0) continue; // canary doc
+      const reg = doc.data() || {};
+      if (!reg.leader || !reg.leader.email) {
+        result.skipped.push({ teamId: doc.id, reason: 'no leader' });
+        continue;
+      }
+
+      const teamId = doc.id;
+      const teamName = reg.teamName || teamId;
+      const teamPassword = reg.password || '';
+      if (!teamPassword) {
+        result.skipped.push({ teamId, reason: 'no stored password' });
+        continue;
+      }
+
+      let batch = db.batch();
+      let writes = 0;
+      let members = 0;
+
+      for (const slot of ['leader', 'member2', 'member3']) {
+        const m = reg[slot];
+        if (!m || !m.email) continue;
+        const email = normalizeEmail(m.email);
+        const name = m.name || email;
+        if ((await wasRemoved(email))) continue;
+
+        let uid = null;
+        try {
+          const user = await admin.auth().getUserByEmail(email);
+          uid = user.uid;
+          await admin.auth().updateUser(uid, { password: teamPassword });
+        } catch (err) {
+          if (err.code !== 'auth/user-not-found') {
+            result.errors.push({ team: teamId, email, error: err.message });
+            continue;
+          }
+          const created = await admin.auth().createUser({ email, password: teamPassword, displayName: name });
+          uid = created.uid;
+          result.accountsCreated += 1;
+        }
+
+        const reRef = db.collection('registeredEmails').doc(email);
+        const reSnap = await reRef.get();
+        if (!reSnap.exists) {
+          batch.set(reRef, { teamName, registrationId: teamId, uid });
+          writes++;
+        }
+        const tmRef = db.collection('teamMembers').doc(uid);
+        const tmSnap = await tmRef.get();
+        if (!tmSnap.exists) {
+          batch.set(tmRef, {
+            teamId, email, role: slot,
+            createdAt: admin.firestore.FieldValue.serverTimestamp()
+          });
+          writes++;
+        }
+
+        const resetLink = await admin.auth().generatePasswordResetLink(email);
+        batch.set(db.collection('mail').doc(`creds-${teamId}-${email}`), {
+          to: [email],
+          message: {
+            subject: `GAAC 2026 — Your ${teamName} sign-in details`,
+            html: memberCredentialEmail({
+              name,
+              email,
+              teamName,
+              regId: teamId,
+              password: teamPassword,
+              resetLink
+            })
+          }
+        });
+        writes++;
+        members++;
+        result.emailsQueued++;
+      }
+
+      if (writes > 0) { await batch.commit(); }
+      if (members > 0) result.teamsProcessed++;
+    }
+
+    console.log(`sendCredentials: ${result.teamsProcessed} teams, ${result.emailsQueued} mails, ${result.accountsCreated} accounts created`);
+    return result;
+  }
+);

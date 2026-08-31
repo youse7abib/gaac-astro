@@ -158,6 +158,25 @@
             <div class="alert hidden" id="add-alert" style="margin-top:0;"></div>
           </div>
         </div>
+
+        <div class="card">
+          <h2>3 · Email credentials &amp; reset links</h2>
+          <p class="sub">Repairs missing accounts first (creates them / aligns them to the shared team password), rebuilds missing indexes, then emails every member their login details plus a password-reset link. Idempotent — re-running refreshes the same queued jobs.</p>
+          <div class="grid">
+            <div>
+              <label for="send-regids">Team IDs (one per line — leave blank to process ALL teams)</label>
+              <textarea id="send-regids" rows="5" placeholder="GAAC-2026-0346&#10;GAAC-2026-0889" style="resize:vertical;font-family:Consolas,monospace;font-size:0.8rem;"></textarea>
+            </div>
+            <div>
+              <label for="send-limit">Max teams this run</label>
+              <input id="send-limit" type="number" value="200" min="1" max="500" />
+            </div>
+          </div>
+          <div class="row" style="margin-top:16px;">
+            <button id="btn-send-creds">Queue Credential Emails</button>
+            <div class="alert hidden" id="send-alert" style="margin-top:0;"></div>
+          </div>
+        </div>
       </section>
     </main>
 
@@ -188,6 +207,7 @@
       const getRegistrationInfo = httpsCallable(functions, 'getRegistrationInfo');
       const removeOrphanedAccount = httpsCallable(functions, 'removeOrphanedAccount');
       const adminAddMemberToTeam = httpsCallable(functions, 'adminAddMemberToTeam');
+      const sendCredentials = httpsCallable(functions, 'sendCredentials');
 
       // ---- Auto-open tools when a persistent admin session is already active.
       onAuthStateChanged(auth, (user) => {
@@ -320,6 +340,32 @@
             `Login: ${payload.email} + shared team password. A credential email was queued.`, 'success');
         } catch (e) {
           setAlert(alertEl, e.message || 'Add failed.', 'error');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      $('btn-send-creds').addEventListener('click', async () => {
+        const alertEl = $('send-alert');
+        clearAlert(alertEl);
+        const raw = $('send-regids').value.trim();
+        const regIds = raw ? raw.split(/[\n,;]+/).map(s => s.trim()).filter(Boolean) : [];
+        const limit = Math.max(1, Math.min(parseInt($('send-limit').value, 10) || 200, 500));
+        const scope = regIds.length
+          ? `${regIds.length} team(s)`
+          : (limit >= 500 ? 'ALL teams' : `the first ${limit} teams`);
+        if (!confirm(`Queue credential emails for ${scope}?\n\nThis creates/repairs missing accounts, aligns everyone to the shared team password, and emails every member login details + a reset link.`)) return;
+        const btn = $('btn-send-creds');
+        btn.disabled = true;
+        try {
+          const { data: res } = await sendCredentials({ regIds, limit });
+          const bits = [`Teams: ${res.teamsProcessed}`, `Emails queued: ${res.emailsQueued}`, `Accounts created: ${res.accountsCreated}`];
+          if (res.skipped && res.skipped.length) bits.push(`Skipped: ${res.skipped.length}`);
+          if (res.errors && res.errors.length) bits.push(`Errors: ${res.errors.length}`);
+          setAlert(alertEl, `Done. ${bits.join(' · ')}`, 'success');
+          console.log('sendCredentials result', res);
+        } catch (e) {
+          setAlert(alertEl, e.message || 'Failed.', 'error');
         } finally {
           btn.disabled = false;
         }

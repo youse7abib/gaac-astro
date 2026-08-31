@@ -5,7 +5,14 @@
     "ignore": [
       "firebase.json",
       "**/.*",
-      "**/node_modules/**"
+      "**/node_modules/**",
+      "GAAC-2026-data/**",
+      "**/*.csv",
+      "**/*.xlsx",
+      "auth-export.json",
+      "all-registered-emails.txt",
+      "serviceAccountKey.json",
+      ".env"
     ]
   },
   "firestore": {
