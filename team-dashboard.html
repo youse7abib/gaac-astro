@@ -280,6 +280,7 @@
               <p class="info-note">The new member will receive a confirmation email with the team sign-in password (same as the exam portal). Maximum of 3 members per team.</p>
             </form>
           </div>
+        </div>
 
           <div id="competitions-panel" class="competitions-panel">
             <div class="comp-head">
@@ -389,6 +390,7 @@
     let currentRegData = null;
     let isLeader = false;
     let registrationOpen = true;
+    let currentMemberRole = 'leader';
 
     const showAlert = (el, msg, isError = true) => {
       el.textContent = msg;
@@ -551,6 +553,15 @@
         currentRegData = regSnap.data();
         isLeader = norm(currentRegData.leader.email) === norm(user.email);
 
+        // Detect which roster slot the signed-in account maps to so the
+        // greeting is personal to the member (not always the leader).
+        const userEmail = norm(user.email);
+        let matchedSlot = 'leader';
+        if (norm((currentRegData.leader && currentRegData.leader.email) || '') === userEmail) matchedSlot = 'leader';
+        else if (norm((currentRegData.member2 && currentRegData.member2.email) || '') === userEmail) matchedSlot = 'member2';
+        else if (norm((currentRegData.member3 && currentRegData.member3.email) || '') === userEmail) matchedSlot = 'member3';
+        currentMemberRole = matchedSlot;
+
         // The registration-open flag only gates the leader's roster tools,
         // so regular members never pay for this read.
         if (isLeader) {
@@ -570,7 +581,11 @@
 
     function renderDashboard(user) {
       const reg = currentRegData;
-      document.getElementById('user-greeting').textContent = `Welcome, ${reg.leader.name}`;
+      const roleLabel = { leader: 'Team Leader', member2: 'Member 2', member3: 'Member 3' }[currentMemberRole] || 'Team Member';
+      const slotData = reg[currentMemberRole] || reg.leader;
+      const greetingName = (slotData && slotData.name) || (user && user.email) || '';
+      document.getElementById('user-greeting').textContent =
+        `Welcome, ${greetingName} (${roleLabel})`;
       document.getElementById('team-name').textContent = reg.teamName;
       document.getElementById('team-reg-id').textContent = reg.registrationId;
 
