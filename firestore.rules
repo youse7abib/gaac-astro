@@ -208,6 +208,23 @@ service cloud.firestore {
     }
 
     // ================================================================
+    // MOCK EXAM ANSWER KEYS — admin-only. The mock test reads only its
+    // questions from the static file; the correct answers live here so
+    // clients never see them. The server-side mock scoring trigger reads
+    // these keys (with Admin SDK) to grade submissions.
+    // ================================================================
+    match /mockExam/{mockId} {
+      match /answerKeys/{questionId} {
+        allow read: if isAdmin();
+        allow write: if isAdmin();
+        allow create, update: if isAdmin()
+          && request.resource.data.keys().hasAll(['order', 'correctAnswer'])
+          && request.resource.data.correctAnswer is string
+          && request.resource.data.order is int;
+      }
+    }
+
+    // ================================================================
     // 7) TEAMS — exam data, events
     //    The team summary doc mirrors the exam status so the admin
     //    dashboard can render everything with 2 queries (no per-team
@@ -306,17 +323,35 @@ service cloud.firestore {
         allow delete: if isAdmin();
       }
 
-      // Mock test — stores final score only, no answers/proctoring data.
+      // Mock test — questions come from the static file; the member submits
+      // their raw answers here. Scoring fields (score, correctCount, ...)
+      // are computed server-side by the mock scoring trigger using admin-only
+      // answer keys, so they are NEVER writable by the client.
       match /mock/{mockId} {
         allow read: if isAuthenticated() && (isAdmin() || (isTeamMember(teamId) && request.auth.uid == mockId));
-        allow create, update: if isAuthenticated()
-          && isTeamMember(teamId)
-          && request.auth.uid == mockId
-          && request.resource.data.keys().hasOnly([
-            'status', 'memberUid', 'memberEmail', 'memberRole',
-            'score', 'correctCount', 'totalQuestions', 'answersCount', 'submittedAt'
-          ])
-          && request.resource.data.memberUid == request.auth.uid;
+        // Admin (incl. the scoring trigger) may write anything; a member may
+        // only create/update their OWN doc with submission fields.
+        allow create: if isAuthenticated() && (
+          isAdmin()
+          || (isTeamMember(teamId) && request.auth.uid == mockId
+              && request.resource.data.keys().hasOnly([
+                'status', 'memberUid', 'memberEmail', 'memberRole',
+                'answers', 'answersCount', 'submittedAt'
+              ])
+              && (!request.resource.data.keys().hasAny(['memberUid'])
+                  || request.resource.data.memberUid == request.auth.uid))
+        );
+        allow update: if isAuthenticated() && (
+          isAdmin()
+          || (isTeamMember(teamId) && request.auth.uid == mockId
+              && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'status', 'memberUid', 'memberEmail', 'memberRole',
+                'answers', 'answersCount', 'submittedAt'
+              ])
+              && (!request.resource.data.keys().hasAny(['memberUid'])
+                  || request.resource.data.memberUid == request.auth.uid)
+              && resource.data.status != 'submitted')
+        );
         allow delete: if isAdmin();
       }
     }

@@ -1,10 +1,13 @@
 const functions = require('firebase-functions');
 const { onCall, onRequest, HttpsError } = require('firebase-functions/v2/https');
+const { onDocumentWritten } = require('firebase-functions/v2/firestore');
 const admin = require('firebase-admin');
+const { getFirestore, FieldValue, FieldPath } = require('firebase-admin/firestore');
+const { getAuth } = require('firebase-admin/auth');
 admin.initializeApp();
 
-const db = admin.firestore();
-const deleteField = () => admin.firestore.FieldValue.delete();
+const db = getFirestore();
+const deleteField = () => FieldValue.delete();
 
 /* ─────────────────────────────────────────────────────────────
    Roster / account helpers (admin cleanup + direct add-member)
@@ -22,7 +25,7 @@ async function resolveUidByEmail(email) {
     if (snap.exists && snap.data().uid) return snap.data().uid;
   } catch (e) { /* ignore */ }
   try {
-    const user = await admin.auth().getUserByEmail(email);
+    const user = await getAuth().getUserByEmail(email);
     return user.uid;
   } catch (e) { return null; }
 }
@@ -114,11 +117,12 @@ function memberCredentialEmail({ name, email, teamName, regId, password, resetLi
  * Calculates score by comparing answers against the exam's answer keys.
  * Validates submission server-side to prevent score manipulation.
  */
-exports.scoreExam = functions.firestore
-  .document('teams/{teamId}/exam/{examId}')
-  .onWrite(async (change, context) => {
-    const { teamId, examId } = context.params;
-    const data = change.after.data();
+exports.scoreExam = onDocumentWritten(
+  'teams/{teamId}/exam/{examId}',
+  async (event) => {
+    if (!event.data) return;
+    const { teamId, examId } = event.params;
+    const data = event.data.after.data();
     if (!data || data.status !== 'submitted') return;
     if (data.scored) return;
 
@@ -201,7 +205,7 @@ exports.scoreExam = functions.firestore
       const score = Math.round((correctCount / totalQuestions) * 100);
       const passed = score >= 40;
 
-      await change.after.ref.update({
+      await event.data.after.ref.update({
         scored: true,
         score,
         correctCount,
@@ -210,7 +214,7 @@ exports.scoreExam = functions.firestore
         totalQuestions,
         passed,
         details,
-        scoredAt: admin.firestore.FieldValue.serverTimestamp()
+        scoredAt: FieldValue.serverTimestamp()
       });
 
       const submittedSnap = await db
@@ -260,6 +264,84 @@ exports.scoreExam = functions.firestore
       console.log(`Team ${teamId} scored ${score}% (${correctCount}/${totalQuestions})`);
     } catch (error) {
       console.error(`Scoring failed for team ${teamId}:`, error);
+    }
+  });
+
+/**
+ * Triggered when a team member's mock test status changes to 'submitted'.
+ * Grades the mock server-side using the admin-only mock answer keys (mock
+ * questions are read from the static file with no correct answers inside),
+ * then writes the score back. Prevents students from reading or forging
+ * their mock score.
+ */
+exports.scoreMock = onDocumentWritten(
+  'teams/{teamId}/mock/{mockId}',
+  async (event) => {
+    if (!event.data) return;
+    const { teamId, mockId } = event.params;
+    const data = event.data.after.data();
+    if (!data || data.status !== 'submitted') return;
+    if (data.scored) return;
+
+    const answers = data.answers || {};
+
+    try {
+      const keysSnap = await db
+        .collection('mockExam')
+        .doc('mock')
+        .collection('answerKeys')
+        .orderBy('order')
+        .get();
+
+      if (keysSnap.empty) {
+        console.error(`No mock answer keys found`);
+        return;
+      }
+
+      const correctAnswers = keysSnap.docs.map((q) => q.data().correctAnswer);
+      const totalQuestions = correctAnswers.length;
+
+      let correctCount = 0;
+      let incorrectCount = 0;
+      let unansweredCount = 0;
+      const details = [];
+
+      for (let i = 0; i < totalQuestions; i++) {
+        const correctAnswer = correctAnswers[i];
+        const userAnswer = answers[i];
+        if (!userAnswer) {
+          unansweredCount++;
+          details.push({ questionNumber: i + 1, questionId: keysSnap.docs[i].id, userAnswer: null, result: 'unanswered' });
+        } else if (userAnswer === correctAnswer) {
+          correctCount++;
+          details.push({ questionNumber: i + 1, questionId: keysSnap.docs[i].id, userAnswer, result: 'correct' });
+        } else {
+          incorrectCount++;
+          details.push({ questionNumber: i + 1, questionId: keysSnap.docs[i].id, userAnswer, result: 'incorrect' });
+        }
+      }
+
+      const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
+
+      await event.data.after.ref.update({
+        scored: true,
+        score,
+        correctCount,
+        incorrectCount,
+        unansweredCount,
+        totalQuestions,
+        details,
+        scoredAt: FieldValue.serverTimestamp()
+      });
+
+      await db.collection('teams').doc(teamId).set(
+        { mockStatus: 'scored', mockScore: score },
+        { merge: true }
+      );
+
+      console.log(`Mock ${teamId}/${mockId} scored ${score}% (${correctCount}/${totalQuestions})`);
+    } catch (error) {
+      console.error(`Mock scoring failed for ${teamId}/${mockId}:`, error);
     }
   });
 
@@ -327,7 +409,16 @@ exports.updateCompetitionControl = functions.https.onCall(async (data, context) 
     throw new functions.https.HttpsError('permission-denied', 'Admin only.');
   }
 
-  const allowedKeys = ['registrationOpen', 'portalRegistrationOpen', 'round1Open', 'round2Open'];
+  const allowedKeys = [
+    'registrationOpen',
+    'portalRegistrationOpen',
+    'round1Open',
+    'round2Open',
+    'mockCountdownStart',
+    'mockOpenAt',
+    'mockStartAt',
+    'mockCloseAt'
+  ];
   const updates = {};
   for (const key of allowedKeys) {
     if (data[key] !== undefined) {
@@ -492,7 +583,7 @@ exports.sendPasswordReset = onCall({ region: 'africa-south1' }, async (request) 
   await rateRef.set({ lastRequestAt: now }, { merge: true });
 
   // Generate a secure, single-use reset link
-  const link = await admin.auth().generatePasswordResetLink(email, {
+  const link = await getAuth().generatePasswordResetLink(email, {
     url: 'https://gaac-registration-2026.web.app/team-dashboard',
     handleCodeInApp: false
   });
@@ -573,7 +664,7 @@ exports.reassignMember = onCall({ region: 'africa-south1' }, async (request) => 
     throw new HttpsError('failed-precondition', 'No UID found for this email.');
   }
 
-  await admin.auth().updateUser(uid, { password: newPassword });
+  await getAuth().updateUser(uid, { password: newPassword });
   console.log(`Password reset for ${email} (uid=${uid}) to join ${newTeamId}`);
 
   return { success: true, uid };
@@ -586,7 +677,7 @@ exports.reassignMember = onCall({ region: 'africa-south1' }, async (request) => 
  *
  * Works for FULL orphans whose Firestore records are already gone (e.g. the
  * buyer of a deleted team), because the account is resolved straight from
- * Firebase Auth via admin.auth().getUserByEmail(email).
+ * Firebase Auth via getAuth().getUserByEmail(email).
  */
 exports.removeOrphanedAccount = onCall({ region: 'africa-south1' }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
@@ -613,7 +704,7 @@ exports.removeOrphanedAccount = onCall({ region: 'africa-south1' }, async (reque
   outcome.uid = uid;
 
   if (uid) {
-    try { await admin.auth().deleteUser(uid); outcome.authDeleted = true; }
+    try { await getAuth().deleteUser(uid); outcome.authDeleted = true; }
     catch (e) { console.warn(`Auth delete failed for ${uid} (${email}):`, e.message); }
     try { await db.collection('teamMembers').doc(uid).delete(); outcome.teamMembersDeleted = true; }
     catch (e) { console.warn(`teamMembers delete failed (${uid}):`, e.message); }
@@ -647,7 +738,7 @@ exports.removeOrphanedAccount = onCall({ region: 'africa-south1' }, async (reque
  * Admin: Look up EVERYTHING known about an email — Auth account, email index,
  * teamMembers, removal audits, and any team they still appear in. Works even
  * for FULL orphans (Firestore records already gone) by resolving the Auth
- * user via admin.auth().getUserByEmail(email).
+ * user via getAuth().getUserByEmail(email).
  */
 exports.getRegistrationInfo = onCall({ region: 'africa-south1' }, async (request) => {
   if (!request.auth) throw new HttpsError('unauthenticated', 'Must be logged in.');
@@ -663,7 +754,7 @@ exports.getRegistrationInfo = onCall({ region: 'africa-south1' }, async (request
   const out = { found: false, email, auth: { exists: false, uid: null } };
 
   try {
-    const user = await admin.auth().getUserByEmail(email);
+    const user = await getAuth().getUserByEmail(email);
     out.auth = { exists: true, uid: user.uid, email: user.email, disabled: user.disabled };
   } catch (e) { /* no Auth user for this email */ }
 
@@ -770,7 +861,7 @@ exports.adminAddMemberToTeam = onCall({ region: 'africa-south1' }, async (reques
   // Reuse an existing (possibly orphaned) Auth account, resetting its password
   // to the team's; otherwise create a fresh account for the member.
   let uid = null;
-  const authAdmin = admin.auth();
+  const authAdmin = getAuth();
   try {
     const user = await authAdmin.getUserByEmail(email);
     uid = user.uid;
@@ -790,14 +881,14 @@ exports.adminAddMemberToTeam = onCall({ region: 'africa-south1' }, async (reques
     teamId,
     email,
     role: slot,
-    createdAt: admin.firestore.FieldValue.serverTimestamp()
+    createdAt: FieldValue.serverTimestamp()
   });
   batch.update(regSnap.ref, { [slot]: member });
 
   const teamRef = db.collection('teams').doc(teamId);
   const teamSnap = await teamRef.get();
   if (teamSnap.exists) {
-    batch.update(teamRef, { memberCount: admin.firestore.FieldValue.increment(1) });
+    batch.update(teamRef, { memberCount: FieldValue.increment(1) });
   } else {
     const rosterLen = (reg.leader ? 1 : 0) + (reg.member2 ? 1 : 0) + (reg.member3 ? 1 : 0);
     batch.set(teamRef, { memberCount: rosterLen + 1 });
@@ -869,7 +960,7 @@ exports.sendCredentials = onCall(
 
     const collections = db.collection('registrations');
     const query = regIds && regIds.length
-      ? collections.where(admin.firestore.FieldPath.documentId(), 'in', regIds)
+      ? collections.where(FieldPath.documentId(), 'in', regIds)
       : collections;
 
     const snap = await query.get();
@@ -904,15 +995,15 @@ exports.sendCredentials = onCall(
 
         let uid = null;
         try {
-          const user = await admin.auth().getUserByEmail(email);
+          const user = await getAuth().getUserByEmail(email);
           uid = user.uid;
-          await admin.auth().updateUser(uid, { password: teamPassword });
+          await getAuth().updateUser(uid, { password: teamPassword });
         } catch (err) {
           if (err.code !== 'auth/user-not-found') {
             result.errors.push({ team: teamId, email, error: err.message });
             continue;
           }
-          const created = await admin.auth().createUser({ email, password: teamPassword, displayName: name });
+          const created = await getAuth().createUser({ email, password: teamPassword, displayName: name });
           uid = created.uid;
           result.accountsCreated += 1;
         }
@@ -928,12 +1019,12 @@ exports.sendCredentials = onCall(
         if (!tmSnap.exists) {
           batch.set(tmRef, {
             teamId, email, role: slot,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+            createdAt: FieldValue.serverTimestamp()
           });
           writes++;
         }
 
-        const resetLink = await admin.auth().generatePasswordResetLink(email);
+        const resetLink = await getAuth().generatePasswordResetLink(email);
         batch.set(db.collection('mail').doc(`creds-${teamId}-${email}`), {
           to: [email],
           message: {

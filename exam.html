@@ -59,14 +59,14 @@
     .lang-toggle:hover { border-color: var(--blue-light); }
     .exam-layout { display: flex; margin-top: 60px; min-height: calc(100vh - 60px); }
     .exam-sidebar {
-      width: 90px; flex-shrink: 0; background: rgba(2,8,20,0.6); border-right: 1px solid rgba(38,183,255,0.08);
-      padding: 16px 10px; overflow-y: auto; position: sticky; top: 60px; height: calc(100vh - 60px);
+      width: 160px; flex-shrink: 0; background: rgba(2,8,20,0.6); border-right: 1px solid rgba(38,183,255,0.08);
+      padding: 16px 12px; overflow-y: auto; position: sticky; top: 60px; height: calc(100vh - 60px);
     }
     .exam-sidebar .palette-title { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 12px; }
-    .question-palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .question-palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px 6px; }
     .palette-dot {
-      width: 100%; aspect-ratio: 1; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.7rem; font-weight: 600;
+      height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.78rem; font-weight: 700;
       cursor: pointer; transition: all 200ms; display: flex; align-items: center; justify-content: center;
     }
     .palette-dot:hover { border-color: var(--blue-light); }

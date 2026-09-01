@@ -137,7 +137,7 @@ Registration IDs are sequential; the admin team is `GAAC-2026-0605` (used as `MY
 
 ## 6. Exam Login & Portal
 
-Files: `exam-login.html`, `exam.html`, `js/exam-shared.js`, `js/exam-app.js`.
+Files: `exam.html`, `js/exam-shared.js`, `js/exam-app.js`.
 
 1. User enters email + team password → `signInWithEmailAndPassword` → `finishLogin`:
    - Checks `settings/competition.portalRegistrationOpen !== false`.
@@ -332,8 +332,7 @@ The user asked for these changes, then asked to revert the working tree to the l
 |---|---|
 | `index.html`, `syllabus.html`, `timeline.html`, `partners.html`, `awards.html` | Public pages |
 | `register.html` + `registration.js` | Team registration (batch + auth creation + reassign) |
-| `team-dashboard.html` | Login + roster + add/remove member + competitions panel |
-| `exam-login.html` | Email+password login → `exam.html?team=` |
+| `team-dashboard.html` | Login + roster + add/remove member + mock test card (join button) |
 | `exam.html` + `js/exam-app.js` | Exam UI + proctoring wiring + timer + submit |
 | `js/exam-shared.js` | Firebase app/auth/db/storage singleton |
 | `js/security.js` | `SecurityWrapper` — violation events + dedupe + interaction blocking |

@@ -86,7 +86,7 @@
     </a>
     <nav class="site-nav" aria-label="Primary navigation">
       <a href="index">Home</a>
-      <a href="exam-login">Exam Login</a>
+      <a href="team-dashboard">Team Dashboard</a>
       <span style="color:var(--blue-light);font-size:0.8rem;font-weight:700;letter-spacing:0.04em;">ADMIN</span>
     </nav>
   </header>
@@ -129,6 +129,52 @@
         </div>
       </div>
 
+      <!-- Mock Test Schedule -->
+      <div id="mock-schedule-section" class="hidden" style="max-width:860px;margin:28px auto 0;padding:0 20px 40px;">
+        <div style="border:1px solid rgba(38,183,255,0.22);border-radius:14px;padding:22px 20px;background:rgba(10,14,23,0.5);">
+          <h2 style="margin:0 0 4px;font-size:1.1rem;">Mock Test <span style="color:var(--blue-light);">Schedule</span></h2>
+          <p style="color:var(--muted);font-size:0.82rem;margin:0 0 18px;">Single live countdown drives the mock entry window (Cairo, GMT+3). Candidates can join the mock test between <strong style="color:var(--blue-light);">7:00 PM and 8:10 PM</strong>.</p>
+
+          <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
+            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
+              <div id="mock-days" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
+              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Days</div>
+            </div>
+            <span style="font-size:1.6rem;color:var(--muted);font-weight:700;">:</span>
+            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
+              <div id="mock-hours" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
+              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Hours</div>
+            </div>
+            <span style="font-size:1.6rem;color:var(--muted);font-weight:700;">:</span>
+            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
+              <div id="mock-minutes" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
+              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Minutes</div>
+            </div>
+            <span style="font-size:1.6rem;color:var(--muted);font-weight:700;">:</span>
+            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
+              <div id="mock-seconds" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
+              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Seconds</div>
+            </div>
+          </div>
+          <div id="mock-timer-note" style="text-align:center;font-size:0.78rem;color:var(--muted);margin-bottom:22px;">Loading…</div>
+
+          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;">
+            <div style="margin:0;">
+              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Exam start</label>
+              <input type="datetime-local" id="mock-start-at" style="width:100%;" />
+            </div>
+            <div style="margin:0;">
+              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Close at</label>
+              <input type="datetime-local" id="mock-close-at" style="width:100%;" />
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+            <button class="button primary" id="btn-save-mock-schedule" style="min-height:38px;font-size:0.8rem;">Save Mock Schedule</button>
+            <span id="mock-save-status" style="font-size:0.8rem;color:var(--muted);"></span>
+          </div>
+        </div>
+      </div>
+
       <!-- Event Modal -->
       <div id="event-modal" class="event-modal hidden">
         <div class="event-modal-content">
@@ -145,6 +191,7 @@
     import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, getDocs, collection, query, where, orderBy, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getStorage, ref as storageRef, listAll, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
       authDomain: "gaac-registration-2026.firebaseapp.com",
@@ -174,6 +221,8 @@
         document.getElementById('admin-login-form').classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
         loadMyTeam();
+        document.getElementById('mock-schedule-section').classList.remove('hidden');
+        initMockSchedule();
         document.getElementById('btn-refresh').addEventListener('click', () => {
           document.getElementById('btn-refresh').disabled = true;
           document.getElementById('btn-refresh').textContent = 'Refreshing...';
@@ -186,6 +235,108 @@
           });
         });
       } catch (e) { errorEl.textContent = e.message || 'Login failed.'; errorEl.style.display = 'block'; }
+    });
+
+    // ----- Mock Test schedule (live countdown) -----
+    const MOCK_DEFAULT = {
+      mockCountdownStart: Date.UTC(2026, 8, 2, 9, 0, 0),  // 12:00 PM Cairo (GMT+3)
+      mockOpenAt: Date.UTC(2026, 8, 2, 15, 58, 0),        // 6:58 PM
+      mockStartAt: Date.UTC(2026, 8, 2, 16, 0, 0),        // 7:00 PM
+      mockCloseAt: Date.UTC(2026, 8, 2, 17, 10, 0)        // 8:10 PM
+    };
+    const MOCK_KEYS = ['mockCountdownStart', 'mockOpenAt', 'mockStartAt', 'mockCloseAt'];
+    const MOCK_EDIT_KEYS = ['mockStartAt', 'mockCloseAt'];
+    let mockSched = { ...MOCK_DEFAULT };
+
+    const cairoClock = (epoch) => {
+      const d = new Date(epoch + 3 * 3600 * 1000);
+      let h = d.getUTCHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${String(d.getUTCMinutes()).padStart(2, '0')} ${ampm}`;
+    };
+    const fmtCountdown = (ms) => {
+      const t = Math.max(0, Math.floor(ms / 1000));
+      const d = Math.floor(t / 86400);
+      const h = Math.floor((t % 86400) / 3600);
+      const m = Math.floor((t % 3600) / 60);
+      const s = t % 60;
+      return {
+        d: String(d).padStart(2, '0'),
+        h: String(h).padStart(2, '0'),
+        m: String(m).padStart(2, '0'),
+        s: String(s).padStart(2, '0')
+      };
+    };
+    const toLocalInput = (epoch) => {
+      const d = new Date(epoch);
+      const p = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    };
+
+    const setCells = (d, h, m, s) => {
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      set('mock-days', d); set('mock-hours', h); set('mock-minutes', m); set('mock-seconds', s);
+    };
+
+    const mockScheduleTick = () => {
+      const note = document.getElementById('mock-timer-note');
+      if (!note) return;
+      const now = Date.now();
+      const { mockOpenAt, mockStartAt, mockCloseAt } = mockSched;
+      if (now < mockOpenAt) {
+        const { d, h, m, s } = fmtCountdown(mockOpenAt - now);
+        setCells(d, h, m, s);
+        note.textContent = `Opens at ${cairoClock(mockOpenAt)}. Requirements approval step. Join between ${cairoClock(mockStartAt)} and ${cairoClock(mockCloseAt)} (Cairo Time, GMT+3).`;
+      } else if (now < mockCloseAt) {
+        const { d, h, m, s } = fmtCountdown(mockCloseAt - now);
+        setCells(d, h, m, s);
+        note.textContent = `Entry open. Join between ${cairoClock(mockStartAt)} and ${cairoClock(mockCloseAt)} (Cairo Time, GMT+3). Closes in the countdown above.`;
+      } else {
+        setCells('00', '00', '00', '00');
+        note.textContent = `Entry window closed. The join window was ${cairoClock(mockStartAt)} - ${cairoClock(mockCloseAt)} (Cairo Time, GMT+3).`;
+      }
+    };
+
+    const initMockSchedule = async () => {
+      const functions = getFunctions(app);
+      const statusFn = httpsCallable(functions, 'getCompetitionStatus');
+      try {
+        const res = await statusFn();
+        const data = res.data || {};
+        const s = { ...MOCK_DEFAULT };
+        MOCK_KEYS.forEach(k => { if (typeof data[k] === 'number') s[k] = data[k]; });
+        mockSched = s;
+        document.getElementById('mock-start-at').value = toLocalInput(s.mockStartAt);
+        document.getElementById('mock-close-at').value = toLocalInput(s.mockCloseAt);
+        mockScheduleTick();
+        setInterval(mockScheduleTick, 1000);
+      } catch (e) {
+        console.warn('Failed to load mock schedule:', e);
+      }
+    };
+
+    document.getElementById('btn-save-mock-schedule').addEventListener('click', async () => {
+      const statusEl = document.getElementById('mock-save-status');
+      statusEl.textContent = 'Saving…';
+      const functions = getFunctions(app);
+      const updateFn = httpsCallable(functions, 'updateCompetitionControl');
+      try {
+        const payload = {
+          mockStartAt: new Date(document.getElementById('mock-start-at').value).getTime(),
+          mockCloseAt: new Date(document.getElementById('mock-close-at').value).getTime()
+        };
+        for (const k of MOCK_EDIT_KEYS) {
+          if (!Number.isFinite(payload[k])) throw new Error(`Invalid value for ${k}.`);
+        }
+        await updateFn(payload);
+        mockSched = { ...mockSched, ...payload };
+        statusEl.textContent = 'Saved. Countdown restarted from current times.';
+        setTimeout(() => { statusEl.textContent = ''; }, 4000);
+      } catch (e) {
+        console.error('Failed to save mock schedule:', e);
+        statusEl.textContent = 'Save failed: ' + (e.message || 'unknown error');
+      }
     });
 
     const continuousTypes = new Set(['fullscreen-exit', 'tab-hidden', 'window-blur', 'camera-disabled', 'camera-covered', 'no-face-20s', 'multiple-faces']);

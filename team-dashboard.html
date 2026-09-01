@@ -97,6 +97,33 @@
     .comp-placeholder svg { display: block; margin: 0 auto 12px; color: rgba(38,183,255,0.5); }
     .comp-empty-msg { font-size: 1rem; font-weight: 700; color: var(--silver); margin: 0 0 6px; }
     .comp-empty-sub { font-size: 0.8rem; color: var(--muted); margin: 0; max-width: 420px; margin: 0 auto; }
+    .mock-card {
+      border: 1px solid rgba(38,183,255,0.22); border-radius: 12px; padding: 24px 20px;
+      background: rgba(10,14,23,0.5); text-align: center; max-width: 520px; margin: 0 auto 8px;
+    }
+    .mock-row { display: flex; justify-content: center; margin-bottom: 14px; }
+    .mock-pill {
+      display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+      border: 1px solid rgba(38,183,255,0.35); background: rgba(38,183,255,0.10); color: var(--blue-light);
+      font-size: 0.8rem; font-weight: 700; letter-spacing: 0.04em;
+    }
+    .mock-pill.cc-open .dot { width: 8px; height: 8px; border-radius: 50%; background: #22c55e; box-shadow: 0 0 8px #22c55e; }
+    .mock-pill .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue-light); box-shadow: 0 0 8px var(--blue-light); }
+    .mock-pill.cc-closed { border-color: rgba(255,107,107,0.4); background: rgba(255,107,107,0.08); color: #ff6b6b; }
+    .mock-pill.cc-closed .dot { background: #ff4757; box-shadow: 0 0 8px #ff4757; }
+    .mock-count { display: flex; align-items: center; justify-content: center; gap: 10px; margin: 0 0 6px; }
+    .mock-cell {
+      display: flex; flex-direction: column; align-items: center; min-width: 62px; padding: 10px 12px;
+      border: 1px solid rgba(38,183,255,0.25); border-radius: 10px; background: rgba(38,183,255,0.06);
+    }
+    .mock-cell-label {
+      font-size: 0.62rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.08em; margin-bottom: 6px;
+    }
+    .mock-cell-value {
+      font-family: 'Orbitron', monospace; font-size: 1.5rem; font-weight: 800; color: var(--blue-light); letter-spacing: 0.05em; line-height: 1;
+    }
+    .mock-cell-sep { font-family: 'Orbitron', monospace; font-size: 1.4rem; font-weight: 700; color: var(--muted); }
+    .mock-sub { font-size: 0.8rem; color: var(--muted); margin: 0 0 18px; }
     .manage-panel {
       margin-top: 28px; background: transparent; border: none; border-radius: 0; padding: 0; backdrop-filter: none;
     }
@@ -282,21 +309,33 @@
           </div>
         </div>
 
-          <div id="competitions-panel" class="competitions-panel">
+<div id="competitions-panel" class="competitions-panel">
             <div class="comp-head">
-              <h2><span class="text-blue">Competitions</span></h2>
-              <p class="sub">Select a competition to open the exam portal.</p>
+              <h2><span class="text-blue">Mock Test</span></h2>
+              <p class="sub">Single live countdown drives the mock entry window (Cairo, GMT+3). You can join the mock test between 7:00 PM and 8:10 PM.</p>
             </div>
-            <div class="comp-list" id="comp-list" style="display:none;">
-              <button type="button" class="comp-tab" data-round="mock"><span class="comp-tab-label">Mock Test</span><span class="comp-tab-status">Not started</span></button>
-              <button type="button" class="comp-tab" data-round="round1"><span class="comp-tab-label">Round 1</span><span class="comp-tab-status">Not started</span></button>
-              <button type="button" class="comp-tab" data-round="round2"><span class="comp-tab-label">Round 2</span><span class="comp-tab-status">Not started</span></button>
-              <button type="button" class="comp-tab" data-round="round3"><span class="comp-tab-label">Round 3</span><span class="comp-tab-status">Not started</span></button>
-            </div>
-            <div class="comp-placeholder">
-              <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></svg>
-              <p class="comp-empty-msg">No active competitions yet.</p>
-              <p class="comp-empty-sub">Monitor your primary email: Mock Test availability, Round 1, and Round 2 will be announced to the registered team email, and each round will open from the tabs above when it becomes active.</p>
+            <div id="mock-card" class="mock-card">
+              <div class="mock-row">
+                <span class="mock-pill" id="mock-pill"><span class="dot"></span><span id="mock-status">Loading schedule…</span></span>
+              </div>
+              <div class="mock-count">
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Hours</span>
+                  <span class="mock-cell-value" id="mock-hours">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Minutes</span>
+                  <span class="mock-cell-value" id="mock-minutes">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Seconds</span>
+                  <span class="mock-cell-value" id="mock-seconds">00</span>
+                </div>
+              </div>
+              <p class="mock-sub" id="mock-schedule-note">Loading mock test schedule…</p>
+              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Mock Test</button>
             </div>
           </div>
         </div>
@@ -344,7 +383,7 @@
   <script src="script.js"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, inMemoryPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getAuth, onAuthStateChanged, signOut, signInWithEmailAndPassword, createUserWithEmailAndPassword, setPersistence, browserSessionPersistence } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
     import { getFirestore, doc, getDoc, setDoc, writeBatch, deleteDoc, deleteField, increment, serverTimestamp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
@@ -358,11 +397,12 @@
       measurementId: "G-CEB6Z0RF5E"
     };
 
-    const app = initializeApp(firebaseConfig);
+const app = initializeApp(firebaseConfig);
     const auth = getAuth(app);
-    // In-memory session: the login page always opens on the login form and
+    // Session-scoped persistence (same tab): survives navigation to the mock
+    // exam in this tab, but a fresh visit still opens on the login form and
     // never silently auto-logins with a stale session from another visit.
-    setPersistence(auth, inMemoryPersistence).catch(() => {});
+    setPersistence(auth, browserSessionPersistence).catch(() => {});
     const db = getFirestore(app);
     // Separate app instance so creating a member's Auth account does not
     // hijack the signed-in leader's session.
@@ -562,14 +602,13 @@
         else if (norm((currentRegData.member3 && currentRegData.member3.email) || '') === userEmail) matchedSlot = 'member3';
         currentMemberRole = matchedSlot;
 
-        // The registration-open flag only gates the leader's roster tools,
-        // so regular members never pay for this read.
-        if (isLeader) {
-          const compSnap = await getDoc(doc(db, 'settings', 'competition'));
-          registrationOpen = !(compSnap.exists() && compSnap.data().registrationOpen === false);
-        } else {
-          registrationOpen = true;
-        }
+// Competition control + mock test schedule. Registration-open only
+        // gates the leader's roster tools; the mock countdown is for everyone.
+        const compSnap = await getDoc(doc(db, 'settings', 'competition'));
+        const compData = compSnap.exists() ? compSnap.data() : {};
+        registrationOpen = !(compData.registrationOpen === false);
+        mockSchedule = getMockSchedule(compData);
+        mockCardTick();
 
         updateUrlIdentity();
         renderDashboard(user);
@@ -660,19 +699,88 @@
       });
     }
 
-    // ----- Competitions: navigate to the exam portal -----
-    document.querySelectorAll('#comp-list .comp-tab').forEach((tab) => {
-      tab.addEventListener('click', () => {
-        const round = tab.dataset.round;
-        const roundName = tab.querySelector('.comp-tab-label').textContent;
-        if (!window.confirm(`Open the ${roundName} exam portal?`)) return;
-        if (round === 'mock') {
-          window.location.href = `mock-exam.html?team=${encodeURIComponent(currentTeamId)}`;
-        } else {
-          window.location.href = 'exam-login.html';
-        }
+// ----- Mock Test: schedule-driven entry (no portal login) -----
+    const MOCK_DEFAULT = {
+      mockCountdownStart: Date.UTC(2026, 8, 2, 9, 0, 0),  // 12:00 PM Cairo (GMT+3)
+      mockOpenAt: Date.UTC(2026, 8, 2, 15, 58, 0),        // 6:58 PM
+      mockStartAt: Date.UTC(2026, 8, 2, 16, 0, 0),        // 7:00 PM
+      mockCloseAt: Date.UTC(2026, 8, 2, 17, 10, 0)        // 8:10 PM
+    };
+    let mockSchedule = { ...MOCK_DEFAULT };
+
+    function getMockSchedule(compData) {
+      const s = { ...MOCK_DEFAULT };
+      ['mockCountdownStart', 'mockOpenAt', 'mockStartAt', 'mockCloseAt'].forEach(k => {
+        if (typeof compData[k] === 'number') s[k] = compData[k];
       });
-    });
+      return s;
+    }
+
+    // Render the configured wall-clock time as Cairo time, independent of the
+    // viewer's own timezone.
+    function cairoClock(epoch) {
+      const d = new Date(epoch + 3 * 3600 * 1000);
+      let h = d.getUTCHours();
+      const ampm = h >= 12 ? 'PM' : 'AM';
+      h = h % 12 || 12;
+      return `${h}:${String(d.getUTCMinutes()).padStart(2, '0')} ${ampm}`;
+    }
+
+    function fmtCountdown(ms) {
+      const t = Math.max(0, Math.floor(ms / 1000));
+      const h = String(Math.floor(t / 3600)).padStart(2, '0');
+      const m = String(Math.floor((t % 3600) / 60)).padStart(2, '0');
+      const s = String(t % 60).padStart(2, '0');
+      return { h, m, s };
+    }
+
+    function setMockCells(h, m, s) {
+      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+      set('mock-hours', h); set('mock-minutes', m); set('mock-seconds', s);
+    }
+
+    function mockCardTick() {
+      const pill = document.getElementById('mock-pill');
+      const statusEl = document.getElementById('mock-status');
+      const noteEl = document.getElementById('mock-schedule-note');
+      const btn = document.getElementById('btn-enter-mock');
+      if (!statusEl || !noteEl || !pill) return;
+      const now = Date.now();
+      const { mockOpenAt, mockStartAt, mockCloseAt } = mockSchedule;
+      if (now < mockOpenAt) {
+        pill.classList.remove('cc-open', 'cc-closed');
+        statusEl.textContent = 'Opens';
+        const { h, m, s } = fmtCountdown(mockOpenAt - now);
+        setMockCells(h, m, s);
+        noteEl.textContent = `Mock Test opens at ${cairoClock(mockOpenAt)}. The requirements approval step is available from then.`;
+        if (btn) btn.style.display = 'none';
+      } else if (now < mockCloseAt) {
+        pill.classList.add('cc-open');
+        pill.classList.remove('cc-closed');
+        statusEl.textContent = 'Open · Closes ' + cairoClock(mockCloseAt);
+        const { h, m, s } = fmtCountdown(mockCloseAt - now);
+        setMockCells(h, m, s);
+        noteEl.textContent = `Enter anytime until ${cairoClock(mockCloseAt)}. Your 60-minute timer starts after you approve the requirements (from ${cairoClock(mockStartAt)}).`;
+        if (btn) btn.style.display = 'inline-flex';
+      } else {
+        pill.classList.remove('cc-open');
+        pill.classList.add('cc-closed');
+        statusEl.textContent = 'Closed';
+        setMockCells('00', '00', '00');
+        noteEl.textContent = 'The Mock Test entry window has closed.';
+        if (btn) btn.style.display = 'none';
+      }
+    }
+    setInterval(mockCardTick, 1000);
+    mockCardTick();
+
+    const btnEnterMock = document.getElementById('btn-enter-mock');
+    if (btnEnterMock) {
+      btnEnterMock.addEventListener('click', () => {
+        if (!currentTeamId) return;
+        window.location.href = `mock-exam.html?team=${encodeURIComponent(currentTeamId)}`;
+      });
+    }
     const addBtnText = addBtn.querySelector('.btn-text');
     const addBtnLoader = addBtn.querySelector('.btn-loader');
     const addAlert = document.getElementById('add-alert');

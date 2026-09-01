@@ -13,3 +13,6 @@ temp-reset.*
 auth-export.json
 all-registered-emails.txt
 GAAC-2026-data/
+deploy-*.log
+js/mock_questions.json
+js/r1_8f3kq_questions.json

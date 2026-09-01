@@ -46,12 +46,12 @@ const init = async () => {
   try {
     const params = new URLSearchParams(window.location.search);
     teamId = params.get('team');
-    if (!teamId) { window.location.href = 'exam-login.html'; return; }
+    if (!teamId) { window.location.href = 'team-dashboard.html'; return; }
 
     const user = await new Promise((resolve) => {
       const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
     });
-    if (!user) { window.location.href = 'exam-login.html'; return; }
+    if (!user) { window.location.href = 'team-dashboard.html'; return; }
     currentUser = user;
 
     // Must exist before any teams/ read — used by security rules to verify team membership

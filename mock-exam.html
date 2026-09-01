@@ -21,28 +21,51 @@
       backdrop-filter: blur(12px);
     }
     .exam-bar .logo-sm { height: 42px; }
+    .lang-group { display: flex; align-items: center; gap: 10px; }
+    .lang-label { font-size: 0.82rem; font-weight: 700; color: var(--muted); letter-spacing: 0.04em; white-space: nowrap; }
+    .lang-toggle {
+      padding: 4px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05); color: var(--muted); font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.04em; cursor: pointer; transition: all 200ms;
+      min-height: 30px; line-height: 1;
+    }
+    .lang-toggle.active { background: rgba(38,183,255,0.15); border-color: var(--blue-light); color: var(--blue-light); }
+    .lang-toggle:hover { border-color: var(--blue-light); }
     .timer { font-family: Orbitron, monospace; font-size: 1.35rem; color: var(--blue-light); font-weight: 800; }
     .timer.warning { color: #ff6b6b; }
     .progress-text { color: var(--muted); font-size: 0.82rem; }
-    .exam-layout { display: flex; margin-top: 60px; min-height: calc(100vh - 60px); }
+    .greeting { font-family: Orbitron, monospace; font-size: 0.78rem; color: var(--blue-light); font-weight: 700; letter-spacing: 0.05em; }
+    .exam-footer-bar {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; justify-content: center; padding: 12px 24px;
+      background: rgba(0,2,10,0.95); border-top: 1px solid rgba(38,183,255,0.12);
+      backdrop-filter: blur(12px);
+    }
+    .exam-layout { display: flex; margin-top: 60px; min-height: calc(100vh - 60px); padding-left: 160px; }
     .exam-sidebar {
-      width: 90px; flex-shrink: 0; background: rgba(2,8,20,0.6); border-right: 1px solid rgba(38,183,255,0.08);
-      padding: 16px 10px; position: sticky; top: 60px; height: calc(100vh - 60px); overflow-y: auto;
+      width: 160px; background: rgba(2,8,20,0.6); border-right: 1px solid rgba(38,183,255,0.08);
+      padding: 16px 12px; position: fixed; top: 60px; bottom: 0; left: 0; overflow-y: auto; z-index: 800;
     }
     .palette-title { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 12px; }
-    .question-palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .question-palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px 6px; }
     .palette-dot {
-      width: 100%; aspect-ratio: 1; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
-      background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.7rem; font-weight: 700;
+      height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
+      background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.78rem; font-weight: 700;
       display: flex; align-items: center; justify-content: center;
     }
     .palette-dot.answered { background: rgba(8,120,255,0.25); border-color: var(--blue); color: var(--white); }
+    .palette-dot.flagged { border-color: #ff6b6b; box-shadow: 0 0 8px rgba(255,107,107,0.3); }
+    .palette-dot.answered.flagged { background: rgba(8,120,255,0.25); border-color: #ff6b6b; }
     .exam-main { flex: 1; padding: 28px 32px 76px; max-width: 900px; margin: 0 auto; width: 100%; }
     .question-card {
       background: rgba(10,14,23,0.6); border: 1px solid rgba(38,183,255,0.1); border-radius: 12px;
       padding: 24px; margin-bottom: 20px; backdrop-filter: blur(8px);
     }
-    .q-number { font-family: Orbitron, monospace; font-size: 0.75rem; color: var(--blue-light); font-weight: 800; margin-bottom: 12px; }
+    .q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .q-number { font-family: Orbitron, monospace; font-size: 0.75rem; color: var(--blue-light); font-weight: 800; }
+    .q-flag-btn { background: none; border: none; color: var(--muted); font-size: 1.3rem; cursor: pointer; padding: 4px; transition: color 180ms; line-height: 1; }
+    .q-flag-btn:hover { color: #ff6b6b; }
+    .q-flag-btn.flagged { color: #ff6b6b; }
     .q-text { color: var(--text); font-size: 0.96rem; line-height: 1.7; margin-bottom: 18px; }
     .q-options { display: grid; gap: 10px; }
     .q-option {
@@ -58,6 +81,20 @@
     }
     .q-option.selected .opt-letter { background: var(--blue); color: var(--white); }
     .mock-note { color: var(--muted); font-size: 0.78rem; }
+    .constants-box {
+      background: rgba(16,24,38,0.7); border: 1px solid rgba(38,183,255,0.18); border-radius: 12px;
+      padding: 14px 18px; margin-bottom: 22px;
+    }
+    .constants-title {
+      font-family: Orbitron, monospace; font-size: 0.8rem; color: var(--blue-light);
+      font-weight: 800; letter-spacing: 0.04em; margin-bottom: 10px;
+    }
+    .constants-list {
+      margin: 14px 0 4px; padding-left: 18px; columns: 2; column-gap: 28px;
+      list-style: disc; color: var(--muted); font-size: 0.82rem; line-height: 1.9;
+    }
+    .constants-list li { break-inside: avoid; }
+    @media (max-width: 768px) { .constants-list { columns: 1; } }
     #exam-toast {
       position: fixed; top: 70px; left: 50%; transform: translateX(-50%); z-index: 99999;
       max-width: 500px; width: 90%; padding: 14px 20px; border-radius: 12px;
@@ -109,8 +146,13 @@
 <body>
   <div class="exam-bar">
     <img class="logo-sm" src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" />
+    <div class="lang-group">
+      <span class="lang-label">Language</span>
+      <button class="lang-toggle" id="btn-lang-toggle" title="Toggle Arabic / English">EN</button>
+    </div>
     <div style="flex:1;text-align:center;">
-      <div class="timer" id="timer-display">20:00</div>
+      <div class="greeting" id="greeting">Hello</div>
+      <div class="timer" id="timer-display">60:00</div>
       <div class="progress-text"><span id="answered-count">0</span> / <span id="total-count">0</span> answered</div>
     </div>
     <button class="button primary" id="btn-submit" style="padding:0 18px;min-height:38px;font-size:0.8rem;">Submit</button>
@@ -119,9 +161,10 @@
   <div id="verify-modal" class="modal-overlay">
     <div class="modal-box">
       <div class="verify-head">
-        <h2>Mock Test <span class="text-blue">Requirements</span></h2>
+        <h2 id="verify-title">Mock Test <span class="text-blue">Requirements</span></h2>
+        <button class="lang-toggle" id="btn-verify-lang">AR</button>
       </div>
-      <p class="verify-copy">Enable each requirement in order. This is only a practice check; proctoring logs and snapshots are not saved.</p>
+      <p class="verify-copy" id="verify-instructions">Enable each requirement in order to start the practice mock test.</p>
       <div class="verify-list">
         <div class="verify-item">
           <span class="verify-step">1</span>
@@ -139,6 +182,7 @@
           <span id="v-fs-icon" class="verify-dot"></span>
         </div>
       </div>
+      <p id="verify-countdown" class="hidden" style="margin:14px 0 0;text-align:center;font-family:'Orbitron',monospace;color:var(--blue-light);font-weight:800;letter-spacing:0.04em;"></p>
       <button class="button primary" id="btn-start-mock" style="width:100%;">Start Mock Test</button>
       <p id="verify-error" class="hidden"></p>
     </div>
@@ -146,13 +190,53 @@
 
   <div class="exam-layout hidden" id="exam-view">
     <div class="exam-sidebar">
-      <div class="palette-title">Mock</div>
+      <div class="palette-title" id="palette-title">Mock</div>
       <div class="question-palette" id="question-palette"></div>
     </div>
     <main class="exam-main">
-      <p class="mock-note">Mock test only. Proctoring warnings are shown for practice, but logs and snapshots are not saved.</p>
+      <div class="constants-box" id="constants-box">
+        <div class="constants-title">Physical &amp; Astronomical Constants (Reference)</div>
+        <ul class="constants-list">
+          <li>Speed of light &nbsp; c = 3.0 x 10<sup>8</sup> m/s</li>
+          <li>Gravitational constant &nbsp; G = 6.674 x 10<sup>-11</sup> m<sup>3</sup> kg<sup>-1</sup> s<sup>-2</sup></li>
+          <li>Solar mass &nbsp; M<sub>&#9737;</sub> = 1.989 x 10<sup>30</sup> kg</li>
+          <li>Solar radius &nbsp; R<sub>&#9737;</sub> = 6.96 x 10<sup>8</sup> m</li>
+          <li>Astronomical unit &nbsp; 1 AU = 1.496 x 10<sup>11</sup> m = 1.5 x 10<sup>8</sup> km</li>
+          <li>Parsec &nbsp; 1 pc = 2.06 x 10<sup>5</sup> AU</li>
+          <li>Arcseconds per radian &nbsp; 206 265</li>
+          <li>Photon energy &nbsp; hc = 1240 eV&#183;nm</li>
+          <li>Earth's gravitational parameter &nbsp; &#956;<sub>&#8857;</sub> = 398 600 km<sup>3</sup>/s<sup>2</sup></li>
+          <li>Earth's mean radius &nbsp; R<sub>&#8857;</sub> = 6371 km</li>
+          <li>Hubble constant &nbsp; H<sub>0</sub> = 70 km/s/Mpc</li>
+          <li>Sun's main-sequence lifetime &nbsp; 10 Gyr</li>
+        </ul>
+      </div>
       <div id="questions-container"></div>
     </main>
+  </div>
+
+  <!-- Fullscreen prompt (resume after refresh) -->
+  <div id="fullscreen-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:440px;text-align:center;">
+      <h2 id="fs-title">Enter Fullscreen</h2>
+      <p id="fs-copy" class="verify-copy">Please enter fullscreen mode to continue the mock test.</p>
+      <button class="button primary" id="btn-reenter-fullscreen" style="width:100%;">Re-enter Fullscreen</button>
+    </div>
+  </div>
+
+  <!-- Camera / screen sharing re-enable prompt -->
+  <div id="reenable-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:440px;text-align:center;">
+      <h2 id="reenable-title">Camera Disconnected</h2>
+      <p id="reenable-copy" class="verify-copy">Re-enable the stopped requirement to continue.</p>
+      <button class="button primary" id="btn-reenable" style="width:100%;">Re-enable</button>
+      <p id="reenable-error" class="hidden" style="margin-top:12px;font-size:0.82rem;color:#ff4757;text-align:center;"></p>
+    </div>
+  </div>
+
+  <!-- Footer Bar -->
+  <div class="exam-footer-bar">
+    <span id="footer-note" style="color:var(--muted);font-size:0.78rem;">GAAC Mock Test : Practice Proctoring</span>
   </div>
 
   <div id="exam-toast">
@@ -162,8 +246,8 @@
 
   <div id="submit-modal" class="modal-overlay hidden">
     <div class="modal-box">
-      <h2>Submit Mock Test?</h2>
-      <p class="verify-copy">Once submitted, your mock attempt will be closed.</p>
+      <h2 id="submit-title">Submit Mock Test?</h2>
+      <p class="verify-copy" id="submit-copy">Once submitted, your mock attempt will be closed.</p>
       <div class="modal-actions">
         <button class="button secondary" id="btn-cancel-submit">Cancel</button>
         <button class="button primary" id="btn-confirm-submit">Confirm Submit</button>
@@ -173,8 +257,12 @@
 
   <div id="submitted-view" class="submitted-state hidden">
     <div>
-      <h1>Mock Test Submitted</h1>
-      <p style="color:var(--muted);">Your mock test was submitted successfully.</p>
+      <h1 id="submitted-title">Mock Test Submitted</h1>
+      <p style="color:var(--muted);" id="submitted-copy">Your mock test was submitted successfully.</p>
+      <div id="mock-score-wrap" style="display:none;">
+        <div class="score-big" id="mock-score">—</div>
+        <p style="color:var(--muted);" id="mock-score-sub"></p>
+      </div>
       <a class="button secondary" href="team-dashboard.html" style="display:inline-flex;margin-top:18px;">Back to Dashboard</a>
     </div>
   </div>
