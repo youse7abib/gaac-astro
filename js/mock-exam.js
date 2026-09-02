@@ -170,15 +170,34 @@ const init = async () => {
   }
 };
 
-const setIcon = (id, ok) => {
+const setIcon = (id, ok, state) => {
   const el = document.getElementById(id);
-  if (el) el.style.background = ok ? '#22c55e' : '#ef4444';
+  if (!el) return;
+  if (state === 'n/a') { el.style.background = '#64748b'; el.style.opacity = '0.5'; return; }
+  el.style.opacity = '1';
+  el.style.background = ok ? '#22c55e' : '#ef4444';
 };
 
 const startMock = async () => {
   const errorEl = document.getElementById('verify-error');
   errorEl.classList.add('hidden');
   document.getElementById('btn-start-mock').disabled = true;
+
+  // Mobile / tablet handling: getDisplayMedia (screen share) is not available
+  // (Chrome Android/iOS Safari) and fullscreen is unreliable on iOS. On these
+  // devices the camera remains the required proctoring signal; screen share
+  // and fullscreen are best-effort only.
+  const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+    || (navigator.maxTouchPoints > 0 && window.innerWidth < 1024)
+    || typeof navigator.mediaDevices?.getDisplayMedia !== 'function';
+
+  const mobNote = document.getElementById('verify-mobile-note');
+  if (mobNote) {
+    mobNote.textContent = isMobile
+      ? (isAr() ? 'على الهاتف، الكاميرا فقط مطلوبة. مشاركة الشاشة وملء الشاشة اختيارية.' : 'On mobile, only the camera is required. Screen sharing and fullscreen are optional.')
+      : '';
+    mobNote.classList.toggle('hidden', !isMobile);
+  }
 
   let cameraOk = false;
   let screenOk = false;
@@ -193,7 +212,7 @@ const startMock = async () => {
     setIcon('v-cam-icon', false);
   }
 
-  if (cameraOk) {
+  if (cameraOk && !isMobile) {
     try {
       screenStream = await navigator.mediaDevices.getDisplayMedia({ video: true });
       screenOk = true;
@@ -203,10 +222,10 @@ const startMock = async () => {
       setIcon('v-ss-icon', false);
     }
   } else {
-    setIcon('v-ss-icon', false);
+    setIcon('v-ss-icon', false, isMobile ? 'n/a' : null);
   }
 
-  if (cameraOk && screenOk) {
+  if (!isMobile && cameraOk && screenOk) {
     try {
       await document.documentElement.requestFullscreen();
       fullscreenOk = true;
@@ -216,12 +235,15 @@ const startMock = async () => {
       setIcon('v-fs-icon', false);
     }
   } else {
-    setIcon('v-fs-icon', false);
+    setIcon('v-fs-icon', false, isMobile ? 'n/a' : null);
   }
 
-  if (!cameraOk || !screenOk || !fullscreenOk) {
+  const requiredOk = isMobile ? cameraOk : (cameraOk && screenOk && fullscreenOk);
+  if (!requiredOk) {
     cleanupStreams();
-    errorEl.textContent = 'Please enable camera, screen sharing, and fullscreen to start the mock test.';
+    errorEl.textContent = isMobile
+      ? 'Please enable your camera to start the mock test.'
+      : 'Please enable camera, screen sharing, and fullscreen to start the mock test.';
     errorEl.classList.remove('hidden');
     document.getElementById('btn-start-mock').disabled = false;
     return;
