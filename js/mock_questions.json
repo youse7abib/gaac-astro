@@ -1,0 +1,282 @@
+[
+  {
+    "id": "m1",
+    "text": "An 8-metre telescope and a 2-metre telescope observe the same faint galaxy. How many times more light does the larger telescope collect per second?",
+    "options": ["2 times", "4 times", "16 times", "64 times"],
+    "text_ar": "تلسكوب قطره 8 أمتار وتلسكوب قطره 2 متر يرصدان نفس المجرة الخافتة. كم مرة أكثر من الضوء يجمعها التلسكوب الأكبر في الثانية؟",
+    "options_ar": ["مرتان", "4 مرات", "16 مرة", "64 مرة"]
+  },
+  {
+    "id": "m2",
+    "text": "Star A has apparent magnitude m<sub>A</sub> = 8 and Star B has m<sub>B</sub> = 13. How many times brighter does Star A appear?",
+    "options": ["5 times", "25 times", "100 times", "500 times"],
+    "text_ar": "النجم A قدره الظاهري m<sub>A</sub> = 8 والنجم B قدره الظاهري m<sub>B</sub> = 13. كم مرة يبدو النجم A أكثر سطوعًا؟",
+    "options_ar": ["5 مرات", "25 مرة", "100 مرة", "500 مرة"]
+  },
+  {
+    "id": "m3",
+    "text": "A 5-metre telescope observes at a wavelength of 500 nm. What is its diffraction-limited angular resolution in arcseconds (given by Rayleigh's criterion)?",
+    "options": ["0.005 arcsec", "0.01 arcsec", "0.025 arcsec", "0.06 arcsec"],
+    "text_ar": "تلسكوب قطره 5 أمتار يرصد عند طول موجي 500 نانومتر. ما دقتها الزاوية المحدودة بالحيود بالثواني القوسية (وفق معيار رايلي)؟",
+    "options_ar": ["0.005 ثانية قوسية", "0.01 ثانية قوسية", "0.025 ثانية قوسية", "0.06 ثانية قوسية"]
+  },
+  {
+    "id": "m4",
+    "text": "At what zenith angle does the atmospheric air mass equal 2.0?",
+    "options": ["0 degrees", "30 degrees", "60 degrees", "90 degrees"],
+    "text_ar": "عند أي زاوية سمتية (زينيث) تساوي الكتلة الهوائية للغلاف الجوي 2.0؟",
+    "options_ar": ["0 درجة", "30 درجة", "60 درجة", "90 درجة"]
+  },
+  {
+    "id": "m5",
+    "text": "Which spectral type has the highest effective surface temperature?",
+    "options": ["F5V", "K2V", "M5V", "G2V"],
+    "text_ar": "أي نوع طيفي يملك أعلى حرارة سطحية فعالة؟",
+    "options_ar": ["F5V", "K2V", "M5V", "G2V"]
+  },
+  {
+    "id": "m6",
+    "text": "Star X has B−V = 0.30 (blue) and Star Y has B−V = 1.20 (red). Which statement is correct?",
+    "options": ["Star X is cooler than Star Y", "Star Y is hotter than Star X", "Star X is hotter than Star Y", "Both stars have the same temperature"],
+    "text_ar": "النجم X له B−V = 0.30 (أزرق) والنجم Y له B−V = 1.20 (أحمر). أي عبارة صحيحة؟",
+    "options_ar": ["النجم X أبرد من النجم Y", "النجم Y أسخن من النجم X", "النجم X أسخن من النجم Y", "النجمان لهما نفس درجة الحرارة"]
+  },
+  {
+    "id": "m7",
+    "text": "A telescope has a primary mirror focal length of f = 8.0 m. What is its plate scale in arcseconds per millimetre?",
+    "options": ["5.2 arcsec/mm", "12.9 arcsec/mm", "25.8 arcsec/mm", "51.6 arcsec/mm"],
+    "text_ar": "تلسكوب له مرآة أولية بعدها البؤري f = 8.0 متر. ما مقياس اللوحة بالثواني القوسية لكل مليمتر؟",
+    "options_ar": ["5.2 ثانية قوسية/مم", "12.9 ثانية قوسية/مم", "25.8 ثانية قوسية/مم", "51.6 ثانية قوسية/مم"]
+  },
+  {
+    "id": "m8",
+    "text": "A photon of green light has wavelength 550 nm. What is its energy in electronvolts?",
+    "options": ["0.80 eV", "1.25 eV", "2.26 eV", "3.10 eV"],
+    "text_ar": "فوتون ضوء أخضر طوله الموجي 550 نانومتر. ما طاقته بالإلكترون فولت؟",
+    "options_ar": ["0.80 إلكترون فولت", "1.25 إلكترون فولت", "2.26 إلكترون فولت", "3.10 إلكترون فولت"]
+  },
+  {
+    "id": "m9",
+    "text": "A star's radius doubles while its surface temperature remains constant. By what factor does its luminosity change?",
+    "options": ["2", "4", "8", "16"],
+    "text_ar": "نصف قطر نجم يتضاعف بينما تبقى حرارة سطحه ثابتة. بكم يتغير لمعانه؟",
+    "options_ar": ["2", "4", "8", "16"]
+  },
+  {
+    "id": "m10",
+    "text": "For a main-sequence star of mass M = 0.5 M<sub>☉</sub>, how bright is it in solar units if its luminosity scales with mass along the main sequence (L ∝ M<sup>3.5</sup>)?",
+    "options": ["0.088 L<sub>☉</sub>", "0.177 L<sub>☉</sub>", "0.354 L<sub>☉</sub>", "0.707 L<sub>☉</sub>"],
+    "text_ar": "لنجم تسلسل رئيسي كتلته M = 0.5 M<sub>☉</sub>، ما لمعانه بوحدات شمسية إذا كان لمعانه يتدرج مع الكتلة على طول التسلسل الرئيسي (L ∝ M<sup>3.5</sup>)؟",
+    "options_ar": ["0.088 L<sub>☉</sub>", "0.177 L<sub>☉</sub>", "0.354 L<sub>☉</sub>", "0.707 L<sub>☉</sub>"]
+  },
+  {
+    "id": "m11",
+    "text": "A neutron star has mass M = 1.4 M<sub>☉</sub> and radius R = 10 km. What is its average density?",
+    "options": ["4.0 × 10<sup>14</sup> kg/m<sup>3</sup>", "4.0 × 10<sup>17</sup> kg/m<sup>3</sup>", "4.0 × 10<sup>20</sup> kg/m<sup>3</sup>", "4.0 × 10<sup>23</sup> kg/m<sup>3</sup>"],
+    "text_ar": "نجم نيوتروني كتلته M = 1.4 M<sub>☉</sub> ونصف قطره R = 10 كم. ما متوسط كثافته؟",
+    "options_ar": ["4.0 × 10<sup>14</sup> كجم/م<sup>3</sup>", "4.0 × 10<sup>17</sup> كجم/م<sup>3</sup>", "4.0 × 10<sup>20</sup> كجم/م<sup>3</sup>", "4.0 × 10<sup>23</sup> كجم/م<sup>3</sup>"]
+  },
+  {
+    "id": "m12",
+    "text": "The Chandrasekhar limit marks the maximum mass of a stable white dwarf. What is this limit approximately?",
+    "options": ["0.5 M<sub>☉</sub>", "1.0 M<sub>☉</sub>", "1.4 M<sub>☉</sub>", "3.0 M<sub>☉</sub>"],
+    "text_ar": "يمثل حد شاندراسخار الكتلة القصوى لقزم أبيض مستقر. ما قيمة هذا الحد تقريبًا؟",
+    "options_ar": ["0.5 M<sub>☉</sub>", "1.0 M<sub>☉</sub>", "1.4 M<sub>☉</sub>", "3.0 M<sub>☉</sub>"]
+  },
+  {
+    "id": "m13",
+    "text": "In a core-collapse supernova, approximately what fraction of the total gravitational binding energy is carried away by neutrinos?",
+    "options": ["1%", "10%", "50%", "99%"],
+    "text_ar": "في مستعر أعظم بانهيار النواة، ما الجزء تقريبًا من طاقة الترابط الجاذبي الكلية الذي تحمله النيوترينوهات بعيدًا؟",
+    "options_ar": ["1%", "10%", "50%", "99%"]
+  },
+  {
+    "id": "m14",
+    "text": "What does the no-hair theorem state about black holes?",
+    "options": ["Black holes cannot emit Hawking radiation", "A black hole is completely characterised by mass, charge, and angular momentum", "Black holes have no event horizon", "Information falling into a black hole is always destroyed"],
+    "text_ar": "ماذا تنص نظرية «بلا شعر» (No-Hair) عن الثقوب السوداء؟",
+    "options_ar": ["الثقوب السوداء لا يمكنها إصدار إشعاع هوكينج", "الثقب الأسود يتَّصف بالكامل بالكتلة والشحنة والزخم الزاوي", "الثقوب السوداء ليس لها أفق حدث", "المعلومات الساقطة في ثقب أسود تُدمَّر دائمًا"]
+  },
+  {
+    "id": "m15",
+    "text": "A Type Ia supernova has an absolute magnitude M<sub>V</sub> ≈ −19.3. If it is observed with apparent magnitude m<sub>V</sub> = 15.7, what is its distance?",
+    "options": ["10 Mpc", "100 Mpc", "316 Mpc", "1000 Mpc"],
+    "text_ar": "مستعر أعظم من نوع Ia قدره المطلق M<sub>V</sub> ≈ −19.3. إذا رُصد بقدر ظاهري m<sub>V</sub> = 15.7، فما بعده؟",
+    "options_ar": ["10 Mpc", "100 Mpc", "316 Mpc", "1000 Mpc"]
+  },
+  {
+    "id": "m16",
+    "text": "The gravitational binding energy of a uniform-density neutron star scales with the square of its mass and inversely with its radius. If the mass doubles while the radius stays the same, the binding energy:",
+    "options": ["Doubles", "Quadruples", "Stays the same", "Halves"],
+    "text_ar": "طاقة الترابط الجاذبي لنجم نيوتروني منتظم الكثافة تتناسب مع مربع كتلته وعكسيًا مع نصف قطره. إذا تضاعفت الكتلة بينما بقي نصف القطر ثابتًا، فإن طاقة الترابط:",
+    "options_ar": ["تتضاعف", "ترتبع (×4)", "تبقى كما هي", "تنخفض إلى النصف"]
+  },
+  {
+    "id": "m17",
+    "text": "The mass function of a spectroscopic binary is proportional to the cube of the radial-velocity semi-amplitude K and linearly to the orbital period P. If K doubles while P stays fixed:",
+    "options": ["f(M) doubles", "f(M) quadruples", "f(M) increases by a factor of 8", "f(M) increases by a factor of 16"],
+    "text_ar": "دالة الكتلة لنجم ثنائي طيفي تتناسب مع مكعب نصف-سعة السرعة الشعاعية K وخطيًا مع الدور المداري P. إذا تضاعفت K وبقي P ثابتًا:",
+    "options_ar": ["f(M) تتضاعف", "f(M) ترتبع (×4)", "f(M) تزداد بمعامل 8", "f(M) تزداد بمعامل 16"]
+  },
+  {
+    "id": "m18",
+    "text": "A star with initial mass below approximately 8 M<sub>☉</sub> will end its life as:",
+    "options": ["A black hole", "A neutron star", "A white dwarf", "A supernova remnant only"],
+    "text_ar": "نجم كتلته الابتدائية أقل من حوالي 8 M<sub>☉</sub> سينهي حياته كـ:",
+    "options_ar": ["ثقب أسود", "نجم نيوتروني", "قزم أبيض", "بقايا مستعر أعظم فقط"]
+  },
+  {
+    "id": "m19",
+    "text": "In a binary system, mass transfer from a donor star onto a compact companion through an accretion disk can power which observable phenomenon?",
+    "options": ["Planetary nebula emission", "Type Ia supernova explosion", "X-ray binary luminosity", "Pulsar radio emission"],
+    "text_ar": "في نظام ثنائي، نقل الكتلة من نجم مانح إلى رفيق مضغوط عبر قرص تراكم يمكن أن يُشغِّل أي ظاهرة رصدية؟",
+    "options_ar": ["انبعاث سديم كوكبي", "انفجار مستعر أعظم من نوع Ia", "لمعان نجم ثنائي بأشعة إكس", "انبعاث راديوي نابض"]
+  },
+  {
+    "id": "m20",
+    "text": "A neutron star is observed to emit a burst of about 10<sup>58</sup> neutrinos lasting about 10 seconds. What does this most likely indicate?",
+    "options": ["The neutron star is cooling", "A core-collapse supernova has occurred", "The neutron star is merging with a black hole", "The neutron star is a pulsar glitch"],
+    "text_ar": "رُصد نجم نيوتروني يصدر دفقة من حوالي 10<sup>58</sup> نيوترينو تستمر حوالي 10 ثوانٍ. ما الذي يشير إليه هذا على الأرجح؟",
+    "options_ar": ["النجم النيوتروني يبرد", "حدث مستعر أعظم بانهيار النواة", "النجم النيوتروني يندمج مع ثقب أسود", "النجم النيوتروني في ومضة نابض (Glitch)"]
+  },
+  {
+    "id": "m21",
+    "text": "The Sun is best classified as:",
+    "options": ["A red dwarf", "A yellow dwarf", "A blue giant", "A white dwarf"],
+    "text_ar": "تصنَّف الشمس على أفضل وجه كـ:",
+    "options_ar": ["قزم أحمر", "قزم أصفر", "عملاق أزرق", "قزم أبيض"]
+  },
+  {
+    "id": "m22",
+    "text": "A black hole has a mass of 2.0 × 10<sup>7</sup> M<sub>☉</sub>. Using R<sub>s</sub> ≈ 3 km × (M/M<sub>☉</sub>) and the fact that the shadow diameter is approximately 5.2 × R<sub>s</sub>, what is its shadow diameter in AU?",
+    "options": ["0.02 AU", "0.2 AU", "2.0 AU", "20 AU"],
+    "text_ar": "ثقب أسود كتلته 2.0 × 10<sup>7</sup> M<sub>☉</sub>. باستخدام R<sub>s</sub> ≈ 3 كم × (M/M<sub>☉</sub>) وحقيقة أن قطر الظل ≈ 5.2 × R<sub>s</sub>، ما قطر ظله بوحدات فلكية؟",
+    "options_ar": ["0.02 AU", "0.2 AU", "2.0 AU", "20 AU"]
+  },
+  {
+    "id": "m23",
+    "text": "In a binary system, matter overflowing from a donor star forms a structure around the compact companion. What is this structure called?",
+    "options": ["Roche lobe", "Accretion disk", "Schwarzschild radius", "Hertzsprung gap"],
+    "text_ar": "في نظام ثنائي، المادة الفائضة من نجم مانح تشكّل بنية حول الرفيق المضغوط. ما اسم هذه البنية؟",
+    "options_ar": ["فص روش (Roche lobe)", "قرص تراكم (Accretion disk)", "نصف قطر شوارزشيلد (Schwarzschild)", "فجوة هيرتسشرونغ (Hertzsprung gap)"]
+  },
+  {
+    "id": "m24",
+    "text": "What is the approximate luminosity of the Sun?",
+    "options": ["3.8 × 10<sup>23</sup> W", "3.8 × 10<sup>26</sup> W", "3.8 × 10<sup>29</sup> W", "3.8 × 10<sup>32</sup> W"],
+    "text_ar": "ما اللمعان التقريبي للشمس؟",
+    "options_ar": ["3.8 × 10<sup>23</sup> واط", "3.8 × 10<sup>26</sup> واط", "3.8 × 10<sup>29</sup> واط", "3.8 × 10<sup>32</sup> واط"]
+  },
+  {
+    "id": "m25",
+    "text": "Which class of objects is commonly used as a standard candle for measuring cosmic distances?",
+    "options": ["Cepheid variables and Type Ia supernovae", "Black holes and dark matter halos", "Planetary rings and comet tails", "Solar wind and meteor showers"],
+    "text_ar": "أي فئة من الأجرام تُستخدم عادة كشمعة قياسية لقياس المسافات الكونية؟",
+    "options_ar": ["متغيرات القيفاوي ومستعرات أعظم من نوع Ia", "الثقوب السوداء وهالات المادة المظلمة", "حلقات الكواكب وذيول المذنبات", "الرياح الشمسية وزخات الشهب"]
+  },
+  {
+    "id": "m26",
+    "text": "Which phenomenon is most directly analogous to the mechanism that generates planetary magnetic fields?",
+    "options": ["Planetary Migration", "Doppler Wobble", "Dynamo Effect", "Baryon Acoustic Oscillations"],
+    "text_ar": "أي ظاهرة هي الأقرب تماثلًا للآلية التي تولّد المجالات المغناطيسية للكواكب؟",
+    "options_ar": ["هجرة الكواكب (Planetary Migration)", "ترنح دوبلر (Doppler Wobble)", "التأثير الدينامو (Dynamo Effect)", "تذبذبات الباريون الصوتية (BAO)"]
+  },
+  {
+    "id": "m27",
+    "text": "In modern structure formation, why do galaxies grow hierarchically over cosmic time?",
+    "options": ["Smaller dark-matter halos and galaxies merge into larger systems", "Galaxies expand because individual stars physically grow larger", "The CMB pushes galaxies together through radiation pressure", "Heavy elements form first and later become hydrogen"],
+    "text_ar": "في التكوين الحديث للبنية، لماذا تنمو المجرات هرميًا عبر الزمن الكوني؟",
+    "options_ar": ["هالات وجرمان المادة المظلمة الأصغر تندمج في أنظمة أكبر", "تتمدد المجرات لأن النجوم الفردية تكبر فيزيائيًا", "إشعاع CMB يدفع المجرات معًا بضغط الإشعاع", "العناصر الثقيلة تتكوّن أولًا ثم تتحول لاحقًا إلى هيدروجين"]
+  },
+  {
+    "id": "m28",
+    "text": "During which process did hydrogen and helium form in significant amounts from the hot, dense early universe?",
+    "options": ["Big Bang Nucleosynthesis", "Metric Expansion of Space", "Star Formation in the early universe", "Primordial nucleosynthesis in stars"],
+    "text_ar": "خلال أي عملية تكوّن الهيدروجين والهيليوم بكميات كبيرة من الكون المبكر الحار الكثيف؟",
+    "options_ar": ["التخليق النووي في الانفجار العظيم (BBN)", "التمدد المتري للمكان", "تكوّن النجوم في الكون المبكر", "التخليق النووي البدائي في النجوم"]
+  },
+  {
+    "id": "m29",
+    "text": "Elements heavier than iron were not produced in significant quantities during the Big Bang. Why?",
+    "options": ["Star formation was still ongoing and supernova count was insufficient", "The early universe lacked enough space to accommodate the elements", "The amount of matter was insufficient to supplement heavy-element fusion", "The BBN window was too brief for heavier-than-beryllium elements to form"],
+    "text_ar": "العناصر الأثقل من الحديد لم تُنتج بكميات كبيرة أثناء الانفجار العظيم. لماذا؟",
+    "options_ar": ["تكوّن النجوم كان مستمرًا وكان عدد المستعرات العظمى غير كافٍ", "افتقر الكون المبكر إلى مساحة كافية لاستيعاب العناصر", "كمية المادة لم تكن كافية لدعم اندماج العناصر الثقيلة", "نافذة BBN كانت قصيرة جدًا لتكوّن عناصر أثقل من البريليوم"]
+  },
+  {
+    "id": "m30",
+    "text": "What is the approximate current temperature of the Cosmic Microwave Background (CMB) radiation?",
+    "options": ["2.73 K", "27.3 K", "273 K", "3.0 K"],
+    "text_ar": "ما درجة الحرارة الحالية التقريبية لإشعاع الخلفية الكونية الميكروي (CMB)؟",
+    "options_ar": ["2.73 كلفن", "27.3 كلفن", "273 كلفن", "3.0 كلفن"]
+  },
+  {
+    "id": "m31",
+    "text": "According to the Lambda-CDM model, what constituent makes up the largest percentage of the total energy density of the modern universe?",
+    "options": ["Dark Energy", "Dark Matter", "Normal Baryonic Matter", "Electromagnetic Radiation"],
+    "text_ar": "وفق نموذج Lambda-CDM، أي مكوّن يشكّل النسبة الأكبر من كثافة الطاقة الكلية للكون الحديث؟",
+    "options_ar": ["الطاقة المظلمة", "المادة المظلمة", "المادة الباريونية العادية", "الإشعاع الكهرومغناطيسي"]
+  },
+  {
+    "id": "m32",
+    "text": "The CMB temperature at redshift z = 10 was approximately 30.0 K. What was it at z = 1100 (recombination)?",
+    "options": ["3000 K", "30000 K", "300000 K", "3000000 K"],
+    "text_ar": "كانت درجة حرارة CMB عند الانزياح z = 10 حوالي 30.0 كلفن. ما كانت قيمتها عند z = 1100 (إعادة التركيب)؟",
+    "options_ar": ["3000 كلفن", "30000 كلفن", "300000 كلفن", "3000000 كلفن"]
+  },
+  {
+    "id": "m33",
+    "text": "Cosmological observations estimate Ω<sub>m</sub> = 0.31 and Ω<sub>Λ</sub> = 0.69. If the critical density is ρ<sub>c</sub>, what is the total density parameter Ω, and what does this imply for the geometry?",
+    "options": ["Ω = ρ<sub>c</sub>; the universe is open", "Ω = 0.31 ρ<sub>c</sub>; the universe is closed", "Ω = 1.0; the universe is flat", "Ω = 1.31 ρ<sub>c</sub>; the universe is flat"],
+    "text_ar": "تقدّر الرصدات الكونية Ω<sub>m</sub> = 0.31 و Ω<sub>Λ</sub> = 0.69. إذا كانت الكثافة الحرجة ρ<sub>c</sub>، فما معامل الكثافة الكلي Ω، وماذا يعني ذلك لهندسة الكون؟",
+    "options_ar": ["Ω = ρ<sub>c</sub>؛ الكون مفتوح", "Ω = 0.31 ρ<sub>c</sub>؛ الكون مغلق", "Ω = 1.0؛ الكون مسطح", "Ω = 1.31 ρ<sub>c</sub>؛ الكون مسطح"]
+  },
+  {
+    "id": "m34",
+    "text": "The historic discovery of the CMB in 1964 by Penzias and Wilson was achieved using which type of instrument?",
+    "options": ["An optical space telescope", "A large horn radio antenna", "A laser interferometer", "A particle accelerator"],
+    "text_ar": "الاكتشاف التاريخي لـ CMB عام 1964 بواسطة بنزياس وويلسون تم باستخدام أي نوع من الأجهزة؟",
+    "options_ar": ["تلسكوب فضائي بصري", "هوائي راديوي قرني كبير", "مقياس تداخل ليزري", "مسرّع جسيمات"]
+  },
+  {
+    "id": "m35",
+    "text": "A spacecraft is to orbit Earth at r = 8000 km. What circular orbital speed is required?",
+    "options": ["5.06 km/s", "7.06 km/s", "8.94 km/s", "11.2 km/s"],
+    "text_ar": "مركبة فضائية ستدور حول الأرض عند r = 8000 كم. ما السرعة المدارية الدائرية المطلوبة؟",
+    "options_ar": ["5.06 كم/ث", "7.06 كم/ث", "8.94 كم/ث", "11.2 كم/ث"]
+  },
+  {
+    "id": "m36",
+    "text": "An engineer doubles a circular orbit's radius around the same planet. What happens to the orbital speed?",
+    "options": ["It decreases by a factor of √2", "It doubles", "It stays the same", "It becomes zero"],
+    "text_ar": "مهندس يضاعف نصف قطر مدار دائري حول نفس الكوكب. ماذا يحدث للسرعة المدارية؟",
+    "options_ar": ["تنخفض بمعامل √2", "تتضاعف", "تبقى نفسها", "تصبح صفرًا"]
+  },
+  {
+    "id": "m37",
+    "text": "A satellite travels in an elliptical orbit about Earth with perigee distance r<sub>p</sub> = 7000 km and apogee distance r<sub>a</sub> = 14000 km. What is its speed at perigee?",
+    "options": ["6.5 km/s", "8.7 km/s", "10.3 km/s", "11.2 km/s"],
+    "text_ar": "قمر صناعي يتحرك في مدار إهليلجي حول الأرض بمسافة حضيض r<sub>p</sub> = 7000 كم ومسافة أوج r<sub>a</sub> = 14000 كم. ما سرعته عند الحضيض؟",
+    "options_ar": ["6.5 كم/ث", "8.7 كم/ث", "10.3 كم/ث", "11.2 كم/ث"]
+  },
+  {
+    "id": "m38",
+    "text": "A spacecraft in a circular orbit at altitude h = 400 km above Earth's surface has period P ≈ 92 min. If it boosts to a circular orbit at h = 36000 km (geostationary), the period will be:",
+    "options": ["12 hours", "24 hours", "48 hours", "72 hours"],
+    "text_ar": "مركبة في مدار دائري على ارتفاع h = 400 كم فوق سطح الأرض دورها P ≈ 92 دقيقة. إذا رُفعت إلى مدار دائري على h = 36000 كم (جيوستاشينري)، فسيكون الدور:",
+    "options_ar": ["12 ساعة", "24 ساعة", "48 ساعة", "72 ساعة"]
+  },
+  {
+    "id": "m39",
+    "text": "Which mission visited Jupiter, Saturn, Uranus, and Neptune?",
+    "options": ["Viking 1", "Apollo 8", "Voyager 2", "Mariner 2"],
+    "text_ar": "أي مهمة زارت المشتري وزحل وأورانوس ونبتون؟",
+    "options_ar": ["فايكينغ 1 (Viking 1)", "أبولو 8 (Apollo 8)", "فوياجر 2 (Voyager 2)", "مارينر 2 (Mariner 2)"]
+  },
+  {
+    "id": "m40",
+    "text": "Where does the International Space Station orbit?",
+    "options": ["Low Earth orbit", "Lunar orbit", "Sun-Earth L2", "Mars orbit"],
+    "text_ar": "أين تدور محطة الفضاء الدولية؟",
+    "options_ar": ["مدار أرضي منخفض", "مدار قمري", "نقطة L2 الشمس-الأرض", "مدار المريخ"]
+  }
+]
