@@ -139,70 +139,66 @@ exports.scoreExam = onDocumentWritten(
         }
       }
 
-      const answerKeysSnap = await db
-        .collection('round1')
-        .doc('round1')
-        .collection('answerKeys')
-        .orderBy('order')
-        .get();
-
-      if (answerKeysSnap.empty) {
-        console.error(`No answer keys found for round1 exam`);
-        return;
+      let rawQuestions = [];
+      try {
+        rawQuestions = require('./r1_questions.json');
+      } catch (e) {
+        console.warn('Could not require r1_questions.json:', e);
       }
 
-      // Build answer key map: questionId -> correctAnswer
       const answerMap = {};
-      answerKeysSnap.forEach((q) => {
-        answerMap[q.id] = q.data().correctAnswer;
-      });
+      if (rawQuestions && rawQuestions.length > 0) {
+        rawQuestions.forEach((q) => {
+          answerMap[q.id] = q.correctAnswer;
+        });
+      } else {
+        const answerKeysSnap = await db
+          .collection('round1')
+          .doc('round1')
+          .collection('answerKeys')
+          .orderBy('order')
+          .get();
+        if (!answerKeysSnap.empty) {
+          answerKeysSnap.forEach((q) => {
+            answerMap[q.id] = q.data().correctAnswer;
+          });
+        }
+      }
 
-      const questionOrder = data.questionOrder || [];
-      const hasShuffle = questionOrder.length > 0;
+      const questionOrder = (data.questionOrder && data.questionOrder.length > 0)
+        ? data.questionOrder
+        : (rawQuestions.length > 0 ? rawQuestions.map(q => q.id) : Object.keys(answerMap));
 
       let correctCount = 0;
       let incorrectCount = 0;
       let unansweredCount = 0;
       const details = [];
-      let totalQuestions = 0;
+      const totalQuestions = questionOrder.length || 40;
 
-      if (hasShuffle) {
-        // Questions were shuffled: use questionOrder to map index->questionId->correctAnswer
-        totalQuestions = questionOrder.length;
-        questionOrder.forEach((qId, idx) => {
-          const correctAnswer = answerMap[qId];
-          const userAnswer = answers[idx];
-          if (!userAnswer) {
-            unansweredCount++;
-            details.push({ questionId: qId, questionNumber: idx + 1, userAnswer: null, result: 'unanswered' });
-          } else if (userAnswer === correctAnswer) {
-            correctCount++;
-            details.push({ questionId: qId, questionNumber: idx + 1, userAnswer, result: 'correct' });
-          } else {
-            incorrectCount++;
-            details.push({ questionId: qId, questionNumber: idx + 1, userAnswer, result: 'incorrect' });
-          }
-        });
-      } else {
-        // Legacy: questions were not shuffled — use sequential order
-        totalQuestions = answerKeysSnap.size;
-        answerKeysSnap.forEach((q, idx) => {
-          const correctAnswer = q.data().correctAnswer;
-          const userAnswer = answers[idx];
-          const qId = q.id;
-          if (!userAnswer) {
-            unansweredCount++;
-            details.push({ questionId: qId, questionNumber: idx + 1, userAnswer: null, result: 'unanswered' });
-          } else if (userAnswer === correctAnswer) {
-            correctCount++;
-            details.push({ questionId: qId, questionNumber: idx + 1, userAnswer, result: 'correct' });
-          } else {
-            incorrectCount++;
-            details.push({ questionId: qId, questionNumber: idx + 1, userAnswer, result: 'incorrect' });
-          }
-        });
-      }
-      const score = Math.round((correctCount / totalQuestions) * 100);
+      questionOrder.forEach((qId, idx) => {
+        const correctAnswer = answerMap[qId] || (rawQuestions[idx] ? rawQuestions[idx].correctAnswer : null);
+        
+        let userAnswer = null;
+        if (answers[idx] !== undefined && answers[idx] !== null && answers[idx] !== '') {
+          userAnswer = String(answers[idx]).trim().toUpperCase();
+        } else if (answers[String(idx)] !== undefined && answers[String(idx)] !== null && answers[String(idx)] !== '') {
+          userAnswer = String(answers[String(idx)]).trim().toUpperCase();
+        } else if (answers[qId] !== undefined && answers[qId] !== null && answers[qId] !== '') {
+          userAnswer = String(answers[qId]).trim().toUpperCase();
+        }
+
+        if (!userAnswer) {
+          unansweredCount++;
+          details.push({ questionId: qId, questionNumber: idx + 1, userAnswer: null, correctAnswer, result: 'unanswered' });
+        } else if (userAnswer === correctAnswer) {
+          correctCount++;
+          details.push({ questionId: qId, questionNumber: idx + 1, userAnswer, correctAnswer, result: 'correct' });
+        } else {
+          incorrectCount++;
+          details.push({ questionId: qId, questionNumber: idx + 1, userAnswer, correctAnswer, result: 'incorrect' });
+        }
+      });
+      const score = totalQuestions > 0 ? Math.round((correctCount / totalQuestions) * 100) : 0;
       const passed = score >= 40;
 
       await event.data.after.ref.update({
@@ -348,16 +344,16 @@ exports.scoreMock = onDocumentWritten(
 /**
  * Admin: manually trigger re-scoring for a specific team.
  */
-exports.rescoreTeam = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in.');
+exports.rescoreTeam = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
   }
-  const adminDoc = await db.collection('admins').doc(context.auth.uid).get();
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
   if (!adminDoc.exists || !adminDoc.data().isAdmin) {
-    throw new functions.https.HttpsError('permission-denied', 'Admin only.');
+    throw new HttpsError('permission-denied', 'Admin only.');
   }
-  const { teamId } = data;
-  if (!teamId) throw new functions.https.HttpsError('invalid-argument', 'teamId required');
+  const { teamId } = request.data;
+  if (!teamId) throw new HttpsError('invalid-argument', 'teamId required');
 
   const examSnap = await db.collection('teams').doc(teamId).collection('exam').where('status', '==', 'submitted').get();
   for (const doc of examSnap.docs) {
@@ -369,16 +365,16 @@ exports.rescoreTeam = functions.https.onCall(async (data, context) => {
 /**
  * Admin: disqualify or reinstate a team.
  */
-exports.toggleDisqualify = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in.');
+exports.toggleDisqualify = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
   }
-  const adminDoc = await db.collection('admins').doc(context.auth.uid).get();
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
   if (!adminDoc.exists || !adminDoc.data().isAdmin) {
-    throw new functions.https.HttpsError('permission-denied', 'Admin only.');
+    throw new HttpsError('permission-denied', 'Admin only.');
   }
-  const { teamId } = data;
-  if (!teamId) throw new functions.https.HttpsError('invalid-argument', 'teamId required');
+  const { teamId } = request.data;
+  if (!teamId) throw new HttpsError('invalid-argument', 'teamId required');
 
   const teamRef = db.collection('teams').doc(teamId);
   const teamSnap = await teamRef.get();
@@ -400,13 +396,13 @@ exports.toggleDisqualify = functions.https.onCall(async (data, context) => {
 /**
  * Admin: update competition control flags.
  */
-exports.updateCompetitionControl = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in.');
+exports.updateCompetitionControl = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
   }
-  const adminDoc = await db.collection('admins').doc(context.auth.uid).get();
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
   if (!adminDoc.exists || !adminDoc.data().isAdmin) {
-    throw new functions.https.HttpsError('permission-denied', 'Admin only.');
+    throw new HttpsError('permission-denied', 'Admin only.');
   }
 
   const allowedKeys = [
@@ -417,16 +413,20 @@ exports.updateCompetitionControl = functions.https.onCall(async (data, context) 
     'mockCountdownStart',
     'mockOpenAt',
     'mockStartAt',
-    'mockCloseAt'
+    'mockCloseAt',
+    'round1OpenAt',
+    'round1CloseAt',
+    'round1StartAt',
+    'round1EndAt'
   ];
   const updates = {};
   for (const key of allowedKeys) {
-    if (data[key] !== undefined) {
-      updates[key] = data[key];
+    if (request.data[key] !== undefined) {
+      updates[key] = request.data[key];
     }
   }
   if (Object.keys(updates).length === 0) {
-    throw new functions.https.HttpsError('invalid-argument', 'No valid flags provided.');
+    throw new HttpsError('invalid-argument', 'No valid flags provided.');
   }
 
   await db.collection('settings').doc('competition').set(updates, { merge: true });
@@ -436,7 +436,7 @@ exports.updateCompetitionControl = functions.https.onCall(async (data, context) 
 /**
  * Get competition status (public, no auth required).
  */
-exports.getCompetitionStatus = functions.https.onCall(async (data, context) => {
+exports.getCompetitionStatus = onCall(async (request) => {
   const snap = await db.collection('settings').doc('competition').get();
   if (!snap.exists) {
     return {
@@ -450,20 +450,165 @@ exports.getCompetitionStatus = functions.https.onCall(async (data, context) => {
 });
 
 /**
+ * Server-authoritative Round 1 status + server clock. The client uses this
+ * (NOT its own Date.now()) to decide whether entry is open, so candidates with
+ * a wrong device clock all see the same window. Returns the server timestamp
+ * (ms) so the client can offset any client-side countdown drift.
+ */
+exports.getRound1Status = onCall(async (request) => {
+  const snap = await db.collection('settings').doc('competition').get();
+  const d = snap.exists ? snap.data() : {};
+  return {
+    now: Date.now(),
+    openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 5, 16, 0, 0),  // 7:00 PM GMT+3
+    closeAt: typeof d.round1CloseAt === 'number' ? d.round1CloseAt : Date.UTC(2026, 8, 5, 17, 0, 0), // 8:00 PM GMT+3
+    startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 5, 16, 0, 0), // 7:00 PM GMT+3
+    round1Open: d.round1Open !== false
+  };
+});
+
+/* Round 1 questions, served server-side from a private JSON file with an in-memory cache.
+ * Questions are loaded ONCE into memory and reused for every student/request — zero per-student Firestore reads.
+ * Answer keys are NEVER returned to clients; scoring trigger uses Firestore answerKeys (or memory fallback).
+ */
+const round1QuestionsCache = { data: null };
+
+function getPrivateRound1Questions() {
+  if (round1QuestionsCache.data) return round1QuestionsCache.data;
+  try {
+    const raw = require('./r1_questions.json');
+    round1QuestionsCache.data = raw.map(q => ({
+      id: q.id,
+      order: q.order,
+      text: q.text,
+      text_ar: q.text_ar || q.text,
+      options: q.options,
+      options_ar: q.options_ar || q.options,
+      difficulty: q.difficulty || ''
+    }));
+  } catch (e) {
+    console.error('[getRound1Questions] Failed to read r1_questions.json:', e);
+    round1QuestionsCache.data = [];
+  }
+  return round1QuestionsCache.data;
+}
+
+exports.getRound1Questions = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
+  }
+  const questions = getPrivateRound1Questions();
+  return { questions, cached: true };
+});
+
+/**
+ * Admin: sync Round 1 correct answers from private JSON into Firestore collection
+ * (round1/round1/answerKeys) for scoring and auditing.
+ */
+exports.syncRound1AnswerKeys = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
+  }
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+  if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+
+  const rawQuestions = require('./r1_questions.json');
+  const batch = db.batch();
+  
+  const examRef = db.collection('round1').doc('round1');
+  batch.set(examRef, {
+    title: 'GAAC Round 1 — Astronomy & Astrophysics',
+    duration: 60,
+    totalQuestions: rawQuestions.length,
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  rawQuestions.forEach((q) => {
+    const aRef = db.collection('round1').doc('round1').collection('answerKeys').doc(q.id);
+    batch.set(aRef, {
+      correctAnswer: q.correctAnswer,
+      order: q.order,
+      difficulty: q.difficulty || ''
+    }, { merge: true });
+  });
+
+  await batch.commit();
+  console.log(`Synced ${rawQuestions.length} answer keys to round1/round1/answerKeys`);
+  return { success: true, count: rawQuestions.length };
+});
+
+/**
+ * Admin: upload Round 1 answer keys into Firestore (admin-only path used offline
+ * via the console or a seed script). Not exposed via the web API.
+ */
+
+
+/**
+ * Admin: summarize mock test submissions across all teams. Returns the number
+ * of teams/members who submitted and the highest mock score. Admin only.
+ */
+exports.getMockResults = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
+  }
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+  if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+
+  const mocksSnap = await db.collectionGroup('mock').get();
+  const submissions = [];
+  let maxScore = null;
+
+  for (const m of mocksSnap.docs) {
+    const d = m.data();
+    if (d.status !== 'submitted') continue;
+    const teamId = m.ref.path.split('/')[1];
+    const score = d.score != null ? d.score : (d.correctCount != null ? d.correctCount : null);
+    if (score != null && (maxScore === null || score > maxScore)) maxScore = score;
+    submissions.push({
+      teamId,
+      teamName: '',
+      memberEmail: d.memberEmail || '',
+      memberRole: d.memberRole || '',
+      score: d.score != null ? d.score : null,
+      correctCount: d.correctCount != null ? d.correctCount : null,
+      totalQuestions: d.totalQuestions != null ? d.totalQuestions : null,
+      answersCount: d.answersCount != null ? d.answersCount : (d.answers ? Object.keys(d.answers).length : null),
+      answeredCount: d.answeredCount != null ? d.answeredCount : null,
+      unansweredCount: d.unansweredCount != null ? d.unansweredCount : null,
+      scored: !!d.scored,
+      submittedAt: d.submittedAt && d.submittedAt.seconds ? new Date(d.submittedAt.seconds * 1000).toISOString() : null,
+      details: Array.isArray(d.details) ? d.details : null
+    });
+  }
+
+  const labels = await db.collection('registrations').get();
+  const teamNameById = {};
+  labels.forEach(d => teamNameById[d.id] = d.data().teamName || '');
+  submissions.forEach(s => s.teamName = teamNameById[s.teamId] || '');
+  submissions.sort((a, b) => (b.score || 0) - (a.score || 0));
+
+  return { submittedCount: submissions.length, maxScore, submissions };
+});
+
+/**
  * Export leaderboard and team data to CSV string.
  * Admin only. Returns CSV text.
  */
-exports.exportData = functions.https.onCall(async (data, context) => {
-  if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', 'Must be logged in.');
+exports.exportData = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
   }
-  const adminDoc = await db.collection('admins').doc(context.auth.uid).get();
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
   if (!adminDoc.exists || !adminDoc.data().isAdmin) {
-    throw new functions.https.HttpsError('permission-denied', 'Admin only.');
+    throw new HttpsError('permission-denied', 'Admin only.');
   }
 
-  const format = data.format || 'csv'; // csv, json
-  const includeMonitoring = data.includeMonitoring === true;
+  const format = request.data.format || 'csv'; // csv, json
+  const includeMonitoring = request.data.includeMonitoring === true;
 
   const registrationsSnap = await db.collection('registrations').get();
 

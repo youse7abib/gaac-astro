@@ -1,7 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" translate="no">
 <head>
   <meta charset="UTF-8" />
+  <meta name="google" content="notranslate" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Round 1 Exam | GAAC</title>
   <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
@@ -9,6 +10,10 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
+  <!-- KaTeX for math rendering -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js" crossorigin="anonymous"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js" crossorigin="anonymous"></script>
   <!-- MediaPipe Face Detection -->
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
   <script src="https://cdn.jsdelivr.net/npm/@mediapipe/face_detection/face_detection.js" crossorigin="anonymous"></script>
@@ -57,13 +62,40 @@
     }
     .lang-toggle.active { background: rgba(38,183,255,0.15); border-color: var(--blue-light); color: var(--blue-light); }
     .lang-toggle:hover { border-color: var(--blue-light); }
-    .exam-layout { display: flex; margin-top: 60px; min-height: calc(100vh - 60px); }
+    .exam-layout { display: flex; align-items: flex-start; margin-top: 70px; margin-left: 170px; min-height: calc(100vh - 70px); }
     .exam-sidebar {
-      width: 160px; flex-shrink: 0; background: rgba(2,8,20,0.6); border-right: 1px solid rgba(38,183,255,0.08);
-      padding: 16px 12px; overflow-y: auto; position: sticky; top: 60px; height: calc(100vh - 60px);
+      width: 170px; flex-shrink: 0; background: rgba(2,8,20,0.86); border-right: 1px solid rgba(38,183,255,0.08);
+      padding: 22px 12px 8px; position: fixed; left: 0; top: 70px; bottom: 54px; height: auto; max-height: none;
+      display: flex; flex-direction: column; overflow: hidden; z-index: 900; align-self: flex-start;
     }
-    .exam-sidebar .palette-title { font-size: 0.6rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 12px; }
-    .question-palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px 6px; }
+    .sidebar-mobile-nav { display: none; }
+    .exam-sidebar .palette-title { font-size: 0.68rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.1em; text-align: center; margin-bottom: 14px; flex-shrink: 0; line-height: 1; }
+    .question-palette { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px 6px; align-content: start; overflow-y: auto; min-height: 0; flex: 0 0 auto; max-height: min(260px, 32vh); margin-bottom: 12px; padding-bottom: 2px; }
+    .question-palette::-webkit-scrollbar { width: 4px; }
+    .question-palette::-webkit-scrollbar-thumb { background: rgba(38,183,255,0.25); border-radius: 4px; }
+    .constants-panel {
+      border-top: 1px solid rgba(38,183,255,0.12); padding-top: 12px; padding-bottom: 28px; overflow-y: auto; min-height: 0; flex: 1 1 auto; max-height: calc(100vh - 350px);
+      display: flex; flex-direction: column; gap: 2px; color: var(--muted); font-size: 0.68rem; line-height: 1.25; padding-right: 6px;
+    }
+    .constants-panel::-webkit-scrollbar { width: 4px; }
+    .constants-panel::-webkit-scrollbar-thumb { background: rgba(38,183,255,0.25); border-radius: 4px; }
+    .constants-title {
+      color: var(--blue-light); font-family: 'Orbitron', monospace; font-size: 0.58rem; font-weight: 800;
+      letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 6px;
+    }
+    .constant-row {
+      display: flex; flex-direction: column; gap: 2px; padding: 5px 0;
+      border-bottom: 1px solid rgba(255,255,255,0.04);
+    }
+    .constant-row:last-child { border-bottom: none; }
+    .constant-key { color: var(--silver); font-weight: 600; font-size: 0.65rem; line-height: 1.2; }
+    .constant-value { color: var(--blue-light); font-family: monospace; font-size: 0.72rem; word-break: normal; }
+    .constants-inline-panel { margin-bottom: 20px; padding: 18px; border: 1px solid rgba(38,183,255,0.12); border-radius: 12px; background: rgba(2,8,20,0.58); }
+    .constants-inline-title { color: var(--blue-light); font-family: 'Orbitron', monospace; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; margin-bottom: 12px; }
+    .constants-inline-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 10px 14px; color: var(--muted); font-size: 0.78rem; line-height: 1.35; }
+    .constant-chip { display: flex; flex-direction: column; gap: 2px; padding: 6px 10px; background: rgba(255,255,255,0.02); border: 1px solid rgba(38,183,255,0.08); border-radius: 8px; }
+    .constant-chip b { color: var(--silver); font-weight: 600; font-size: 0.72rem; }
+    .constant-chip span { color: var(--blue-light); font-family: monospace; font-size: 0.78rem; }
     .palette-dot {
       height: 30px; border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);
       background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.78rem; font-weight: 700;
@@ -71,8 +103,8 @@
     }
     .palette-dot:hover { border-color: var(--blue-light); }
     .palette-dot.answered { background: rgba(8,120,255,0.25); border-color: var(--blue); color: var(--white); }
-    .palette-dot.flagged { border-color: #ff6b6b; box-shadow: 0 0 8px rgba(255,107,107,0.3); }
-    .palette-dot.answered.flagged { background: rgba(8,120,255,0.25); border-color: #ff6b6b; }
+.palette-dot.flagged { background: rgba(255,107,107,0.30); border-color: #ff6b6b; color: #ff6b6b; box-shadow: 0 0 10px rgba(255,107,107,0.5); }
+    .palette-dot.answered.flagged { background: rgba(255,107,107,0.30); border-color: #ff6b6b; color: #ff6b6b; }
     .exam-main { flex: 1; padding: 28px 32px; max-width: 900px; margin: 0 auto; width: 100%; }
     .question-card {
       background: rgba(10,14,23,0.6); border: 1px solid rgba(38,183,255,0.1); border-radius: 14px;
@@ -116,40 +148,101 @@
     .modal-box h2 { margin-bottom: 12px; }
     .modal-box p { color: var(--muted); font-size: 0.9rem; margin-bottom: 8px; }
     .modal-box .modal-actions { display: flex; gap: 12px; margin-top: 24px; justify-content: center; }
-    .verify-box { max-width: 560px; text-align: left; }
-    .verify-head { display: flex; justify-content: space-between; align-items: center; gap: 16px; margin-bottom: 12px; }
-    .verify-head h2 { margin: 0; line-height: 1.15; }
-    .verify-copy { margin-bottom: 18px; line-height: 1.5; }
-    .verify-list { display: grid; gap: 10px; margin: 0 0 22px; }
+    .rules-box { max-width: 580px; text-align: left; }
+    .rules-list { list-style: none; padding: 0; margin: 16px 0 20px; display: grid; gap: 10px; }
+    .rules-list li {
+      padding: 10px 14px; border-radius: 8px; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06); font-size: 0.88rem; color: var(--silver); line-height: 1.5;
+    }
+    .rules-list li.warn { border-color: rgba(255,107,107,0.3); background: rgba(255,107,107,0.05); color: #ff8a8a; }
+    .verify-box { max-width: 480px; text-align: left; }
+    .verify-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+    .verify-list { list-style: none; padding: 0; margin: 20px 0; display: grid; gap: 12px; }
     .verify-item {
-      display: grid; grid-template-columns: 30px 1fr 18px; align-items: center; gap: 12px;
-      padding: 12px 14px; border-radius: 10px; background: rgba(255,255,255,0.035);
-      border: 1px solid rgba(255,255,255,0.08);
+      display: grid; grid-template-columns: 36px 1fr 20px; align-items: center; gap: 14px;
+      padding: 14px 16px; border-radius: 10px; background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.06);
     }
     .verify-step {
-      width: 30px; height: 30px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center;
-      background: rgba(38,183,255,0.12); color: var(--blue-light); font: 700 0.78rem Orbitron, monospace;
+      width: 36px; height: 36px; border-radius: 50%; background: rgba(38,183,255,0.1);
+      display: flex; align-items: center; justify-content: center; font-weight: 700;
+      color: var(--blue-light); font-size: 0.85rem; font-family: 'Orbitron', monospace;
     }
-    .verify-label { display: block; color: var(--text); font-weight: 700; font-size: 0.92rem; line-height: 1.25; }
-    .verify-note { display: block; margin-top: 3px; color: var(--muted); font-size: 0.76rem; line-height: 1.35; }
-    .verify-dot { width: 18px; height: 18px; border-radius: 50%; background: #555; box-shadow: inset 0 0 0 2px rgba(255,255,255,0.08); }
-    #verify-error { min-height: 1.2em; line-height: 1.4; text-align: center; }
-    #verify-modal[dir="rtl"] .verify-box { text-align: right; }
+    .verify-label { font-weight: 600; font-size: 0.9rem; }
+    .verify-desc { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+    .verify-icon { font-size: 1.1rem; }
     .submitted-state { display: flex; align-items: center; justify-content: center; position: fixed; inset: 0; z-index: 999; background: #00020a; text-align: center; padding: 40px; animation: fadeIn 0.4s ease; }
     @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
     .submitted-state h1 { margin-bottom: 12px; }
     .submitted-state p { color: var(--muted); font-size: 1rem; }
     .exam-loading { display: flex; align-items: center; justify-content: center; min-height: 80vh; color: var(--muted); }
     @media (max-width: 768px) {
-      .exam-sidebar { display: none; }
-      .exam-main { padding: 16px; }
-      .exam-bar { padding: 8px 12px; }
-      .exam-bar .timer { font-size: 1.1rem; }
+      .exam-bar { height: 56px; padding: 6px 12px; gap: 8px; box-sizing: border-box; }
+      .exam-bar .logo-sm { height: 32px; }
+      .exam-bar .timer { font-size: 1rem; }
+      .exam-bar .progress-text { font-size: 0.7rem; }
+      .lang-label { display: none; }
+      .exam-layout { flex-direction: column; margin-top: 106px; margin-left: 0; padding: 14px 12px 70px; width: 100%; box-sizing: border-box; }
+      .exam-sidebar {
+        width: 100%; height: 48px; max-height: none; position: fixed; left: 0; right: 0; top: 56px; flex-shrink: 0;
+        border-right: none; border-bottom: 1px solid rgba(38,183,255,0.2);
+        padding: 6px 12px; overflow: visible; z-index: 990; background: rgba(2,8,22,0.98); backdrop-filter: blur(16px);
+        display: flex; align-items: center; justify-content: center; box-sizing: border-box;
+      }
+      .exam-sidebar .palette-title { display: none; }
+      .sidebar-mobile-nav { display: flex; gap: 10px; justify-content: center; align-items: center; width: 100%; max-width: 500px; }
+      .sidebar-nav-btn {
+        flex: 1; height: 36px; display: inline-flex; align-items: center; justify-content: space-between;
+        padding: 0 12px; font-family: 'Orbitron', sans-serif; font-size: 0.74rem; font-weight: 700;
+        color: var(--silver); background: rgba(38,183,255,0.08); border: 1px solid rgba(38,183,255,0.25);
+        border-radius: 8px; cursor: pointer; transition: all 180ms ease; user-select: none;
+      }
+      .sidebar-nav-btn:hover { border-color: var(--blue-light); color: #fff; background: rgba(38,183,255,0.14); }
+      .sidebar-nav-btn.active { background: rgba(38,183,255,0.22); border-color: var(--blue-light); color: #fff; box-shadow: 0 0 12px rgba(38,183,255,0.35); }
+      .sidebar-nav-btn .toggle-icon { font-size: 0.82rem; color: var(--blue-light); margin-left: auto; transition: transform 200ms ease; }
+      .sidebar-nav-btn.active .toggle-icon { color: #fff; }
+      .question-palette {
+        display: none;
+        position: fixed; top: 108px; left: 12px; right: 12px; z-index: 999;
+        grid-template-columns: repeat(8, 1fr);
+        gap: 6px; max-height: calc(100vh - 165px); overflow-y: auto;
+        padding: 12px; margin: 0;
+        background: rgba(4,10,24,0.98); border: 1px solid rgba(38,183,255,0.35); border-radius: 12px;
+        box-shadow: 0 12px 36px rgba(0,0,0,0.92), 0 0 20px rgba(38,183,255,0.15);
+        backdrop-filter: blur(20px);
+      }
+      .question-palette.open { display: grid; animation: dropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+      .palette-dot { height: 32px; font-size: 0.75rem; }
+      .constants-panel {
+        display: none;
+        position: fixed; top: 108px; left: 12px; right: 12px; z-index: 999;
+        flex-direction: column;
+        gap: 6px;
+        max-height: calc(100vh - 165px); overflow-y: auto;
+        padding: 14px 16px; margin: 0; font-size: 0.72rem;
+        background: rgba(4,10,24,0.98); border: 1px solid rgba(38,183,255,0.35); border-radius: 12px;
+        box-shadow: 0 12px 36px rgba(0,0,0,0.92), 0 0 20px rgba(38,183,255,0.15);
+        backdrop-filter: blur(20px);
+      }
+      .constants-panel.open { display: flex; animation: dropIn 0.2s cubic-bezier(0.16, 1, 0.3, 1); }
+      @keyframes dropIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: translateY(0); } }
+      .constants-inline-panel { padding: 14px; margin-bottom: 16px; }
+      .constants-inline-grid { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); font-size: 0.72rem; gap: 8px; }
+      .constant-chip { display: flex; flex-direction: column; gap: 2px; padding: 6px 8px; }
+      .constant-row { display: flex; flex-direction: column; gap: 2px; padding: 4px 0; }
+      .exam-main { padding: 0; max-width: 100%; width: 100%; }
       .modal-overlay { padding: 16px; }
       .modal-box { width: 100%; padding: 22px; }
       .verify-head { align-items: flex-start; }
       .verify-item { grid-template-columns: 28px 1fr 16px; padding: 11px 12px; }
       .verify-step { width: 28px; height: 28px; }
+    }
+    @media (max-width: 400px) {
+      .exam-bar .logo-sm { display: none; }
+      .question-card { padding: 18px; }
+      .opt-text { font-size: 0.85rem; }
+      .sidebar-nav-btn { font-size: 0.68rem; padding: 0 8px; }
+      .question-palette { grid-template-columns: repeat(6, 1fr); }
     }
   </style>
 </head>
@@ -171,11 +264,76 @@
   <!-- Layout -->
   <div class="exam-layout">
     <div class="exam-sidebar">
+      <div class="sidebar-mobile-nav">
+        <button type="button" class="sidebar-nav-btn" id="btn-palette-toggle" aria-expanded="false" title="Toggle Questions Palette">
+          <span class="btn-text">Questions</span>
+          <span class="toggle-icon">▾</span>
+        </button>
+        <button type="button" class="sidebar-nav-btn" id="btn-constants-toggle" aria-expanded="false" title="Toggle Constants">
+          <span class="btn-text">Constants</span>
+          <span class="toggle-icon">▾</span>
+        </button>
+      </div>
       <div class="palette-title">Questions</div>
       <div class="question-palette" id="question-palette"></div>
+      <div class="constants-panel" id="sidebar-constants" aria-label="Physical and astronomical constants">
+        <div class="constants-title">Physical &amp; Astronomical Constants</div>
+        <div class="constant-row"><span class="constant-key">Speed of light (c)</span><span class="constant-value">3.00&times;10<sup>8</sup> m/s</span></div>
+        <div class="constant-row"><span class="constant-key">Gravitational constant (G)</span><span class="constant-value">6.674&times;10<sup>-11</sup> m<sup>3</sup> kg<sup>-1</sup> s<sup>-2</sup></span></div>
+        <div class="constant-row"><span class="constant-key">Planck's constant (h)</span><span class="constant-value">6.626&times;10<sup>-34</sup> J&middot;s</span></div>
+        <div class="constant-row"><span class="constant-key">hc product</span><span class="constant-value">1240 eV&middot;nm</span></div>
+        <div class="constant-row"><span class="constant-key">Stefan-Boltzmann (&sigma;)</span><span class="constant-value">5.670&times;10<sup>-8</sup> W m<sup>-2</sup> K<sup>-4</sup></span></div>
+        <div class="constant-row"><span class="constant-key">Boltzmann constant (k<sub>B</sub>)</span><span class="constant-value">1.381&times;10<sup>-23</sup> J/K</span></div>
+        <div class="constant-row"><span class="constant-key">Wien's constant (b)</span><span class="constant-value">2.898&times;10<sup>-3</sup> m&middot;K</span></div>
+        <div class="constant-row"><span class="constant-key">Solar mass (M<sub>&odot;</sub>)</span><span class="constant-value">1.989&times;10<sup>30</sup> kg</span></div>
+        <div class="constant-row"><span class="constant-key">Solar luminosity (L<sub>&odot;</sub>)</span><span class="constant-value">3.828&times;10<sup>26</sup> W</span></div>
+        <div class="constant-row"><span class="constant-key">Solar radius (R<sub>&odot;</sub>)</span><span class="constant-value">6.963&times;10<sup>8</sup> m</span></div>
+        <div class="constant-row"><span class="constant-key">Earth mass (M<sub>&oplus;</sub>)</span><span class="constant-value">5.972&times;10<sup>24</sup> kg</span></div>
+        <div class="constant-row"><span class="constant-key">Earth radius (R<sub>&oplus;</sub>)</span><span class="constant-value">6371 km</span></div>
+        <div class="constant-row"><span class="constant-key">Earth grav. parameter (&mu;<sub>E</sub>)</span><span class="constant-value">398,600 km<sup>3</sup>/s<sup>2</sup></span></div>
+        <div class="constant-row"><span class="constant-key">Astronomical Unit (1 AU)</span><span class="constant-value">1.496&times;10<sup>11</sup> m</span></div>
+        <div class="constant-row"><span class="constant-key">Parsec (1 pc)</span><span class="constant-value">3.086&times;10<sup>16</sup> m &approx; 206,265 AU</span></div>
+        <div class="constant-row"><span class="constant-key">Light-year (1 ly)</span><span class="constant-value">9.461&times;10<sup>15</sup> m</span></div>
+        <div class="constant-row"><span class="constant-key">1 radian</span><span class="constant-value">206,265 arcsec</span></div>
+        <div class="constant-row"><span class="constant-key">Hubble constant (H<sub>0</sub>)</span><span class="constant-value">70 km/s/Mpc</span></div>
+        <div class="constant-row"><span class="constant-key">CMB temperature (T<sub>0</sub>)</span><span class="constant-value">2.725 K</span></div>
+        <div class="constant-row"><span class="constant-key">Electron volt (1 eV)</span><span class="constant-value">1.602&times;10<sup>-19</sup> J</span></div>
+        <div class="constant-row"><span class="constant-key">Electron mass (m<sub>e</sub>)</span><span class="constant-value">9.109&times;10<sup>-31</sup> kg</span></div>
+        <div class="constant-row"><span class="constant-key">Proton mass (m<sub>p</sub>)</span><span class="constant-value">1.673&times;10<sup>-27</sup> kg</span></div>
+        <div class="constant-row"><span class="constant-key">1 year (1 yr)</span><span class="constant-value">3.156&times;10<sup>7</sup> s</span></div>
+        <div class="constant-row"><span class="constant-key">Sun MS lifetime</span><span class="constant-value">10 Gyr</span></div>
+      </div>
     </div>
     <div class="exam-main" id="exam-content">
-      <div id="questions-container"></div>
+      <div class="constants-inline-panel" aria-label="Physical and astronomical constants reference">
+        <div class="constants-inline-title">Physical &amp; Astronomical Constants</div>
+        <div class="constants-inline-grid">
+          <div class="constant-chip"><b>Speed of light (c)</b><span>3.00&times;10<sup>8</sup> m/s</span></div>
+          <div class="constant-chip"><b>Grav. constant (G)</b><span>6.674&times;10<sup>-11</sup> m<sup>3</sup> kg<sup>-1</sup> s<sup>-2</sup></span></div>
+          <div class="constant-chip"><b>Planck's const. (h)</b><span>6.626&times;10<sup>-34</sup> J&middot;s</span></div>
+          <div class="constant-chip"><b>hc product</b><span>1240 eV&middot;nm</span></div>
+          <div class="constant-chip"><b>Stefan-Boltzmann (&sigma;)</b><span>5.670&times;10<sup>-8</sup> W m<sup>-2</sup> K<sup>-4</sup></span></div>
+          <div class="constant-chip"><b>Boltzmann (k<sub>B</sub>)</b><span>1.381&times;10<sup>-23</sup> J/K</span></div>
+          <div class="constant-chip"><b>Wien's const. (b)</b><span>2.898&times;10<sup>-3</sup> m&middot;K</span></div>
+          <div class="constant-chip"><b>Solar mass (M<sub>&odot;</sub>)</b><span>1.989&times;10<sup>30</sup> kg</span></div>
+          <div class="constant-chip"><b>Solar luminosity (L<sub>&odot;</sub>)</b><span>3.828&times;10<sup>26</sup> W</span></div>
+          <div class="constant-chip"><b>Solar radius (R<sub>&odot;</sub>)</b><span>6.963&times;10<sup>8</sup> m</span></div>
+          <div class="constant-chip"><b>Earth mass (M<sub>&oplus;</sub>)</b><span>5.972&times;10<sup>24</sup> kg</span></div>
+          <div class="constant-chip"><b>Earth radius (R<sub>&oplus;</sub>)</b><span>6371 km</span></div>
+          <div class="constant-chip"><b>Earth grav. (&mu;<sub>E</sub>)</b><span>398,600 km<sup>3</sup>/s<sup>2</sup></span></div>
+          <div class="constant-chip"><b>Astronomical Unit (1 AU)</b><span>1.496&times;10<sup>11</sup> m</span></div>
+          <div class="constant-chip"><b>Parsec (1 pc)</b><span>3.086&times;10<sup>16</sup> m &approx; 206,265 AU</span></div>
+          <div class="constant-chip"><b>Light-year (1 ly)</b><span>9.461&times;10<sup>15</sup> m</span></div>
+          <div class="constant-chip"><b>1 radian</b><span>206,265 arcsec</span></div>
+          <div class="constant-chip"><b>Hubble const. (H<sub>0</sub>)</b><span>70 km/s/Mpc</span></div>
+          <div class="constant-chip"><b>CMB temp. (T<sub>0</sub>)</b><span>2.725 K</span></div>
+          <div class="constant-chip"><b>Electron volt (1 eV)</b><span>1.602&times;10<sup>-19</sup> J</span></div>
+          <div class="constant-chip"><b>Electron mass (m<sub>e</sub>)</b><span>9.109&times;10<sup>-31</sup> kg</span></div>
+          <div class="constant-chip"><b>Proton mass (m<sub>p</sub>)</b><span>1.673&times;10<sup>-27</sup> kg</span></div>
+          <div class="constant-chip"><b>1 year (1 yr)</b><span>3.156&times;10<sup>7</sup> s</span></div>
+          <div class="constant-chip"><b>Sun MS lifetime</b><span>10 Gyr</span></div>
+        </div>
+      </div>      <div id="questions-container"></div>
     </div>
   </div>
 
@@ -209,8 +367,29 @@
           <span id="v-fs-icon" class="verify-dot"></span>
         </div>
       </div>
-      <button class="button primary" id="btn-start-exam" style="width:100%;">Start Exam</button>
+<button class="button primary" id="btn-start-exam" style="width:100%;">Start Exam</button>
       <p id="verify-error" style="margin-top:12px;font-size:0.82rem;color:var(--error,#ff4757);display:none;"></p>
+    </div>
+  </div>
+
+  <!-- Rules Modal (shown before entering the exam) -->
+  <div id="rules-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:600px;text-align:left;">
+      <h2 id="rules-title">Exam <span class="text-blue">Rules</span></h2>
+      <p id="rules-intro" style="margin-bottom:16px;line-height:1.55;">Please read the following rules carefully before starting. Violations are recorded and may lead to disqualification.</p>
+      <ul id="rules-list" style="margin:0;padding-left:20px;color:var(--text);font-size:0.9rem;line-height:1.6;display:grid;gap:8px;">
+        <li data-i18n="tab">No switching tabs or opening other windows during the exam.</li>
+        <li data-i18n="fullscreen">Do not exit fullscreen mode. You must stay in fullscreen for the whole exam.</li>
+        <li data-i18n="camera">Do not disable, cover, or move the camera.</li>
+        <li data-i18n="screenshare">Do not stop or hide the screen share on desktop.</li>
+        <li data-i18n="face">Your face must remain visible in the camera at all times while solving.</li>
+        <li data-i18n="warn">Any of the above may pause the exam and is recorded as a violation.</li>
+        <li data-i18n="paper">No formula sheets, notes, or reference material on your desk. Being found with any is considered cheating.</li>
+        <li data-i18n="translate">Automatic page translation is disabled. To switch to Arabic, use the button at the top-right of the exam.</li>
+      </ul>
+      <div class="modal-actions" style="margin-top:24px;">
+        <button class="button primary" id="btn-accept-rules" style="flex:1;">I Understand, Continue</button>
+      </div>
     </div>
   </div>
 
@@ -236,7 +415,8 @@
       <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--blue-light)" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
       <h1>Exam Submitted</h1>
       <p>Your responses have been recorded successfully.</p>
-      <p style="margin-top: 20px; font-size: 0.85rem;">You may now close this window.</p>
+      <p style="margin-top: 14px; font-size: 0.85rem; color: var(--muted, #8b9bb4);">You may now close this window or return to your dashboard.</p>
+      <a href="team-dashboard.html" class="button primary" style="margin-top: 20px; display: inline-flex; align-items: center; justify-content: center; text-decoration: none; padding: 12px 28px; font-weight: 600;">Go to Dashboard</a>
     </div>
   </div>
 

@@ -2,6 +2,14 @@
   "hosting": {
     "public": ".",
     "cleanUrls": true,
+    "headers": [
+      {
+        "source": "**/*.@(html|js)",
+        "headers": [
+          { "key": "Cache-Control", "value": "no-cache, no-store, must-revalidate" }
+        ]
+      }
+    ],
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -12,7 +20,8 @@
       "auth-export.json",
       "all-registered-emails.txt",
       "serviceAccountKey.json",
-      ".env"
+      ".env",
+      "functions/**"
     ]
   },
   "firestore": {

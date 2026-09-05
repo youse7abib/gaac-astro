@@ -311,8 +311,8 @@
 
 <div id="competitions-panel" class="competitions-panel">
             <div class="comp-head">
-              <h2><span class="text-blue">Mock Test</span></h2>
-              <p class="sub">Single live countdown drives the mock entry window (Cairo, GMT+3). You can join the mock test between 7:00 PM and 8:10 PM.</p>
+              <h2><span class="text-blue">Round 1</span></h2>
+              <p class="sub">Round 1 takes place on <strong>5 September 2026 at 7:00 PM in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong>8:00 PM your local time</strong>.</p>
             </div>
             <div id="mock-card" class="mock-card">
               <div class="mock-row">
@@ -334,8 +334,8 @@
                   <span class="mock-cell-value" id="mock-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="mock-schedule-note">Loading mock test schedule…</p>
-              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Mock Test</button>
+              <p class="mock-sub" id="mock-schedule-note">Loading Round 1 schedule…</p>
+              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Round 1 Exam</button>
             </div>
           </div>
         </div>
@@ -602,13 +602,25 @@ const app = initializeApp(firebaseConfig);
         else if (norm((currentRegData.member3 && currentRegData.member3.email) || '') === userEmail) matchedSlot = 'member3';
         currentMemberRole = matchedSlot;
 
-// Competition control + mock test schedule. Registration-open only
-        // gates the leader's roster tools; the mock countdown is for everyone.
+// Competition control + Round 1 schedule. Registration-open only
+        // gates the leader's roster tools; the Round 1 countdown is for everyone.
         const compSnap = await getDoc(doc(db, 'settings', 'competition'));
         const compData = compSnap.exists() ? compSnap.data() : {};
         registrationOpen = !(compData.registrationOpen === false);
-        mockSchedule = getMockSchedule(compData);
-        mockCardTick();
+        r1Schedule = getRound1Schedule(compData);
+        // Calibrate to the server clock so every device counts down in sync,
+        // independent of the visitor's wall clock.
+        try {
+          const getR1Status = httpsCallable(getFunctions(), 'getRound1Status');
+          const sres = await getR1Status();
+          const sdata = sres.data || {};
+          if (typeof sdata.now === 'number') r1ServerOffsetMs = sdata.now - Date.now();
+          if (typeof sdata.openAt === 'number') r1Schedule.r1OpenAt = sdata.openAt;
+          if (typeof sdata.closeAt === 'number') r1Schedule.r1CloseAt = sdata.closeAt;
+        } catch (e) {
+          console.warn('Round 1 server clock unavailable, using cached schedule:', e.message || e);
+        }
+        r1CardTick();
 
         updateUrlIdentity();
         renderDashboard(user);
@@ -699,18 +711,20 @@ const app = initializeApp(firebaseConfig);
       });
     }
 
-// ----- Mock Test: schedule-driven entry (no portal login) -----
-    const MOCK_DEFAULT = {
-      mockCountdownStart: Date.UTC(2026, 8, 2, 9, 0, 0),  // 12:00 PM Cairo (GMT+3)
-      mockOpenAt: Date.UTC(2026, 8, 2, 15, 58, 0),        // 6:58 PM
-      mockStartAt: Date.UTC(2026, 8, 2, 16, 0, 0),        // 7:00 PM
-      mockCloseAt: Date.UTC(2026, 8, 2, 17, 10, 0)        // 8:10 PM
+// ----- Round 1: schedule-driven entry (no portal login) -----
+    // Round 1 window (Cairo, GMT+3): entry opens 7:00 PM and closes 8:00 PM on
+    // Sept 5, 2026. The countdown is calibrated to the server clock so that
+    // every device (whatever its wall clock) sees the exact same remaining time.
+    const R1_DEFAULT = {
+      r1OpenAt: Date.UTC(2026, 8, 5, 16, 0, 0),    // 7:00 PM Cairo
+      r1CloseAt: Date.UTC(2026, 8, 5, 17, 0, 0)    // 8:00 PM Cairo
     };
-    let mockSchedule = { ...MOCK_DEFAULT };
+    let r1Schedule = { ...R1_DEFAULT };
+    let r1ServerOffsetMs = 0;   // calibrate the running countdown to the server clock
 
-    function getMockSchedule(compData) {
-      const s = { ...MOCK_DEFAULT };
-      ['mockCountdownStart', 'mockOpenAt', 'mockStartAt', 'mockCloseAt'].forEach(k => {
+    function getRound1Schedule(compData) {
+      const s = { ...R1_DEFAULT };
+      ['round1OpenAt', 'round1CloseAt'].forEach(k => {
         if (typeof compData[k] === 'number') s[k] = compData[k];
       });
       return s;
@@ -739,48 +753,63 @@ const app = initializeApp(firebaseConfig);
       set('mock-hours', h); set('mock-minutes', m); set('mock-seconds', s);
     }
 
-    function mockCardTick() {
+    function r1CardTick() {
       const pill = document.getElementById('mock-pill');
       const statusEl = document.getElementById('mock-status');
       const noteEl = document.getElementById('mock-schedule-note');
       const btn = document.getElementById('btn-enter-mock');
       if (!statusEl || !noteEl || !pill) return;
-      const now = Date.now();
-      const { mockOpenAt, mockStartAt, mockCloseAt } = mockSchedule;
-      if (now < mockOpenAt) {
+      const now = Date.now() + r1ServerOffsetMs;
+      const { r1OpenAt, r1CloseAt } = r1Schedule;
+      if (now < r1OpenAt) {
         pill.classList.remove('cc-open', 'cc-closed');
         statusEl.textContent = 'Opens';
-        const { h, m, s } = fmtCountdown(mockOpenAt - now);
+        const { h, m, s } = fmtCountdown(r1OpenAt - now);
         setMockCells(h, m, s);
-        noteEl.textContent = `Mock Test opens at ${cairoClock(mockOpenAt)}. The requirements approval step is available from then.`;
+        noteEl.textContent = `Round 1 opens at ${cairoClock(r1OpenAt)} (Cairo, GMT+3). All devices count down in sync.`;
         if (btn) btn.style.display = 'none';
-      } else if (now < mockCloseAt) {
+      } else if (now < r1CloseAt) {
         pill.classList.add('cc-open');
         pill.classList.remove('cc-closed');
-        statusEl.textContent = 'Open · Closes ' + cairoClock(mockCloseAt);
-        const { h, m, s } = fmtCountdown(mockCloseAt - now);
+        statusEl.textContent = 'Open \u00b7 Closes ' + cairoClock(r1CloseAt);
+        const { h, m, s } = fmtCountdown(r1CloseAt - now);
         setMockCells(h, m, s);
-        noteEl.textContent = `Enter anytime until ${cairoClock(mockCloseAt)}. Your 60-minute timer starts after you approve the requirements (from ${cairoClock(mockStartAt)}).`;
+        noteEl.textContent = `Enter anytime until ${cairoClock(r1CloseAt)} (Cairo, GMT+3). Your 60-minute timer starts once you approve the requirements.`;
         if (btn) btn.style.display = 'inline-flex';
       } else {
         pill.classList.remove('cc-open');
         pill.classList.add('cc-closed');
         statusEl.textContent = 'Closed';
         setMockCells('00', '00', '00');
-        noteEl.textContent = 'The Mock Test entry window has closed.';
+        noteEl.textContent = 'The Round 1 entry window has closed.';
         if (btn) btn.style.display = 'none';
       }
     }
-    setInterval(mockCardTick, 1000);
-    mockCardTick();
+    setInterval(r1CardTick, 1000);
+    r1CardTick();
 
     const btnEnterMock = document.getElementById('btn-enter-mock');
     if (btnEnterMock) {
       btnEnterMock.addEventListener('click', () => {
         if (!currentTeamId) return;
-        window.location.href = `mock-exam.html?team=${encodeURIComponent(currentTeamId)}`;
+        window.location.href = `exam.html?team=${encodeURIComponent(currentTeamId)}`;
       });
     }
+
+    // Show BOTH the member's registered country (from member data) and their
+    // region/timezone (from the browser) in parentheses after "your local time".
+    function renderLocalRegion() {
+      const el = document.getElementById('r1-local-start');
+      if (!el) return;
+      const slotData = currentRegData ? (currentRegData[currentMemberRole] || currentRegData.leader) : null;
+      let registeredCountry = (slotData && slotData.country) ? slotData.country : '';
+      let browserTz = '';
+      try { browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone || ''; } catch (_) {}
+      const parts = [registeredCountry, browserTz].filter(Boolean);
+      el.textContent = parts.length ? `(${parts.join(' \u00b7 ')})` : '(your region)';
+    }
+    renderLocalRegion();
+
     const addBtnText = addBtn.querySelector('.btn-text');
     const addBtnLoader = addBtn.querySelector('.btn-loader');
     const addAlert = document.getElementById('add-alert');

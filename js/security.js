@@ -1,5 +1,5 @@
 export class SecurityWrapper {
-  constructor(teamId, memberUid, db, onNotify = null, countdownConfig = {}) {
+  constructor(teamId, memberUid, db, onNotify = null, countdownConfig = {}, options = {}) {
     this.teamId = teamId;
     this.memberUid = memberUid;
     this.db = db;
@@ -17,6 +17,8 @@ export class SecurityWrapper {
     this.hasBeenFocused = document.hasFocus();
     // Countdown duration per event type (seconds), for admin display
     this.countdownConfig = countdownConfig;
+    this.requireFullscreen = options.requireFullscreen !== false;
+    this.ignoreEventsUntil = options.ignoreEventsUntil || {};
     // Unique local ID per event, used to match recovery updates to flushed docs
     this.nextLocalId = 0;
     // { localId: docRef } — set after flush, so recovery can update the doc in-place
@@ -31,8 +33,8 @@ export class SecurityWrapper {
   }
 
   start() {
-    this._requestFullscreen();
-    this._watchFullscreen();
+    if (this.requireFullscreen) this._requestFullscreen();
+    if (this.requireFullscreen) this._watchFullscreen();
     this._watchVisibility();
     this._watchFocus();
     this._blockInteractions();
@@ -57,6 +59,10 @@ export class SecurityWrapper {
       }
     }
     this.eventStates = {};
+    // Note: event counters are NOT written to Firestore during the exam or on
+    // submission. Events are stored individually, so the admin can compute the
+    // total/severe counts from the stored events after the exam. This avoids
+    // redundant writes entirely.
     // Flush remaining queue (final write)
     await this._flush();
   }
@@ -68,6 +74,7 @@ export class SecurityWrapper {
    */
   setActive(type, severity = 'warning') {
     if (!this.active) return false;
+    if (Date.now() < (this.ignoreEventsUntil[type] || 0)) return false;
     if (this.eventCount >= this.maxEvents) return false;
     if (this.eventStates[type]?.state === 'active') return false;
 
@@ -155,7 +162,7 @@ export class SecurityWrapper {
   }
 
   requestFullscreen() {
-    if (!document.fullscreenElement && this.active) {
+    if (this.requireFullscreen && !document.fullscreenElement && this.active) {
       document.documentElement.requestFullscreen().catch(() => {});
     }
   }
@@ -180,17 +187,25 @@ export class SecurityWrapper {
 
   _watchVisibility() {
     this._lastTabEvent = 0;
-    document.addEventListener('visibilitychange', () => {
-      if (!document.hidden) {
-        this.hasBeenVisible = true;
-        this.setInactive('tab-hidden');
-      } else if (this.active && this.hasBeenVisible) {
+    const handleHidden = () => {
+      if (this.active && this.hasBeenVisible) {
         this._lastTabEvent = Date.now();
         if (this.setActive('tab-hidden', 'severe') && this.onNotify) {
           this.onNotify('You switched away from the exam tab. This is being recorded.', 'severe', 'tab-hidden');
         }
       }
+    };
+    const handleVisible = () => {
+      this.hasBeenVisible = true;
+      this.setInactive('tab-hidden');
+    };
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) handleHidden();
+      else handleVisible();
     });
+    window.addEventListener('pagehide', handleHidden);
+    window.addEventListener('pageshow', handleVisible);
   }
 
   _watchFocus() {
@@ -250,7 +265,7 @@ export class SecurityWrapper {
   }
 
   _startFlushTimer() {
-    this.flushTimer = setInterval(() => this._flush(), 10000);
+    this.flushTimer = setInterval(() => this._flush(), 20000);
   }
 
   async _flush() {
@@ -266,29 +281,19 @@ export class SecurityWrapper {
       // This ensures events are always persisted even if counter updates fail.
       const eventBatch = writeBatch(this.db);
       const refs = {};
+      this.flushedEvents = this.flushedEvents || [];
       batch.forEach((evt) => {
         const ref = doc(collection(this.db, 'teams', this.teamId, 'events'));
         refs[evt.localId] = ref;
         eventBatch.set(ref, evt);
+        this.flushedEvents.push(evt);
       });
       await eventBatch.commit();
       console.log('[Security] Flushed', batch.length, 'events to Firestore');
 
-      // STEP 2: Update counters in a SEPARATE batch (best-effort).
-      // If this fails, events are still safe.
-      let severeCount = 0;
-      batch.forEach(evt => { if (evt.severity === 'severe') severeCount++; });
-      try {
-        const counterBatch = writeBatch(this.db);
-        const examRef = doc(this.db, 'teams', this.teamId, 'exam', this.memberUid);
-        counterBatch.set(examRef, {
-          eventCount: increment(batch.length),
-          severeEventCount: increment(severeCount)
-        }, { merge: true });
-        await counterBatch.commit();
-      } catch (counterErr) {
-        console.warn('[Security] Counter update failed (events still saved):', counterErr.message || counterErr);
-      }
+      // NOTE: event counters are now written once at submit (in stop()),
+      // eliminating ~360 writes/hour per student.
+
 
       // After commit succeeds, set pendingFlush for still-active events
       for (const [type, state] of Object.entries(this.eventStates)) {

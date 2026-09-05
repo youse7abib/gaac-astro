@@ -41,8 +41,7 @@ document.querySelectorAll('[data-countdown]').forEach(function (el) {
 
   if      (now < registrationOpen) el.textContent = 'Registration opens in ' + days(registrationOpen) + ' day' + (days(registrationOpen) !== 1 ? 's' : '') + ' — 12 July 2026';
   else if (now <= registrationClose) el.textContent = 'Registration is open until 30 August 2026.';
-  else if (now < mockTest)           el.textContent = 'Registration closed. Mock test on 2 September 2026.';
-  else if (now < round1)             el.textContent = 'Round 1 starts 5 September 2026.';
+  else if (now < round1)             el.textContent = 'Registration closed. Round 1 starts 5 September 2026.';
   else if (now < round2)             el.textContent = 'Round 1 in progress. Round 2 on 10 September 2026.';
   else if (now < finalResults)       el.textContent = 'Round 2 in progress. Final results on 15 September 2026.';
   else if (now <= finalResults)      el.textContent = 'GAAC 2026 results are being finalized. Certificates releasing 15 September 2026.';

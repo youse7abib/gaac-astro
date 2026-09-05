@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
@@ -122,18 +122,13 @@
           <button class="button secondary" id="btn-refresh" style="min-height:38px;font-size:0.8rem;">Refresh</button>
         </div>
         <div id="my-team-view" style="max-width:800px;margin:20px auto;padding:0 20px 40px;"></div>
-        <div id="seed-warning" style="max-width:500px;margin:20px auto;padding:16px 20px;border:1px solid rgba(255,183,77,0.3);border-radius:12px;background:rgba(255,183,77,0.06);text-align:center;">
-          <p style="color:#ffb74d;font-size:0.85rem;margin-bottom:12px;">Click to upload/update 40 questions (including Arabic translations).</p>
-          <button class="button primary" id="btn-seed-questions" style="font-size:0.85rem;">Upload 40 Questions</button>
-          <p id="seed-status" style="font-size:0.8rem;color:var(--muted);margin-top:8px;display:none;"></p>
-        </div>
       </div>
 
       <!-- Mock Test Schedule -->
       <div id="mock-schedule-section" class="hidden" style="max-width:860px;margin:28px auto 0;padding:0 20px 40px;">
         <div style="border:1px solid rgba(38,183,255,0.22);border-radius:14px;padding:22px 20px;background:rgba(10,14,23,0.5);">
-          <h2 style="margin:0 0 4px;font-size:1.1rem;">Mock Test <span style="color:var(--blue-light);">Schedule</span></h2>
-          <p style="color:var(--muted);font-size:0.82rem;margin:0 0 18px;">Single live countdown drives the mock entry window (Cairo, GMT+3). Candidates can join the mock test between <strong style="color:var(--blue-light);">7:00 PM and 8:10 PM</strong>.</p>
+          <h2 style="margin:0 0 4px;font-size:1.1rem;">Round 1 <span style="color:var(--blue-light);">Schedule</span></h2>
+          <p style="color:var(--muted);font-size:0.82rem;margin:0 0 18px;">Single live countdown drives the Round 1 entry window (Cairo, GMT+3). Entry opens at <strong style="color:var(--blue-light);">7:00 PM</strong> and closes at <strong style="color:var(--blue-light);">8:00 PM</strong> on 5 September 2026.</p>
 
           <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
             <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
@@ -156,20 +151,20 @@
               <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Seconds</div>
             </div>
           </div>
-          <div id="mock-timer-note" style="text-align:center;font-size:0.78rem;color:var(--muted);margin-bottom:22px;">Loading…</div>
+          <div id="mock-timer-note" style="text-align:center;font-size:0.78rem;color:var(--muted);margin-bottom:22px;">Loadingâ€¦</div>
 
           <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;">
             <div style="margin:0;">
-              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Exam start</label>
+              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Entry window opens</label>
               <input type="datetime-local" id="mock-start-at" style="width:100%;" />
             </div>
             <div style="margin:0;">
-              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Close at</label>
+              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Entry window closes</label>
               <input type="datetime-local" id="mock-close-at" style="width:100%;" />
             </div>
           </div>
           <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <button class="button primary" id="btn-save-mock-schedule" style="min-height:38px;font-size:0.8rem;">Save Mock Schedule</button>
+            <button class="button primary" id="btn-save-mock-schedule" style="min-height:38px;font-size:0.8rem;">Save Round 1 Schedule</button>
             <span id="mock-save-status" style="font-size:0.8rem;color:var(--muted);"></span>
           </div>
         </div>
@@ -237,16 +232,14 @@
       } catch (e) { errorEl.textContent = e.message || 'Login failed.'; errorEl.style.display = 'block'; }
     });
 
-    // ----- Mock Test schedule (live countdown) -----
-    const MOCK_DEFAULT = {
-      mockCountdownStart: Date.UTC(2026, 8, 2, 9, 0, 0),  // 12:00 PM Cairo (GMT+3)
-      mockOpenAt: Date.UTC(2026, 8, 2, 15, 58, 0),        // 6:58 PM
-      mockStartAt: Date.UTC(2026, 8, 2, 16, 0, 0),        // 7:00 PM
-      mockCloseAt: Date.UTC(2026, 8, 2, 17, 10, 0)        // 8:10 PM
+    // ----- Round 1 schedule (live countdown) -----
+    const R1_DEFAULT = {
+      round1OpenAt: Date.UTC(2026, 8, 5, 16, 0, 0),    // 7:00 PM Cairo (GMT+3)
+      round1CloseAt: Date.UTC(2026, 8, 5, 17, 0, 0)    // 8:00 PM Cairo (GMT+3)
     };
-    const MOCK_KEYS = ['mockCountdownStart', 'mockOpenAt', 'mockStartAt', 'mockCloseAt'];
-    const MOCK_EDIT_KEYS = ['mockStartAt', 'mockCloseAt'];
-    let mockSched = { ...MOCK_DEFAULT };
+    const MOCK_KEYS = ['round1OpenAt', 'round1CloseAt'];
+    const MOCK_EDIT_KEYS = ['round1OpenAt', 'round1CloseAt'];
+    let mockSched = { ...R1_DEFAULT };
 
     const cairoClock = (epoch) => {
       const d = new Date(epoch + 3 * 3600 * 1000);
@@ -283,18 +276,18 @@
       const note = document.getElementById('mock-timer-note');
       if (!note) return;
       const now = Date.now();
-      const { mockOpenAt, mockStartAt, mockCloseAt } = mockSched;
-      if (now < mockOpenAt) {
-        const { d, h, m, s } = fmtCountdown(mockOpenAt - now);
+      const { round1OpenAt, round1CloseAt } = mockSched;
+      if (now < round1OpenAt) {
+        const { d, h, m, s } = fmtCountdown(round1OpenAt - now);
         setCells(d, h, m, s);
-        note.textContent = `Opens at ${cairoClock(mockOpenAt)}. Requirements approval step. Join between ${cairoClock(mockStartAt)} and ${cairoClock(mockCloseAt)} (Cairo Time, GMT+3).`;
-      } else if (now < mockCloseAt) {
-        const { d, h, m, s } = fmtCountdown(mockCloseAt - now);
+        note.textContent = `Round 1 opens at ${cairoClock(round1OpenAt)}. Entry allowed between ${cairoClock(round1OpenAt)} and ${cairoClock(round1CloseAt)} (Cairo Time, GMT+3).`;
+      } else if (now < round1CloseAt) {
+        const { d, h, m, s } = fmtCountdown(round1CloseAt - now);
         setCells(d, h, m, s);
-        note.textContent = `Entry open. Join between ${cairoClock(mockStartAt)} and ${cairoClock(mockCloseAt)} (Cairo Time, GMT+3). Closes in the countdown above.`;
+        note.textContent = `Entry open. Allowed between ${cairoClock(round1OpenAt)} and ${cairoClock(round1CloseAt)} (Cairo Time, GMT+3). Closes in the countdown above.`;
       } else {
         setCells('00', '00', '00', '00');
-        note.textContent = `Entry window closed. The join window was ${cairoClock(mockStartAt)} - ${cairoClock(mockCloseAt)} (Cairo Time, GMT+3).`;
+        note.textContent = `Entry window closed. The join window was ${cairoClock(round1OpenAt)} - ${cairoClock(round1CloseAt)} (Cairo Time, GMT+3).`;
       }
     };
 
@@ -304,27 +297,27 @@
       try {
         const res = await statusFn();
         const data = res.data || {};
-        const s = { ...MOCK_DEFAULT };
+        const s = { ...R1_DEFAULT };
         MOCK_KEYS.forEach(k => { if (typeof data[k] === 'number') s[k] = data[k]; });
         mockSched = s;
-        document.getElementById('mock-start-at').value = toLocalInput(s.mockStartAt);
-        document.getElementById('mock-close-at').value = toLocalInput(s.mockCloseAt);
+        document.getElementById('mock-start-at').value = toLocalInput(s.round1OpenAt);
+        document.getElementById('mock-close-at').value = toLocalInput(s.round1CloseAt);
         mockScheduleTick();
         setInterval(mockScheduleTick, 1000);
       } catch (e) {
-        console.warn('Failed to load mock schedule:', e);
+        console.warn('Failed to load Round 1 schedule:', e);
       }
     };
 
     document.getElementById('btn-save-mock-schedule').addEventListener('click', async () => {
       const statusEl = document.getElementById('mock-save-status');
-      statusEl.textContent = 'Saving…';
+      statusEl.textContent = 'Savingâ€¦';
       const functions = getFunctions(app);
       const updateFn = httpsCallable(functions, 'updateCompetitionControl');
       try {
         const payload = {
-          mockStartAt: new Date(document.getElementById('mock-start-at').value).getTime(),
-          mockCloseAt: new Date(document.getElementById('mock-close-at').value).getTime()
+          round1OpenAt: new Date(document.getElementById('mock-start-at').value).getTime(),
+          round1CloseAt: new Date(document.getElementById('mock-close-at').value).getTime()
         };
         for (const k of MOCK_EDIT_KEYS) {
           if (!Number.isFinite(payload[k])) throw new Error(`Invalid value for ${k}.`);
@@ -334,7 +327,7 @@
         statusEl.textContent = 'Saved. Countdown restarted from current times.';
         setTimeout(() => { statusEl.textContent = ''; }, 4000);
       } catch (e) {
-        console.error('Failed to save mock schedule:', e);
+        console.error('Failed to save Round 1 schedule:', e);
         statusEl.textContent = 'Save failed: ' + (e.message || 'unknown error');
       }
     });
@@ -489,7 +482,8 @@
             vHtml += '</tbody></table>';
           }
 
-          vHtml += `<h3 style="margin-bottom:8px;">Snapshots</h3><div id="snap-grid-${i}" class="snap-grid"></div>`;
+          vHtml += `<h3 style="margin-bottom:8px;">Event Snapshots</h3><div id="snap-grid-${i}" class="snap-grid"></div>`;
+          vHtml += `<h3 style="margin-top:20px;margin-bottom:8px;">Auto Snapshots</h3><div id="snap-auto-grid-${i}" class="snap-grid"></div>`;
           vHtml += '</div>';
           viewsEl.innerHTML += vHtml;
         });
@@ -541,11 +535,13 @@
             }, { merge: true });
             try {
               const listRef = storageRef(storage, `snapshots/round1/${MY_TEAM_ID}`);
-              const result = await listAll(listRef);
-              const allItems = [...result.items];
-              for (const prefix of result.prefixes) {
-                try { const sub = await listAll(prefix); allItems.push(...sub.items); } catch {}
-              }
+              const allItems = [];
+              const collect = async (ref) => {
+                const res = await listAll(ref);
+                allItems.push(...res.items);
+                for (const prefix of res.prefixes) await collect(prefix);
+              };
+              await collect(listRef);
               for (const item of allItems) { try { await deleteObject(item); } catch {} }
             } catch {}
             alert(`Reset complete! Deleted ${deleted} events, ${examSnap2.size} exams, snapshots cleared.`);
@@ -567,7 +563,41 @@
     };
 
     const loadMemberSnapshots = async (members) => {
+      const fillGrid = async (items, gridId) => {
+        const grid = document.getElementById(gridId);
+        if (!grid) return;
+        grid.innerHTML = '';
+        const sortedItems = [...items].sort((a, b) => b.name > a.name ? 1 : -1);
+        for (const item of sortedItems) {
+          try {
+            const url = await getDownloadURL(item);
+            const parts = item.name.replace('.jpg', '').split('_');
+            const ts = parseInt(parts[parts.length - 1]);
+            const date = isNaN(ts) ? new Date() : new Date(ts);
+            const violation = parts.length >= 2 ? parts.slice(0, -1).join('_') : '';
+            const div = document.createElement('div');
+            div.style.cssText = 'border:1px solid rgba(38,183,255,0.15);border-radius:8px;overflow:hidden;background:rgba(10,14,23,0.8);';
+            div.innerHTML = `
+              <img src="${url}" style="width:100%;display:block;cursor:pointer;aspect-ratio:16/9;object-fit:cover;" onclick="window.open(this.src,'_blank')" loading="lazy" />
+              <div style="padding:4px 6px;font-size:0.65rem;">
+                <div style="color:var(--blue-light);font-weight:600;">${violation.replace(/-/g, ' ')}</div>
+                <div style="color:var(--muted);">${fmtTimeOnly(date)}</div>
+              </div>
+            `;
+            grid.appendChild(div);
+          } catch (e) { console.warn('Failed to load snapshot:', item.name, e); }
+        }
+      };
+
       try {
+        // Pre-fill every member's grids so the sections ALWAYS show, even empty.
+        members.forEach((m, i) => {
+          const e = document.getElementById(`snap-grid-${i}`);
+          if (e && !e.childElementCount) e.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">No event snapshots.</p>';
+          const a = document.getElementById(`snap-auto-grid-${i}`);
+          if (a && !a.childElementCount) a.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">No auto snapshots.</p>';
+        });
+
         const listRef = storageRef(storage, `snapshots/round1/${MY_TEAM_ID}`);
         const result = await listAll(listRef);
         if (result.prefixes.length === 0 && result.items.length === 0) return;
@@ -584,107 +614,30 @@
         for (let fi = 0; fi < memberFolders.length; fi++) {
           const folderRef = memberFolders[fi];
           const folderResult = await listAll(folderRef);
-          if (folderResult.items.length === 0) continue;
+          if (folderResult.items.length === 0 && folderResult.prefixes.length === 0) continue;
 
           const folderName = folderRef.name;
           const memberIdx = folderMap[folderName] !== undefined ? folderMap[folderName] : -1;
-          const member = memberIdx >= 0 ? members[memberIdx] : null;
-          const grid = document.getElementById(`snap-grid-${memberIdx}`);
-          if (!grid) continue;
-          grid.innerHTML = '';
 
-          const sortedItems = [...folderResult.items].sort((a, b) => b.name > a.name ? 1 : -1);
-          for (const item of sortedItems) {
-            try {
-              const url = await getDownloadURL(item);
-              const parts = item.name.replace('.jpg', '').split('_');
-              const ts = parseInt(parts[parts.length - 1]);
-              const date = isNaN(ts) ? new Date() : new Date(ts);
-              const violation = parts.length >= 2 ? parts.slice(0, -1).join('_') : '';
-              const div = document.createElement('div');
-              div.style.cssText = 'border:1px solid rgba(38,183,255,0.15);border-radius:8px;overflow:hidden;background:rgba(10,14,23,0.8);';
-              div.innerHTML = `
-                <img src="${url}" style="width:100%;display:block;cursor:pointer;aspect-ratio:16/9;object-fit:cover;" onclick="window.open(this.src,'_blank')" loading="lazy" />
-                <div style="padding:4px 6px;font-size:0.65rem;">
-                  <div style="color:var(--blue-light);font-weight:600;">${violation.replace(/-/g, ' ')}</div>
-                  <div style="color:var(--muted);">${fmtTimeOnly(date)}</div>
-                </div>
-              `;
-              grid.appendChild(div);
-            } catch (e) { console.warn('Failed to load snapshot:', item.name, e); }
+          // Auto snapshots live in a dedicated /auto/ subfolder per member.
+          const autoPrefix = folderResult.prefixes.find(p => p.name.toLowerCase() === 'auto');
+          const eventItems = folderResult.items.filter(it => !it.name.startsWith('auto_'));
+          const autoItems = autoPrefix ? (await listAll(autoPrefix)).items : [];
+
+          // If the folder doesn't map to a known member, show items under the
+          // first member view so nothing is ever invisible.
+          const targetIdx = memberIdx >= 0 ? memberIdx : 0;
+
+          if (eventItems.length > 0) {
+            await fillGrid(eventItems, `snap-grid-${targetIdx}`);
+          }
+
+          if (autoItems.length > 0) {
+            await fillGrid(autoItems, `snap-auto-grid-${targetIdx}`);
           }
         }
       } catch (e) { console.warn('Failed to list snapshots:', e); }
     };
-
-    const SEED_QUESTIONS = [
-      { text: "What is the closest star to Earth?", text_ar: "ما أقرب نجم إلى الأرض؟", options: ["Proxima Centauri", "Alpha Centauri A", "The Sun", "Barnard's Star"], options_ar: ["البروكسيما القنطور", "القنطور ألف أ", "الشمس", "نجم بارنارد"], correctAnswer: "C" },
-      { text: "How long does it take for light from the Sun to reach Earth?", text_ar: "كم يستغرق وصول ضوء الشمس إلى الأرض؟", options: ["About 4 minutes", "About 8 minutes", "About 12 minutes", "About 15 minutes"], options_ar: ["حوالي 4 دقائق", "حوالي 8 دقائق", "حوالي 12 دقيقة", "حوالي 15 دقيقة"], correctAnswer: "B" },
-      { text: "Which planet is known as the Red Planet?", text_ar: "أيُّ كوكب يُعرف بالكوكب الأحمر؟", options: ["Venus", "Jupiter", "Mars", "Saturn"], options_ar: ["الزهرة", "المشتري", "المريخ", "زحل"], correctAnswer: "C" },
-      { text: "What is the largest planet in our solar system?", text_ar: "ما أكبر كوكب في مجموعتنا الشمسية؟", options: ["Saturn", "Neptune", "Jupiter", "Uranus"], options_ar: ["زحل", "نبتون", "المشتري", "أورانوس"], correctAnswer: "C" },
-      { text: "What is a galaxy?", text_ar: "ما هي المجرة؟", options: ["A single star", "A system of stars, gas, and dust bound by gravity", "A planet's moon", "An asteroid belt"], options_ar: ["نجم واحد", "نظام من النجوم والغاز والغبار متماسك بالجاذبية", "قمر كوكب", "حزام الكويكبات"], correctAnswer: "B" },
-      { text: "What is the name of our galaxy?", text_ar: "ما اسم مجرتنا؟", options: ["Andromeda", "Milky Way", "Triangulum", "Sombrero"], options_ar: ["الأندروميدا", "درب التبانة", "المثلث", "سومبريرو"], correctAnswer: "B" },
-      { text: "What causes a solar eclipse?", text_ar: "ما الذي يسبب كسوف الشمس؟", options: ["The Moon passes between Earth and the Sun", "Earth passes between the Sun and the Moon", "The Sun passes between Earth and the Moon", "A planet crosses in front of the Sun"], options_ar: ["القمر يمر بين الأرض والشمس", "الأرض تمر بين الشمس والقمر", "الشمس تمر بين الأرض والقمر", "كوكب يعبر أمام الشمس"], correctAnswer: "A" },
-      { text: "Which planet has the most moons?", text_ar: "أيُّ كوكب لديه أكثر عدد من الأقمار؟", options: ["Jupiter", "Saturn", "Uranus", "Neptune"], options_ar: ["المشتري", "زحل", "أورانوس", "نبتون"], correctAnswer: "B" },
-      { text: "What is a light-year?", text_ar: "ما هو السنة الضوئية؟", options: ["The time light takes to travel from the Sun to Earth", "The distance light travels in one year", "The time it takes for a star to complete one orbit", "The brightness of a star"], options_ar: ["الوقت الذي يستغرقه الضوء للانتقال من الشمس إلى الأرض", "المسافة التي يقطعها الضوء في سنة واحدة", "الوقت الذي يستغرقه نجم لإتمام مدار واحد", "سطوع نجم"], correctAnswer: "B" },
-      { text: "What type of celestial body is Halley's Comet?", text_ar: "ما نوع الجسم السماوي في كوكب هالي؟", options: ["Asteroid", "Meteor", "Comet", "Dwarf planet"], options_ar: ["كويكبات", "نيزك", "مذنب", "كوكب قزم"], correctAnswer: "C" },
-      { text: "Which planet is closest to the Sun?", text_ar: "أيُّ كوكب أقرب إلى الشمس؟", options: ["Venus", "Mercury", "Earth", "Mars"], options_ar: ["الزهرة", "عطارد", "الأرض", "المريخ"], correctAnswer: "B" },
-      { text: "What is the Great Red Spot on Jupiter?", text_ar: "ما هو البقعة الحمراء العظمى على المشتري؟", options: ["A mountain", "A volcano", "A storm", "A crater"], options_ar: ["جبل", "بركان", "عاصفة", "حفرة"], correctAnswer: "C" },
-      { text: "What force keeps planets in orbit around the Sun?", text_ar: "ما القوة التي تبقي الكواكب في مدارها حول الشمس؟", options: ["Magnetism", "Gravity", "Inertia", "Solar wind"], options_ar: ["المغناطيسية", "الجاذبية", "القصور الذاتي", "رياح شمسية"], correctAnswer: "B" },
-      { text: "Which of these is a dwarf planet?", text_ar: "أيٌّ من هذه كوكب قزم؟", options: ["Europa", "Titan", "Pluto", "Ganymede"], options_ar: ["يوروبيا", "تيتان", "بلوتو", "غانيميد"], correctAnswer: "C" },
-      { text: "What is the speed of light in a vacuum?", text_ar: "ما سرعة الضوء في الفراغ؟", options: ["300,000 km/s", "150,000 km/s", "500,000 km/s", "1,000,000 km/s"], options_ar: ["300,000 كم/ث", "150,000 كم/ث", "500,000 كم/ث", "1,000,000 كم/ث"], correctAnswer: "A" },
-      { text: "Which planet is known for its prominent ring system?", text_ar: "أيُّ كوكب يشتهر بنظام حلقاته البارز؟", options: ["Jupiter", "Uranus", "Neptune", "Saturn"], options_ar: ["المشتري", "أورانوس", "نبتون", "زحل"], correctAnswer: "D" },
-      { text: "What is the name of the first artificial satellite launched into space?", text_ar: "ما اسم أول قمر صناعي أُطلق إلى الفضاء؟", options: ["Explorer 1", "Sputnik 1", "Vanguard 1", "Apollo 11"], options_ar: ["كاشف 1", "سبوتنيك 1", "الحارس 1", "أبولو 11"], correctAnswer: "B" },
-      { text: "What is the phenomenon where a star explodes at the end of its life cycle?", text_ar: "ما الظاهرة التي يحدث فيها انفجار نجم في نهاية دورة حياته؟", options: ["Nova", "Supernova", "Pulsar", "Black hole"], options_ar: ["نובה", "مستعر أعظم", "نجم نابض", "ثقب أسود"], correctAnswer: "B" },
-      { text: "Which planet rotates on its side?", text_ar: "أيُّ كوكب يدور على جانبه؟", options: ["Neptune", "Uranus", "Saturn", "Mars"], options_ar: ["نبتون", "أورانوس", "زحل", "المريخ"], correctAnswer: "B" },
-      { text: "What is the largest moon in the solar system?", text_ar: "ما أكبر قمر في المجموعة الشمسية؟", options: ["Titan", "Europa", "Ganymede", "Callisto"], options_ar: ["تيتان", "يوروبيا", "غانيميد", "كاليستو"], correctAnswer: "C" },
-      { text: "What is the asteroid belt located between?", text_ar: "بين أين يقع حزام الكويكبات؟", options: ["Earth and Mars", "Mars and Jupiter", "Jupiter and Saturn", "Saturn and Uranus"], options_ar: ["الأرض والمريخ", "المريخ والمشتري", "المشتري وزحل", "زحل وأورانوس"], correctAnswer: "B" },
-      { text: "What type of star is the Sun classified as?", text_ar: "أي نوع من النجوم يُصنَّف بها الشمس؟", options: ["Red giant", "White dwarf", "Yellow dwarf", "Blue supergiant"], options_ar: ["عملاق أحمر", "قزم أبيض", "قزم أصفر", "عملاق أزرق"], correctAnswer: "C" },
-      { text: "What is the name of the brightest star in the night sky?", text_ar: "ما اسم ألمع نجم في سماء الليل؟", options: ["Polaris", "Sirius", "Betelgeuse", "Vega"], options_ar: ["الجدي", "الشعرى اليمانية", "باتلجهوز", "النسر الواقع"], correctAnswer: "B" },
-      { text: "What is the term for a group of stars forming a recognizable pattern?", text_ar: "ما المصطلح الذي يُستخدم لمجموعة نجوم تشكّل نمطًا معروفًا؟", options: ["Galaxy", "Cluster", "Constellation", "Nebula"], options_ar: ["مجرة", "عنقود", "كوكبة", "سديم"], correctAnswer: "C" },
-      { text: "Which Apollo mission first landed humans on the Moon?", text_ar: "أي مهمة أبولو هبط فيها البشر على سطح القمر لأول مرة؟", options: ["Apollo 11", "Apollo 12", "Apollo 13", "Apollo 14"], options_ar: ["أبولو 11", "أبولو 12", "أبولو 13", "أبولو 14"], correctAnswer: "A" },
-      { text: "What is the name of the boundary around a black hole beyond which nothing can escape?", text_ar: "ما اسم الحدود حول الثقب الأسود التي لا يمكن تجاوزها؟", options: ["Event horizon", "Singularity", "Accretion disk", "Photon sphere"], options_ar: ["أفق الحدث", "التفرد", "قرص الالتقاط", "كرة الفوتونات"], correctAnswer: "A" },
-      { text: "Which planet has the highest surface temperature?", text_ar: "أيُّ كوكب لديه أعلى حرارة سطحية؟", options: ["Mercury", "Venus", "Mars", "Jupiter"], options_ar: ["عطارد", "الزهرة", "المريخ", "المشتري"], correctAnswer: "B" },
-      { text: "What is the study of the universe called?", text_ar: "ما اسم دراسة الكون؟", options: ["Astrology", "Cosmology", "Meteorology", "Geology"], options_ar: ["علم التنجيم", "علم الكون", "علم الأرصاد الجوية", "علم الجيولوجيا"], correctAnswer: "B" },
-      { text: "What is the name of the telescope that replaced the Hubble Space Telescope?", text_ar: "ما اسم التلسكوب الذي حل محل تلسكوب هابل الفضائي؟", options: ["James Webb Space Telescope", "Kepler Space Telescope", "Chandra X-ray Observatory", "Spitzer Space Telescope"], options_ar: ["تلسكوب جيمس ويب الفضائي", "تلسكوب كيبلر الفضائي", "مرصد شاندرا للأشعة السينية", "تلسكوب سبيتزر الفضائي"], correctAnswer: "A" },
-      { text: "What causes the phases of the Moon?", text_ar: "ما الذي يسبب مراحل القمر؟", options: ["Earth's shadow on the Moon", "The Moon's orbit around Earth", "The Sun's varying brightness", "Clouds in Earth's atmosphere"], options_ar: ["ظل الأرض على القمر", "مدار القمر حول الأرض", "تباين سطوع الشمس", "الغلاف الجوي للأرض"], correctAnswer: "B" },
-      { text: "What is the name of the closest galaxy to the Milky Way?", text_ar: "ما اسم أقرب مجرة إلى درب التبانة؟", options: ["Andromeda Galaxy", "Triangulum Galaxy", "Whirlpool Galaxy", "Sombrero Galaxy"], options_ar: ["مجرة الأندروميدا", "مجرة المثلث", "مجرة الدوامة", "مجرة سومبريرو"], correctAnswer: "A" },
-      { text: "Which element is most abundant in the universe?", text_ar: "أي عنصر أكثر وفرة في الكون؟", options: ["Oxygen", "Carbon", "Hydrogen", "Helium"], options_ar: ["الأكسجين", "الكربون", "الهيدروجين", "الهيليوم"], correctAnswer: "C" },
-      { text: "What is the name of the NASA rover that landed on Mars in 2021?", text_ar: "ما اسم المركبة الجوّالة التابعة لناسا التي هبطت على المريخ عام 2021؟", options: ["Curiosity", "Perseverance", "Opportunity", "Spirit"], options_ar: ["الفضولي", "المثابرة", "الفرصة", "الروح"], correctAnswer: "B" },
-      { text: "What is a nebula?", text_ar: "ما هو السديم؟", options: ["A type of star", "A cloud of gas and dust in space", "A small galaxy", "An asteroid"], options_ar: ["نوع من النجوم", "سحابة من الغاز والغبار في الفضاء", "مجرة صغيرة", "كويكب"], correctAnswer: "B" },
-      { text: "How many planets are in our solar system?", text_ar: "كم عدد الكواكب في مجموعتنا الشمسية؟", options: ["7", "8", "9", "10"], options_ar: ["7", "8", "9", "10"], correctAnswer: "B" },
-      { text: "What is the name of the phenomenon where light from distant galaxies is shifted to longer wavelengths?", text_ar: "ما اسم الظاهرة التي يتحوّل فيها ضوء المجرات البعيدة إلى أطوال موجية أطول؟", options: ["Blue shift", "Red shift", "Doppler shift", "Gravitational lensing"], options_ar: ["انزياح أزرق", "انزياح أحمر", "انزياح دوبلر", "عدسة جاذبية"], correctAnswer: "B" },
-      { text: "Which planet has the strongest magnetic field?", text_ar: "أيُّ كوكب لديه أقوى مجال مغناطيسي؟", options: ["Earth", "Jupiter", "Saturn", "Neptune"], options_ar: ["الأرض", "المشتري", "زحل", "نبتون"], correctAnswer: "B" },
-      { text: "What is the name of the first human to walk in space?", text_ar: "ما اسم أول إنسان مشى في الفضاء؟", options: ["Yuri Gagarin", "Neil Armstrong", "Alexei Leonov", "Buzz Aldrin"], options_ar: ["يوري غاغارين", "نيل أرمسترونغ", "أليكس ليونوف", "باز ألدرين"], correctAnswer: "C" },
-      { text: "What is the cosmic microwave background radiation?", text_ar: "ما هو الإشعاع الخلوي الميكروي الكوني؟", options: ["Heat from the Sun", "Afterglow of the Big Bang", "Light from distant stars", "Radiation from black holes"], options_ar: ["حرارة من الشمس", "توهّج الانفجار العظيم", "ضوء من نجوم بعيدة", "إشعاع من الثقوب السوداء"], correctAnswer: "B" },
-      { text: "What is the approximate age of the universe?", text_ar: "ما هو العمر التقريبي للكون؟", options: ["4.6 billion years", "10 billion years", "13.8 billion years", "20 billion years"], options_ar: ["4.6 مليار سنة", "10 مليار سنة", "13.8 مليار سنة", "20 مليار سنة"], correctAnswer: "C" },
-    ];
-
-    const seedQuestionsToFirestore = async () => {
-      const statusEl = document.getElementById('seed-status');
-      statusEl.style.display = 'block';
-      statusEl.textContent = 'Uploading 40 questions...';
-      try {
-        const fb = await import("https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js");
-        const b = fb.writeBatch(db);
-        SEED_QUESTIONS.forEach((q, i) => {
-          const ref = fb.doc(fb.collection(db, 'round1', 'round1', 'questions'), `q${i + 1}`);
-          b.set(ref, { text: q.text, text_ar: q.text_ar, options: q.options, options_ar: q.options_ar, order: i + 1 });
-          const aRef = fb.doc(fb.collection(db, 'round1', 'round1', 'answerKeys'), `q${i + 1}`);
-          b.set(aRef, { correctAnswer: q.correctAnswer, order: i + 1 });
-        });
-        await b.commit();
-        statusEl.textContent = 'All 40 questions uploaded with Arabic translations!';
-        statusEl.style.color = '#00c850';
-        document.getElementById('seed-warning').style.borderColor = 'rgba(0,200,80,0.3)';
-      } catch (e) {
-        statusEl.textContent = 'Error: ' + e.message;
-        statusEl.style.color = '#ff4757';
-      }
-    };
-
-    // ----- Seed Questions -----
-    document.getElementById('btn-seed-questions').addEventListener('click', seedQuestionsToFirestore);
   </script>
 </body>
 </html>

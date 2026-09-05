@@ -276,7 +276,7 @@ service cloud.firestore {
                 'status', 'startedAt', 'endTime', 'absoluteDeadline',
                 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
-                'submittedAt', 'eventCount', 'severeEventCount'
+                'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo'
               ])
               && (!request.resource.data.keys().hasAny(['memberUid'])
                   || request.resource.data.memberUid == request.auth.uid)
@@ -294,7 +294,7 @@ service cloud.firestore {
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                 'status', 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
-                'submittedAt', 'eventCount', 'severeEventCount'
+                'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo'
               ])
               && (!request.resource.data.keys().hasAny(['memberUid'])
                   || request.resource.data.memberUid == request.auth.uid)

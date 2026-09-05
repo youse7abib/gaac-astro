@@ -24,6 +24,9 @@ export class AIMonitor {
     this._faceCycles = 0;
     this._lastGoodCamCanvas = null;
     this._lastGoodScreenCanvas = null;
+    // Debounce: after a camera-covered episode resolves, ignore a new
+    // covered detection for a short window so quick flickers don't spam logs.
+    this._cameraCoveredCooldownUntil = 0;
   }
 
   async start() {
@@ -375,7 +378,7 @@ export class AIMonitor {
         const noFace = skinRatio < 0.01 && brightRatio > 0.2;
 
         if (tooDark) {
-          if (lastLogType !== 'camera-covered') {
+          if (lastLogType !== 'camera-covered' && Date.now() > this._cameraCoveredCooldownUntil) {
             lastLogType = 'camera-covered';
             console.log('[AIMonitor] TRIGGER: camera-covered (brightRatio=' + brightRatio.toFixed(3) + ')');
             const logged = this.security.logEvent('camera-covered', 'severe');
@@ -396,6 +399,7 @@ export class AIMonitor {
         } else {
           if (lastLogType === 'camera-covered') {
             console.log('[AIMonitor] RESOLVE: camera-covered (brightRatio=' + brightRatio.toFixed(3) + ')');
+            this._cameraCoveredCooldownUntil = Date.now() + 20000;
             this.security.setInactive('camera-covered');
           }
           lastLogType = 'face-ok';
@@ -417,7 +421,13 @@ export class AIMonitor {
     this.screenInterval = setInterval(() => {
       if (!this.running) return;
       const hash = this._captureScreenHash();
-      if (this.lastScreenHash && hash !== this.lastScreenHash) {
+      const delta = this.lastScreenHash ? Math.abs(hash - this.lastScreenHash) : 0;
+      const relativeDiff = this.lastScreenHash ? (delta / this.lastScreenHash) : 0;
+      // Require at least 8% relative difference across the 40x30 frame to register as an
+      // application/window change, preventing timer ticks, cursors, and mouse moves from locking it.
+      const isSignificantChange = this.lastScreenHash && relativeDiff > 0.08;
+
+      if (isSignificantChange) {
         this.screenStableChecks = 0;
         if (!this.screenActive) {
           this.screenActive = true;

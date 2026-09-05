@@ -1,0 +1,802 @@
+[
+  {
+    "id": "q1",
+    "order": 1,
+    "text": "A rest-frame optical absorption line at $\\lambda_0 = 480.00$ nm is measured at $\\lambda = 480.24$ nm in a star's spectrum. What is the star's radial velocity?",
+    "text_ar": "A rest-frame optical absorption line at $\\lambda_0 = 480.00$ nm is measured at $\\lambda = 480.24$ nm in a star's spectrum. What is the star's radial velocity?",
+    "options": [
+      "$150$ km/s toward us",
+      "$150$ km/s away from us",
+      "$15$ km/s away from us",
+      "$1500$ km/s away from us"
+    ],
+    "options_ar": [
+      "$150$ km/s toward us",
+      "$150$ km/s away from us",
+      "$15$ km/s away from us",
+      "$1500$ km/s away from us"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q2",
+    "order": 2,
+    "text": "Using Wien's displacement law, find the peak emission wavelength for a hot O-type star with $T = 29\\,000$ K.",
+    "text_ar": "Using Wien's displacement law, find the peak emission wavelength for a hot O-type star with $T = 29\\,000$ K.",
+    "options": [
+      "$100$ nm",
+      "$290$ nm",
+      "$500$ nm",
+      "$1000$ nm"
+    ],
+    "options_ar": [
+      "$100$ nm",
+      "$290$ nm",
+      "$500$ nm",
+      "$1000$ nm"
+    ],
+    "correctAnswer": "A",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q3",
+    "order": 3,
+    "text": "The Astronomy Club's observing list is being finalized when its resident cat, Nebula, walks across the desk and smudges the distance printed beside a nearby star. The only surviving measurement is an annual parallax of $0.025$ arcseconds. What distance should be entered in the catalogue?",
+    "text_ar": "The Astronomy Club's observing list is being finalized when its resident cat, Nebula, walks across the desk and smudges the distance printed beside a nearby star. The only surviving measurement is an annual parallax of $0.025$ arcseconds. What distance should be entered in the catalogue?",
+    "options": [
+      "$4$ pc",
+      "$20$ pc",
+      "$40$ pc",
+      "$250$ pc"
+    ],
+    "options_ar": [
+      "$4$ pc",
+      "$20$ pc",
+      "$40$ pc",
+      "$250$ pc"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q4",
+    "order": 4,
+    "text": "Two stars have the same absolute magnitude, but Star~A is $10$ times closer to Earth than Star~B. How many times brighter does Star~A appear compared to Star~B?",
+    "text_ar": "Two stars have the same absolute magnitude, but Star~A is $10$ times closer to Earth than Star~B. How many times brighter does Star~A appear compared to Star~B?",
+    "options": [
+      "$10$ times",
+      "$20$ times",
+      "$100$ times",
+      "$1000$ times"
+    ],
+    "options_ar": [
+      "$10$ times",
+      "$20$ times",
+      "$100$ times",
+      "$1000$ times"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q5",
+    "order": 5,
+    "text": "For the annual observing night, the Astronomy Club has access to two telescopes. The first has a $20$ cm primary mirror and the second has a $50$ cm primary mirror. Both telescopes use a filter centered at $550$ nm. A close binary is known to have an angular separation of $0.30''$. Under ideal conditions, which telescope should be capable of resolving the pair?",
+    "text_ar": "For the annual observing night, the Astronomy Club has access to two telescopes. The first has a $20$ cm primary mirror and the second has a $50$ cm primary mirror. Both telescopes use a filter centered at $550$ nm. A close binary is known to have an angular separation of $0.30''$. Under ideal conditions, which telescope should be capable of resolving the pair?",
+    "options": [
+      "Only the $20$ cm telescope",
+      "Only the $50$ cm telescope",
+      "Both telescopes",
+      "Neither telescope"
+    ],
+    "options_ar": [
+      "Only the $20$ cm telescope",
+      "Only the $50$ cm telescope",
+      "Both telescopes",
+      "Neither telescope"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q6",
+    "order": 6,
+    "text": "Which of the following spectral classifications represents the hottest stellar surface temperature?",
+    "text_ar": "Which of the following spectral classifications represents the hottest stellar surface temperature?",
+    "options": [
+      "G2V",
+      "A0V",
+      "B5V",
+      "O5V"
+    ],
+    "options_ar": [
+      "G2V",
+      "A0V",
+      "B5V",
+      "O5V"
+    ],
+    "correctAnswer": "D",
+    "difficulty": "Very Easy"
+  },
+  {
+    "id": "q7",
+    "order": 7,
+    "text": "While reducing a spectrum from a distant galaxy, Adel finds that the broad maximum of its thermal continuum is observed at $650$ nm. The galaxy has a measured redshift of $z=0.30$. What temperature should Adel infer for the emitting stars if the continuum is approximated by a blackbody?",
+    "text_ar": "While reducing a spectrum from a distant galaxy, Adel finds that the broad maximum of its thermal continuum is observed at $650$ nm. The galaxy has a measured redshift of $z=0.30$. What temperature should Adel infer for the emitting stars if the continuum is approximated by a blackbody?",
+    "options": [
+      "$2900$ K",
+      "$4500$ K",
+      "$5800$ K",
+      "$7540$ K"
+    ],
+    "options_ar": [
+      "$2900$ K",
+      "$4500$ K",
+      "$5800$ K",
+      "$7540$ K"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "q8",
+    "order": 8,
+    "text": "At what fraction of the Eddington limit ($L/L_{\\text{Edd}}$) does outward radiation force balance $50\\%$ of inward gravitational force on ionized hydrogen near a stellar surface?",
+    "text_ar": "At what fraction of the Eddington limit ($L/L_{\\text{Edd}}$) does outward radiation force balance $50\\%$ of inward gravitational force on ionized hydrogen near a stellar surface?",
+    "options": [
+      "$0.25$",
+      "$0.50$",
+      "$0.707$",
+      "$1.00$"
+    ],
+    "options_ar": [
+      "$0.25$",
+      "$0.50$",
+      "$0.707$",
+      "$1.00$"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q9",
+    "order": 9,
+    "text": "Sami is comparing two stellar models produced by a cluster simulation. Model A has a surface area nine times larger than Model B, but its surface temperature is only half as high. The simulation predicts that one of the two stars is more luminous. What is the ratio $L_A/L_B$?",
+    "text_ar": "Sami is comparing two stellar models produced by a cluster simulation. Model A has a surface area nine times larger than Model B, but its surface temperature is only half as high. The simulation predicts that one of the two stars is more luminous. What is the ratio $L_A/L_B$?",
+    "options": [
+      "$9/16$",
+      "$3/4$",
+      "$16/9$",
+      "$144$"
+    ],
+    "options_ar": [
+      "$9/16$",
+      "$3/4$",
+      "$16/9$",
+      "$144$"
+    ],
+    "correctAnswer": "A",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q10",
+    "order": 10,
+    "text": "Dr. Hussein is testing a simple model for a white dwarf left behind by a Sun-like star. The object has mass $0.80M_\\odot$ and a radius approximately equal to Earth's radius. A probe leaves the surface at $5000$ km/s. Ignoring atmosphere and rotation, what should Dr. Hussein conclude?",
+    "text_ar": "Dr. Hussein is testing a simple model for a white dwarf left behind by a Sun-like star. The object has mass $0.80M_\\odot$ and a radius approximately equal to Earth's radius. A probe leaves the surface at $5000$ km/s. Ignoring atmosphere and rotation, what should Dr. Hussein conclude?",
+    "options": [
+      "The probe escapes and never returns",
+      "The probe escapes only if launched vertically",
+      "The probe remains gravitationally bound",
+      "The probe is unbound because the white dwarf has no atmosphere"
+    ],
+    "options_ar": [
+      "The probe escapes and never returns",
+      "The probe escapes only if launched vertically",
+      "The probe remains gravitationally bound",
+      "The probe is unbound because the white dwarf has no atmosphere"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "q11",
+    "order": 11,
+    "text": "At approximately what stellar mass threshold on the main sequence does the CNO cycle surpass the proton--proton chain as the dominant hydrogen fusion mechanism?",
+    "text_ar": "At approximately what stellar mass threshold on the main sequence does the CNO cycle surpass the proton--proton chain as the dominant hydrogen fusion mechanism?",
+    "options": [
+      "$0.08\\;M_\\odot$",
+      "$0.5\\;M_\\odot$",
+      "$1.3\\;M_\\odot$",
+      "$8.0\\;M_\\odot$"
+    ],
+    "options_ar": [
+      "$0.08\\;M_\\odot$",
+      "$0.5\\;M_\\odot$",
+      "$1.3\\;M_\\odot$",
+      "$8.0\\;M_\\odot$"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Very Easy"
+  },
+  {
+    "id": "q12",
+    "order": 12,
+    "text": "The Astronomy Club is building a simple lifetime model for a massive star. The star has a mass of $10M_\\odot$, but only $10\\%$ of that mass is available for core hydrogen burning. Of the processed mass, $0.70\\%$ is converted into energy. The star shines steadily at $10^4L_\\odot$. Ignoring all other energy sources, approximately how long could this fuel supply the observed luminosity?",
+    "text_ar": "The Astronomy Club is building a simple lifetime model for a massive star. The star has a mass of $10M_\\odot$, but only $10\\%$ of that mass is available for core hydrogen burning. Of the processed mass, $0.70\\%$ is converted into energy. The star shines steadily at $10^4L_\\odot$. Ignoring all other energy sources, approximately how long could this fuel supply the observed luminosity?",
+    "options": [
+      "$10^5$ years",
+      "$10^6$ years",
+      "$10^7$ years",
+      "$10^8$ years"
+    ],
+    "options_ar": [
+      "$10^5$ years",
+      "$10^6$ years",
+      "$10^7$ years",
+      "$10^8$ years"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "q13",
+    "order": 13,
+    "text": "Star~X has twice the Sun's mass and the same radius as the Sun. According to the surface gravity relation $g = GM/R^2$, how does the surface gravitational acceleration of Star~X compare with the Sun's?",
+    "text_ar": "Star~X has twice the Sun's mass and the same radius as the Sun. According to the surface gravity relation $g = GM/R^2$, how does the surface gravitational acceleration of Star~X compare with the Sun's?",
+    "options": [
+      "It is the same",
+      "It is twice as large",
+      "It is four times as large",
+      "It is half as large"
+    ],
+    "options_ar": [
+      "It is the same",
+      "It is twice as large",
+      "It is four times as large",
+      "It is half as large"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q14",
+    "order": 14,
+    "text": "The supermassive black hole Sagittarius~A* has a mass of $4.0\\times10^6\\;M_\\odot$. What is the radius of its event horizon?",
+    "text_ar": "The supermassive black hole Sagittarius~A* has a mass of $4.0\\times10^6\\;M_\\odot$. What is the radius of its event horizon?",
+    "options": [
+      "$30$ km",
+      "$1.2\\times10^5$ km",
+      "$1.2\\times10^7$ km",
+      "$1.5\\times10^8$ km"
+    ],
+    "options_ar": [
+      "$30$ km",
+      "$1.2\\times10^5$ km",
+      "$1.2\\times10^7$ km",
+      "$1.5\\times10^8$ km"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q15",
+    "order": 15,
+    "text": "Calculate the Eddington luminosity for an accreting neutron star of mass $1.4\\;M_\\odot$, assuming standard Thomson scattering opacity ($\\kappa = 0.04\\;\\text{m}^2/\\text{kg}$).",
+    "text_ar": "Calculate the Eddington luminosity for an accreting neutron star of mass $1.4\\;M_\\odot$, assuming standard Thomson scattering opacity ($\\kappa = 0.04\\;\\text{m}^2/\\text{kg}$).",
+    "options": [
+      "$1.3\\times10^{31}$ W",
+      "$1.8\\times10^{31}$ W",
+      "$6.5\\times10^{31}$ W",
+      "$2.6\\times10^{32}$ W"
+    ],
+    "options_ar": [
+      "$1.3\\times10^{31}$ W",
+      "$1.8\\times10^{31}$ W",
+      "$6.5\\times10^{31}$ W",
+      "$2.6\\times10^{32}$ W"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q16",
+    "order": 16,
+    "text": "Dr. Hussein is analysing a light curve from an eclipsing binary. During the deeper eclipse the system's brightness falls by $36\\%$, while during the shallower eclipse it falls by $9\\%$. Assume the two stars have the same surface brightness and that each eclipse completely covers the smaller star's projected disk when the larger star passes in front of it. What is the ratio of the larger star's radius to the smaller star's radius?",
+    "text_ar": "Dr. Hussein is analysing a light curve from an eclipsing binary. During the deeper eclipse the system's brightness falls by $36\\%$, while during the shallower eclipse it falls by $9\\%$. Assume the two stars have the same surface brightness and that each eclipse completely covers the smaller star's projected disk when the larger star passes in front of it. What is the ratio of the larger star's radius to the smaller star's radius?",
+    "options": [
+      "$2$",
+      "$4$",
+      "$\\sqrt{3}$",
+      "$9$"
+    ],
+    "options_ar": [
+      "$2$",
+      "$4$",
+      "$\\sqrt{3}$",
+      "$9$"
+    ],
+    "correctAnswer": "A",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q17",
+    "order": 17,
+    "text": "According to the Virial Theorem, when a protostellar cloud contracts quasi-statically, how is the released gravitational potential energy ($\\Delta U$) distributed?",
+    "text_ar": "According to the Virial Theorem, when a protostellar cloud contracts quasi-statically, how is the released gravitational potential energy ($\\Delta U$) distributed?",
+    "options": [
+      "All $\\Delta U$ is converted into radiation",
+      "Half increases thermal kinetic energy; half is radiated away",
+      "All $\\Delta U$ increases internal thermal kinetic energy",
+      "Two-thirds is radiated away; one-third increases thermal kinetic energy"
+    ],
+    "options_ar": [
+      "All $\\Delta U$ is converted into radiation",
+      "Half increases thermal kinetic energy; half is radiated away",
+      "All $\\Delta U$ increases internal thermal kinetic energy",
+      "Two-thirds is radiated away; one-third increases thermal kinetic energy"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q18",
+    "order": 18,
+    "text": "Sami is comparing ordinary stellar fusion with the energy released when matter falls onto a neutron star. He considers a neutron star of mass $1.4M_\\odot$ and radius $12$ km. For each kilogram that reaches the surface, approximately what fraction of its rest-mass energy is released as gravitational energy in this simplified model?",
+    "text_ar": "Sami is comparing ordinary stellar fusion with the energy released when matter falls onto a neutron star. He considers a neutron star of mass $1.4M_\\odot$ and radius $12$ km. For each kilogram that reaches the surface, approximately what fraction of its rest-mass energy is released as gravitational energy in this simplified model?",
+    "options": [
+      "$0.017$",
+      "$0.083$",
+      "$0.17$",
+      "$0.52$"
+    ],
+    "options_ar": [
+      "$0.017$",
+      "$0.083$",
+      "$0.17$",
+      "$0.52$"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q19",
+    "order": 19,
+    "text": "When a low- or intermediate-mass star exhausts the hydrogen in its core and leaves the main sequence, its core contracts and heats up while the outer layers expand greatly. What does the star become at this point?",
+    "text_ar": "When a low- or intermediate-mass star exhausts the hydrogen in its core and leaves the main sequence, its core contracts and heats up while the outer layers expand greatly. What does the star become at this point?",
+    "options": [
+      "A red giant",
+      "A white dwarf",
+      "A neutron star",
+      "A black hole"
+    ],
+    "options_ar": [
+      "A red giant",
+      "A white dwarf",
+      "A neutron star",
+      "A black hole"
+    ],
+    "correctAnswer": "A",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q20",
+    "order": 20,
+    "text": "A yellow giant star has $100$ times the Sun's luminosity and $10$ times the Sun's radius. What is its effective surface temperature relative to the Sun ($T_\\odot$)?",
+    "text_ar": "A yellow giant star has $100$ times the Sun's luminosity and $10$ times the Sun's radius. What is its effective surface temperature relative to the Sun ($T_\\odot$)?",
+    "options": [
+      "$0.5\\;T_\\odot$",
+      "$1.0\\;T_\\odot$",
+      "$2.0\\;T_\\odot$",
+      "$3.16\\;T_\\odot$"
+    ],
+    "options_ar": [
+      "$0.5\\;T_\\odot$",
+      "$1.0\\;T_\\odot$",
+      "$2.0\\;T_\\odot$",
+      "$3.16\\;T_\\odot$"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q21",
+    "order": 21,
+    "text": "What is the escape velocity from the surface of a $2.0\\;M_\\odot$ neutron star with a radius of $12$ km, expressed as a fraction of the speed of light $c$?",
+    "text_ar": "What is the escape velocity from the surface of a $2.0\\;M_\\odot$ neutron star with a radius of $12$ km, expressed as a fraction of the speed of light $c$?",
+    "options": [
+      "$0.35\\;c$",
+      "$0.50\\;c$",
+      "$0.71\\;c$",
+      "$0.92\\;c$"
+    ],
+    "options_ar": [
+      "$0.35\\;c$",
+      "$0.50\\;c$",
+      "$0.71\\;c$",
+      "$0.92\\;c$"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q22",
+    "order": 22,
+    "text": "In an old observatory at the edge of a kingdom, a mage uses a crystal telescope to study the Sun. When the telescope is pointed toward the middle of the solar disk, the Sun appears intensely bright. As the mage slowly moves the view toward the Sun's edge, the surface fades noticeably, as if the outer rim were hidden behind a cooler veil. What solar phenomenon creates this effect?",
+    "text_ar": "In an old observatory at the edge of a kingdom, a mage uses a crystal telescope to study the Sun. When the telescope is pointed toward the middle of the solar disk, the Sun appears intensely bright. As the mage slowly moves the view toward the Sun's edge, the surface fades noticeably, as if the outer rim were hidden behind a cooler veil. What solar phenomenon creates this effect?",
+    "options": [
+      "Solar limb darkening",
+      "Gravitational lensing",
+      "Solar differential rotation",
+      "Doppler brightening"
+    ],
+    "options_ar": [
+      "Solar limb darkening",
+      "Gravitational lensing",
+      "Solar differential rotation",
+      "Doppler brightening"
+    ],
+    "correctAnswer": "A",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q23",
+    "order": 23,
+    "text": "A binary star is too close to be separated in ordinary images. Interferometry measures an angular semimajor axis of $0.50''$, while parallax measurements place the system at $10$ pc. Spectroscopy gives an orbital period of $2.0$ years. What total mass should be assigned to the binary system?",
+    "text_ar": "A binary star is too close to be separated in ordinary images. Interferometry measures an angular semimajor axis of $0.50''$, while parallax measurements place the system at $10$ pc. Spectroscopy gives an orbital period of $2.0$ years. What total mass should be assigned to the binary system?",
+    "options": [
+      "$5.0M_\\odot$",
+      "$12.5M_\\odot$",
+      "$31.3M_\\odot$",
+      "$62.5M_\\odot$"
+    ],
+    "options_ar": [
+      "$5.0M_\\odot$",
+      "$12.5M_\\odot$",
+      "$31.3M_\\odot$",
+      "$62.5M_\\odot$"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "q24",
+    "order": 24,
+    "text": "For a main-sequence star with mass $M = 2\\;M_\\odot$, whose luminosity scales with mass to the power $3.5$ on the main sequence, what is its luminosity in units of $L_\\odot$?",
+    "text_ar": "For a main-sequence star with mass $M = 2\\;M_\\odot$, whose luminosity scales with mass to the power $3.5$ on the main sequence, what is its luminosity in units of $L_\\odot$?",
+    "options": [
+      "$7.0\\;L_\\odot$",
+      "$11.3\\;L_\\odot$",
+      "$16.0\\;L_\\odot$",
+      "$32.0\\;L_\\odot$"
+    ],
+    "options_ar": [
+      "$7.0\\;L_\\odot$",
+      "$11.3\\;L_\\odot$",
+      "$16.0\\;L_\\odot$",
+      "$32.0\\;L_\\odot$"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q25",
+    "order": 25,
+    "text": "A planet orbits a star at a semimajor axis distance of $4$ AU. What is its orbital period in years?",
+    "text_ar": "A planet orbits a star at a semimajor axis distance of $4$ AU. What is its orbital period in years?",
+    "options": [
+      "$2$ years",
+      "$4$ years",
+      "$8$ years",
+      "$16$ years"
+    ],
+    "options_ar": [
+      "$2$ years",
+      "$4$ years",
+      "$8$ years",
+      "$16$ years"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q26",
+    "order": 26,
+    "text": "Astronomers discover a small, icy moon with mass $2.0\\times10^{20}$ kg and volume $1.0\\times10^{17}$ m$^3$. What is its average density?",
+    "text_ar": "Astronomers discover a small, icy moon with mass $2.0\\times10^{20}$ kg and volume $1.0\\times10^{17}$ m$^3$. What is its average density?",
+    "options": [
+      "$200$ kg/m$^3$",
+      "$1000$ kg/m$^3$",
+      "$2000$ kg/m$^3$",
+      "$4000$ kg/m$^3$"
+    ],
+    "options_ar": [
+      "$200$ kg/m$^3$",
+      "$1000$ kg/m$^3$",
+      "$2000$ kg/m$^3$",
+      "$4000$ kg/m$^3$"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q27",
+    "order": 27,
+    "text": "The Astronomy Club receives a light curve from a newly reported exoplanet candidate. Most measurements are constant, but each transit produces a brightness drop of $1.44\\%$. The host star has radius $7.0\\times10^8$ m. Ignoring limb darkening, what is the most reasonable estimate of the planet's radius?",
+    "text_ar": "The Astronomy Club receives a light curve from a newly reported exoplanet candidate. Most measurements are constant, but each transit produces a brightness drop of $1.44\\%$. The host star has radius $7.0\\times10^8$ m. Ignoring limb darkening, what is the most reasonable estimate of the planet's radius?",
+    "options": [
+      "$7.0\\times10^6$ m",
+      "$8.4\\times10^7$ m",
+      "$1.4\\times10^8$ m",
+      "$8.4\\times10^8$ m"
+    ],
+    "options_ar": [
+      "$7.0\\times10^6$ m",
+      "$8.4\\times10^7$ m",
+      "$1.4\\times10^8$ m",
+      "$8.4\\times10^8$ m"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q28",
+    "order": 28,
+    "text": "Earth's escape velocity is roughly $11.2$ km/s. A newly discovered rocky ``Super-Earth'' has $8$ times Earth's mass and $2$ times Earth's radius. What is its approximate escape velocity?",
+    "text_ar": "Earth's escape velocity is roughly $11.2$ km/s. A newly discovered rocky ``Super-Earth'' has $8$ times Earth's mass and $2$ times Earth's radius. What is its approximate escape velocity?",
+    "options": [
+      "$11.2$ km/s",
+      "$22.4$ km/s",
+      "$44.8$ km/s",
+      "$89.6$ km/s"
+    ],
+    "options_ar": [
+      "$11.2$ km/s",
+      "$22.4$ km/s",
+      "$44.8$ km/s",
+      "$89.6$ km/s"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q29",
+    "order": 29,
+    "text": "During the formation of terrestrial planets, heavy elements like iron and nickel sink toward the core while lighter silicate materials rise to form the crust. What is this process called?",
+    "text_ar": "During the formation of terrestrial planets, heavy elements like iron and nickel sink toward the core while lighter silicate materials rise to form the crust. What is this process called?",
+    "options": [
+      "Accretion",
+      "Planetary differentiation",
+      "Subduction",
+      "Tidal heating"
+    ],
+    "options_ar": [
+      "Accretion",
+      "Planetary differentiation",
+      "Subduction",
+      "Tidal heating"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Very Easy"
+  },
+  {
+    "id": "q30",
+    "order": 30,
+    "text": "A survey telescope detects a Type Ia supernova after its light has crossed intergalactic space. After correcting for extinction, its apparent magnitude is $18.7$. The calibrated absolute magnitude is $-19.3$. What luminosity distance should the survey report?",
+    "text_ar": "A survey telescope detects a Type Ia supernova after its light has crossed intergalactic space. After correcting for extinction, its apparent magnitude is $18.7$. The calibrated absolute magnitude is $-19.3$. What luminosity distance should the survey report?",
+    "options": [
+      "$39.8$ Mpc",
+      "$180$ Mpc",
+      "$398$ Mpc",
+      "$3.98$ Gpc"
+    ],
+    "options_ar": [
+      "$39.8$ Mpc",
+      "$180$ Mpc",
+      "$398$ Mpc",
+      "$3.98$ Gpc"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q31",
+    "order": 31,
+    "text": "A distant galaxy is observed moving away from Earth at $14\\,000$ km/s. Estimate its distance.",
+    "text_ar": "A distant galaxy is observed moving away from Earth at $14\\,000$ km/s. Estimate its distance.",
+    "options": [
+      "$100$ Mpc",
+      "$200$ Mpc",
+      "$500$ Mpc",
+      "$980$ Mpc"
+    ],
+    "options_ar": [
+      "$100$ Mpc",
+      "$200$ Mpc",
+      "$500$ Mpc",
+      "$980$ Mpc"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q32",
+    "order": 32,
+    "text": "Two students are comparing eclipse diagrams. In one event, the Moon passes between Earth and the Sun; in the other, Earth passes between the Sun and the Moon. They know that the second event can turn the Moon's surface noticeably red, while the first can make the Sun disappear for observers in a narrow region of Earth. Which statement correctly matches the two events?",
+    "text_ar": "Two students are comparing eclipse diagrams. In one event, the Moon passes between Earth and the Sun; in the other, Earth passes between the Sun and the Moon. They know that the second event can turn the Moon's surface noticeably red, while the first can make the Sun disappear for observers in a narrow region of Earth. Which statement correctly matches the two events?",
+    "options": [
+      "First: lunar eclipse; Second: solar eclipse",
+      "First: solar eclipse; Second: lunar eclipse",
+      "Both are solar eclipses, but with different Moon phases",
+      "Both are lunar eclipses, but with different Earth positions"
+    ],
+    "options_ar": [
+      "First: lunar eclipse; Second: solar eclipse",
+      "First: solar eclipse; Second: lunar eclipse",
+      "Both are solar eclipses, but with different Moon phases",
+      "Both are lunar eclipses, but with different Earth positions"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q33",
+    "order": 33,
+    "text": "During an Astronomy Club discussion, Adel considers two galaxies that are both visible in today's sky. He points out that seeing both galaxies does not mean that light from one could have reached the other before the light we now observe was emitted. What boundary marks the greatest region from which light could have reached us since the beginning of the Universe?",
+    "text_ar": "During an Astronomy Club discussion, Adel considers two galaxies that are both visible in today's sky. He points out that seeing both galaxies does not mean that light from one could have reached the other before the light we now observe was emitted. What boundary marks the greatest region from which light could have reached us since the beginning of the Universe?",
+    "options": [
+      "Schwarzschild radius",
+      "Roche limit",
+      "Cosmological particle horizon",
+      "Hill sphere"
+    ],
+    "options_ar": [
+      "Schwarzschild radius",
+      "Roche limit",
+      "Cosmological particle horizon",
+      "Hill sphere"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "q34",
+    "order": 34,
+    "text": "An astronaut is analysing a relic radio background from a very early epoch of the Universe. The signal comes from a time corresponding to redshift $z=10$. How hot was the cosmic microwave background at that epoch?",
+    "text_ar": "An astronaut is analysing a relic radio background from a very early epoch of the Universe. The signal comes from a time corresponding to redshift $z=10$. How hot was the cosmic microwave background at that epoch?",
+    "options": [
+      "$27.3$ K",
+      "$30.0$ K",
+      "$300$ K",
+      "$3000$ K"
+    ],
+    "options_ar": [
+      "$27.3$ K",
+      "$30.0$ K",
+      "$300$ K",
+      "$3000$ K"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q35",
+    "order": 35,
+    "text": "The specific orbital energy of a bound two-body orbit with semimajor axis $a$ is:",
+    "text_ar": "The specific orbital energy of a bound two-body orbit with semimajor axis $a$ is:",
+    "options": [
+      "$\\varepsilon = -GM/(2a)$",
+      "$\\varepsilon = GM/a^2$",
+      "$\\varepsilon = v/r$",
+      "$\\varepsilon = 2GM/a$"
+    ],
+    "options_ar": [
+      "$\\varepsilon = -GM/(2a)$",
+      "$\\varepsilon = GM/a^2$",
+      "$\\varepsilon = v/r$",
+      "$\\varepsilon = 2GM/a$"
+    ],
+    "correctAnswer": "A",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "q36",
+    "order": 36,
+    "text": "A spacecraft needs to rotate its orbital plane by a fixed angle. Where is the plane-change burn usually cheapest?",
+    "text_ar": "A spacecraft needs to rotate its orbital plane by a fixed angle. Where is the plane-change burn usually cheapest?",
+    "options": [
+      "Where orbital speed is highest",
+      "Where orbital speed is lowest",
+      "At the centre of the planet",
+      "During atmospheric entry"
+    ],
+    "options_ar": [
+      "Where orbital speed is highest",
+      "Where orbital speed is lowest",
+      "At the centre of the planet",
+      "During atmospheric entry"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q37",
+    "order": 37,
+    "text": "Before a crewed mission departs, a ground station checks an elliptical Earth orbit. The spacecraft has a perigee distance of $7000$ km and an apogee distance of $20\\,000$ km, both measured from Earth's centre. The tracking system reports a perigee speed of $9.18$ km/s. What speed should the spacecraft have at apogee?",
+    "text_ar": "Before a crewed mission departs, a ground station checks an elliptical Earth orbit. The spacecraft has a perigee distance of $7000$ km and an apogee distance of $20\\,000$ km, both measured from Earth's centre. The tracking system reports a perigee speed of $9.18$ km/s. What speed should the spacecraft have at apogee?",
+    "options": [
+      "$2.1$ km/s",
+      "$3.2$ km/s",
+      "$5.5$ km/s",
+      "$9.2$ km/s"
+    ],
+    "options_ar": [
+      "$2.1$ km/s",
+      "$3.2$ km/s",
+      "$5.5$ km/s",
+      "$9.2$ km/s"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Brutal"
+  },
+  {
+    "id": "q38",
+    "order": 38,
+    "text": "A satellite remains stably bound to a planet only inside the planet's region of gravitational dominance. What is this region called?",
+    "text_ar": "A satellite remains stably bound to a planet only inside the planet's region of gravitational dominance. What is this region called?",
+    "options": [
+      "Event horizon",
+      "Photosphere",
+      "Hill sphere",
+      "Habitable zone"
+    ],
+    "options_ar": [
+      "Event horizon",
+      "Photosphere",
+      "Hill sphere",
+      "Habitable zone"
+    ],
+    "correctAnswer": "C",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q39",
+    "order": 39,
+    "text": "On the way to an outer-planet destination, an astronaut notices that mission controllers deliberately steer the spacecraft close to a planet instead of firing a large engine burn. After the flyby, the spacecraft is moving faster relative to the Sun and its trajectory has changed. What physical effect makes this possible?",
+    "text_ar": "On the way to an outer-planet destination, an astronaut notices that mission controllers deliberately steer the spacecraft close to a planet instead of firing a large engine burn. After the flyby, the spacecraft is moving faster relative to the Sun and its trajectory has changed. What physical effect makes this possible?",
+    "options": [
+      "The planet supplies new fuel to the spacecraft",
+      "The spacecraft exchanges orbital energy and angular momentum with the planet",
+      "The spacecraft temporarily turns off gravity",
+      "The planet removes the spacecraft's mass"
+    ],
+    "options_ar": [
+      "The planet supplies new fuel to the spacecraft",
+      "The spacecraft exchanges orbital energy and angular momentum with the planet",
+      "The spacecraft temporarily turns off gravity",
+      "The planet removes the spacecraft's mass"
+    ],
+    "correctAnswer": "B",
+    "difficulty": "Medium"
+  },
+  {
+    "id": "q40",
+    "order": 40,
+    "text": "A crew aboard a spacecraft is studying galaxies far beyond the Milky Way. They notice that the farther a galaxy is, the faster it appears to be receding. The captain asks, ``What does this pattern tell us about the Universe itself?''",
+    "text_ar": "A crew aboard a spacecraft is studying galaxies far beyond the Milky Way. They notice that the farther a galaxy is, the faster it appears to be receding. The captain asks, ``What does this pattern tell us about the Universe itself?''",
+    "options": [
+      "Space between distant galaxies is expanding",
+      "The Milky Way is at the centre of the Universe",
+      "Galaxies are moving through a completely static space",
+      "The farther a galaxy is, the younger it must be"
+    ],
+    "options_ar": [
+      "Space between distant galaxies is expanding",
+      "The Milky Way is at the centre of the Universe",
+      "Galaxies are moving through a completely static space",
+      "The farther a galaxy is, the younger it must be"
+    ],
+    "correctAnswer": "A",
+    "difficulty": "Medium"
+  }
+]

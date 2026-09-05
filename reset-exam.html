@@ -134,12 +134,13 @@
         log('--- Deleting snapshots ---', 'info');
         try {
           const listRef = storageRef(storage, `snapshots/round1/${TEAM_ID}`);
-          const result = await listAll(listRef);
-          const allItems = [...result.items];
-          for (const prefix of result.prefixes) {
-            const sub = await listAll(prefix);
-            allItems.push(...sub.items);
-          }
+          const allItems = [];
+          const collect = async (ref) => {
+            const res = await listAll(ref);
+            allItems.push(...res.items);
+            for (const prefix of res.prefixes) await collect(prefix);
+          };
+          await collect(listRef);
           for (const item of allItems) {
             try {
               await deleteObject(item);
