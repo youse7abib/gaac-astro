@@ -312,7 +312,7 @@
 <div id="competitions-panel" class="competitions-panel">
             <div class="comp-head">
               <h2><span class="text-blue">Round 1</span></h2>
-              <p class="sub">Round 1 takes place on <strong>5 September 2026 at 7:00 PM in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong>8:00 PM your local time</strong>.</p>
+              <p class="sub">Round 1 takes place on <strong>5 September 2026 at <span id="r1-local-open-time">7:00 PM</span> in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong id="r1-local-close-time">8:00 PM</strong> in your local time.</p>
             </div>
             <div id="mock-card" class="mock-card">
               <div class="mock-row">
@@ -621,6 +621,7 @@ const app = initializeApp(firebaseConfig);
           console.warn('Round 1 server clock unavailable, using cached schedule:', e.message || e);
         }
         r1CardTick();
+        renderLocalRegion();
 
         updateUrlIdentity();
         renderDashboard(user);
@@ -800,6 +801,16 @@ const app = initializeApp(firebaseConfig);
     // region/timezone (from the browser) in parentheses after "your local time".
     function renderLocalRegion() {
       const el = document.getElementById('r1-local-start');
+      const openEl = document.getElementById('r1-local-open-time');
+      const closeEl = document.getElementById('r1-local-close-time');
+      if (r1Schedule && r1Schedule.r1OpenAt && r1Schedule.r1CloseAt) {
+        try {
+          const openStr = new Date(r1Schedule.r1OpenAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+          const closeStr = new Date(r1Schedule.r1CloseAt).toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+          if (openEl) openEl.textContent = openStr;
+          if (closeEl) closeEl.textContent = closeStr;
+        } catch (_) {}
+      }
       if (!el) return;
       const slotData = currentRegData ? (currentRegData[currentMemberRole] || currentRegData.leader) : null;
       let registeredCountry = (slotData && slotData.country) ? slotData.country : '';
