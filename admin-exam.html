@@ -1,78 +1,590 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin : Exam Monitor | GAAC</title>
+  <title>Admin : Exam Submissions & Monitor | GAAC</title>
   <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="styles.css" />
   <style>
-    .admin-header { text-align: center; padding: 24px 20px 0; }
-    .admin-header h1 { font-size: 1.4rem; }
-    .admin-controls { display: flex; flex-wrap: wrap; gap: 12px; justify-content: center; padding: 20px 20px 0; }
-    .admin-controls input, .admin-controls select { padding: 8px 14px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.04); color: var(--text); font-size: 0.85rem; }
-    .admin-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px; padding: 24px 20px 40px; max-width: 1400px; margin: 0 auto; }
-    .team-card { border: 1px solid rgba(38,183,255,0.1); border-radius: 14px; padding: 20px; background: rgba(10,14,23,0.6); backdrop-filter: blur(8px); }
-    .team-card h3 { font-size: 0.95rem; margin-bottom: 4px; }
-    .team-card .team-meta { font-size: 0.78rem; color: var(--muted); margin-bottom: 12px; }
-    .team-card .status-badge { display: inline-block; padding: 2px 10px; border-radius: 99px; font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
-    .status-badge.registered { background: rgba(8,120,255,0.15); color: var(--blue-light); }
-    .status-badge.in-progress { background: rgba(0,229,255,0.12); color: var(--cyan); }
-        .status-badge.submitted { background: rgba(0,200,80,0.12); color: #00c850; }
-        .status-badge.scored { background: rgba(0,200,80,0.12); color: #00c850; }
-    .status-badge.disqualified { background: rgba(255,71,87,0.15); color: #ff4757; }
-    .team-card .event-count { font-size: 0.78rem; color: var(--muted); margin-top: 8px; }
-    .team-card .event-count .severe { color: #ff6b6b; font-weight: 700; }
-    .team-card .card-actions { margin-top: 12px; display: flex; gap: 8px; }
-    .team-card .card-actions button { font-size: 0.75rem; padding: 4px 12px; min-height: 30px; }
-    .team-card.flagged { border-color: rgba(255,107,107,0.4); }
-    .event-modal { position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.85); display: flex; align-items: center; justify-content: center; padding: 20px; }
-    .event-modal-content { background: #0a0e17; border: 1px solid var(--line); border-radius: 16px; padding: 28px; max-width: 700px; width: 100%; max-height: 80vh; overflow-y: auto; }
-    .event-modal-content h2 { margin-bottom: 16px; }
-    .event-table { width: 100%; border-collapse: collapse; font-size: 0.82rem; }
-    .event-table th { text-align: left; padding: 8px 12px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .event-table td { padding: 8px 12px; border-bottom: 1px solid rgba(255,255,255,0.04); }
-    .event-table .sev-severe { color: #ff6b6b; }
-    .event-table .sev-warning { color: var(--muted); }
-    .empty-state { text-align: center; padding: 60px; color: var(--muted); }
-    .stats-summary { display: flex; justify-content: center; gap: 32px; padding: 16px 20px 0; flex-wrap: wrap; }
-    .stats-summary .stat-item { text-align: center; }
-    .stats-summary .stat-item .num { font-family: 'Orbitron', monospace; font-size: 1.6rem; font-weight: 700; color: var(--blue-light); }
-    .stats-summary .stat-item .label { font-size: 0.72rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
+    :root {
+      --bg: #060a13;
+      --panel: #0d1424;
+      --panel-border: rgba(38, 183, 255, 0.15);
+      --blue: #0878ff;
+      --cyan: #26b7ff;
+      --gold: #ffd700;
+      --silver: #c0c0c0;
+      --bronze: #cd7f32;
+      --red: #ff4757;
+      --green: #2ed573;
+      --orange: #ffa502;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+    }
+
+    .admin-header {
+      text-align: center;
+      padding: 28px 20px 10px;
+    }
+    .admin-header h1 {
+      font-size: 1.5rem;
+      margin: 4px 0;
+    }
+
+    /* Stats summary */
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+      padding: 16px 20px;
+      flex-wrap: wrap;
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    .stat-box {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 12px;
+      padding: 14px 22px;
+      text-align: center;
+      min-width: 140px;
+      backdrop-filter: blur(10px);
+    }
+    .stat-box .num {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1.1;
+    }
+    .stat-box .label {
+      font-size: 0.7rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      margin-top: 4px;
+    }
+
+    /* Controls & Filters */
+    .controls-bar {
+      max-width: 1300px;
+      margin: 10px auto 20px;
+      padding: 0 20px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .search-box {
+      flex: 1;
+      min-width: 260px;
+      position: relative;
+    }
+    .search-box input {
+      width: 100%;
+      padding: 10px 16px 10px 38px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      background: rgba(13, 20, 36, 0.8);
+      color: var(--white);
+      font-size: 0.88rem;
+    }
+    .search-box input:focus {
+      outline: none;
+      border-color: var(--cyan);
+      box-shadow: 0 0 0 3px rgba(38, 183, 255, 0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+    .filter-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .filter-group select {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      background: rgba(13, 20, 36, 0.8);
+      color: var(--white);
+      font-size: 0.85rem;
+      cursor: pointer;
+    }
+
+    /* Submissions List Container */
+    .submissions-wrap {
+      max-width: 1300px;
+      margin: 0 auto;
+      padding: 0 20px 80px;
+    }
+
+    /* Submission Card */
+    .sub-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 16px;
+      padding: 20px;
+      margin-bottom: 18px;
+      transition: border-color 200ms, transform 200ms;
+      position: relative;
+      overflow: hidden;
+    }
+    .sub-card:hover {
+      border-color: rgba(38, 183, 255, 0.4);
+      transform: translateY(-2px);
+    }
+    .sub-card.dq-active {
+      border-color: rgba(255, 71, 87, 0.5);
+      background: rgba(255, 71, 87, 0.04);
+    }
+    .sub-card.has-severe {
+      border-left: 4px solid var(--red);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      flex-wrap: wrap;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+      padding-bottom: 14px;
+      margin-bottom: 14px;
+    }
+    .card-identity {
+      display: flex;
+      gap: 14px;
+      align-items: center;
+    }
+    .rank-badge {
+      width: 44px;
+      height: 44px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', monospace;
+      font-weight: 800;
+      font-size: 1.1rem;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--white);
+      flex-shrink: 0;
+    }
+    .rank-badge.rank-1 { background: rgba(255, 215, 0, 0.15); border-color: var(--gold); color: var(--gold); }
+    .rank-badge.rank-2 { background: rgba(192, 192, 192, 0.15); border-color: var(--silver); color: var(--silver); }
+    .rank-badge.rank-3 { background: rgba(205, 127, 50, 0.15); border-color: var(--bronze); color: var(--bronze); }
+
+    .candidate-name {
+      font-size: 1.1rem;
+      font-weight: 700;
+      margin: 0 0 3px;
+      color: #fff;
+    }
+    .candidate-sub {
+      font-size: 0.8rem;
+      color: var(--muted);
+      display: flex;
+      gap: 8px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .role-badge {
+      font-size: 0.65rem;
+      padding: 2px 8px;
+      border-radius: 6px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.05em;
+    }
+    .role-leader { background: rgba(255, 215, 0, 0.15); color: var(--gold); border: 1px solid rgba(255, 215, 0, 0.3); }
+    .role-member2 { background: rgba(38, 183, 255, 0.15); color: var(--cyan); border: 1px solid rgba(38, 183, 255, 0.3); }
+    .role-member3 { background: rgba(46, 213, 115, 0.15); color: var(--green); border: 1px solid rgba(46, 213, 115, 0.3); }
+
+    .score-display {
+      text-align: right;
+    }
+    .score-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.8rem;
+      font-weight: 800;
+      color: var(--cyan);
+      line-height: 1;
+    }
+    .score-correct {
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    /* Grid info */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 14px;
+      margin-bottom: 16px;
+    }
+    .info-tile {
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .info-tile .lbl {
+      font-size: 0.65rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 4px;
+    }
+    .info-tile .val {
+      font-size: 0.82rem;
+      color: #e2e8f0;
+      font-weight: 500;
+      word-break: break-word;
+    }
+
+    .pill-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.72rem;
+      font-weight: 600;
+      background: rgba(255, 255, 255, 0.06);
+    }
+    .pill-badge.ev-warn { background: rgba(255, 165, 2, 0.15); color: var(--orange); }
+    .pill-badge.ev-severe { background: rgba(255, 71, 87, 0.2); color: var(--red); font-weight: 700; }
+    .pill-badge.dq-badge { background: rgba(255, 71, 87, 0.25); color: var(--red); border: 1px solid var(--red); }
+
+    .card-actions-bar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      padding-top: 10px;
+      border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+    .btn-act {
+      padding: 7px 16px;
+      border-radius: 8px;
+      font-size: 0.78rem;
+      font-weight: 600;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 180ms;
+      min-height: 34px;
+    }
+    .btn-act.btn-snap {
+      background: rgba(38, 183, 255, 0.12);
+      border: 1px solid rgba(38, 183, 255, 0.35);
+      color: var(--cyan);
+    }
+    .btn-act.btn-snap:hover {
+      background: rgba(38, 183, 255, 0.25);
+    }
+    .btn-act.btn-log {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #cbd5e1;
+    }
+    .btn-act.btn-log:hover {
+      background: rgba(255, 255, 255, 0.12);
+    }
+    .btn-act.btn-dq {
+      background: rgba(255, 71, 87, 0.1);
+      border: 1px solid rgba(255, 71, 87, 0.4);
+      color: var(--red);
+    }
+    .btn-act.btn-dq:hover {
+      background: rgba(255, 71, 87, 0.25);
+    }
+    .btn-act.btn-reinit {
+      background: rgba(46, 213, 115, 0.1);
+      border: 1px solid rgba(46, 213, 115, 0.4);
+      color: var(--green);
+    }
+
+    /* Lightbox Modal */
+    .lightbox-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9999;
+      background: rgba(0, 0, 0, 0.94);
+      backdrop-filter: blur(12px);
+      display: flex;
+      flex-direction: column;
+      user-select: none;
+    }
+    .lightbox-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 24px;
+      background: rgba(13, 20, 36, 0.9);
+      border-bottom: 1px solid var(--panel-border);
+    }
+    .lightbox-title {
+      font-size: 0.95rem;
+      font-weight: 700;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .lightbox-meta {
+      font-size: 0.8rem;
+      color: var(--muted);
+    }
+    .lightbox-close-btn {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      color: #fff;
+      font-size: 1.1rem;
+      width: 38px;
+      height: 38px;
+      border-radius: 50%;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 150ms;
+    }
+    .lightbox-close-btn:hover {
+      background: var(--red);
+    }
+
+    .lightbox-stage {
+      flex: 1;
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 80px;
+      overflow: hidden;
+    }
+    .lightbox-img-wrap {
+      max-width: 100%;
+      max-height: 100%;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    .lightbox-img {
+      max-width: 90vw;
+      max-height: 65vh;
+      object-fit: contain;
+      border-radius: 12px;
+      border: 1px solid rgba(38, 183, 255, 0.3);
+      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.8);
+      display: block;
+    }
+
+    .lightbox-caption-bar {
+      margin-top: 14px;
+      background: rgba(13, 20, 36, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 999px;
+      padding: 8px 22px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      font-size: 0.85rem;
+    }
+    .cap-badge {
+      font-weight: 700;
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+    .cap-violation { background: rgba(255, 71, 87, 0.2); color: var(--red); border: 1px solid rgba(255, 71, 87, 0.4); }
+    .cap-auto { background: rgba(38, 183, 255, 0.2); color: var(--cyan); border: 1px solid rgba(38, 183, 255, 0.4); }
+
+    .lightbox-nav-btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      background: rgba(13, 20, 36, 0.8);
+      border: 1px solid var(--panel-border);
+      color: #fff;
+      font-size: 1.5rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all 180ms;
+    }
+    .lightbox-nav-btn:hover {
+      background: var(--blue);
+      border-color: var(--cyan);
+      transform: translateY(-50%) scale(1.1);
+    }
+    .lightbox-prev { left: 24px; }
+    .lightbox-next { right: 24px; }
+
+    /* Thumbnails strip */
+    .lightbox-thumbs-bar {
+      height: 100px;
+      background: rgba(10, 14, 23, 0.95);
+      border-top: 1px solid var(--panel-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 20px;
+      overflow-x: auto;
+    }
+    .thumb-item {
+      height: 76px;
+      aspect-ratio: 16/9;
+      border-radius: 6px;
+      border: 2px solid transparent;
+      overflow: hidden;
+      cursor: pointer;
+      opacity: 0.55;
+      transition: all 150ms;
+      flex-shrink: 0;
+      position: relative;
+    }
+    .thumb-item:hover { opacity: 0.9; transform: scale(1.04); }
+    .thumb-item.active { opacity: 1; border-color: var(--cyan); box-shadow: 0 0 10px rgba(38, 183, 255, 0.6); }
+    .thumb-item img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .thumb-tag {
+      position: absolute;
+      bottom: 2px;
+      left: 2px;
+      font-size: 0.55rem;
+      padding: 1px 4px;
+      border-radius: 3px;
+      font-weight: 700;
+      background: rgba(0,0,0,0.8);
+    }
+
+    /* Detailed Modal (Answers & Event Log) */
+    .detail-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 9998;
+      background: rgba(0, 0, 0, 0.88);
+      backdrop-filter: blur(10px);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .detail-modal-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 18px;
+      max-width: 850px;
+      width: 100%;
+      max-height: 85vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.9);
+    }
+    .detail-head {
+      padding: 20px 24px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .detail-body {
+      padding: 24px;
+      overflow-y: auto;
+      flex: 1;
+    }
+
+    .answers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+      gap: 8px;
+      margin-top: 10px;
+    }
+    .ans-box {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 8px;
+      padding: 6px;
+      text-align: center;
+    }
+    .ans-box.flagged { border-color: var(--orange); }
+    .ans-q { font-size: 0.65rem; color: var(--muted); }
+    .ans-val { font-family: 'Orbitron', monospace; font-size: 0.95rem; font-weight: 700; color: var(--cyan); }
+
+    .ev-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.8rem;
+      margin-top: 10px;
+    }
+    .ev-table th {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--muted);
+      font-size: 0.7rem;
+      text-transform: uppercase;
+    }
+    .ev-table td {
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+    }
+
+    .empty-placeholder {
+      text-align: center;
+      padding: 80px 20px;
+      color: var(--muted);
+      font-size: 1rem;
+    }
+
+    /* Toast */
+    .toast-msg {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0e1526;
+      border: 1px solid var(--cyan);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      box-shadow: 0 8px 30px rgba(0,0,0,0.7);
+      z-index: 10000;
+      display: none;
+      animation: fadeIn 200ms ease;
+    }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
     .hidden { display: none !important; }
-    .snap-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
-    .snap-grid img { width: 100%; aspect-ratio: 16/9; object-fit: cover; border-radius: 6px; }
-    @media (max-width: 768px) { .admin-grid { grid-template-columns: 1fr; } }
-
-    /* Tabs */
-    .tab-bar { display: flex; justify-content: center; gap: 4px; padding: 20px 20px 0; }
-    .tab-btn { padding: 8px 24px; border-radius: 8px; border: 1px solid var(--line); background: rgba(255,255,255,0.03); color: var(--muted); font-size: 0.85rem; font-weight: 600; cursor: pointer; transition: all 200ms; }
-    .tab-btn:hover { border-color: var(--blue-light); color: var(--text); }
-    .tab-btn.active, .tab-btn.active-tab { background: rgba(38,183,255,0.12); border-color: var(--blue); color: var(--blue-light); }
-
-    /* Leaderboard */
-    .lb-wrapper { max-width: 1200px; margin: 0 auto; padding: 20px; overflow-x: auto; }
-    .lb-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    .lb-table th { text-align: left; padding: 10px 14px; color: var(--muted); border-bottom: 1px solid var(--line); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.06em; white-space: nowrap; }
-    .lb-table td { padding: 10px 14px; border-bottom: 1px solid rgba(255,255,255,0.04); white-space: nowrap; }
-    .lb-table tr:hover td { background: rgba(38,183,255,0.04); }
-    .lb-rank { font-family: 'Orbitron', monospace; font-weight: 700; font-size: 0.9rem; }
-    .lb-rank.gold { color: #ffd700; }
-    .lb-rank.silver { color: #c0c0c0; }
-    .lb-rank.bronze { color: #cd7f32; }
-    .lb-score { font-family: 'Orbitron', monospace; font-weight: 700; color: var(--blue-light); }
-    .lb-dq-btn { padding: 4px 14px; border-radius: 6px; border: 1px solid rgba(255,71,87,0.3); background: rgba(255,71,87,0.08); color: #ff4757; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 200ms; }
-    .lb-dq-btn:hover { background: rgba(255,71,87,0.2); }
-    .lb-dq-btn.dq-active { background: rgba(255,71,87,0.2); border-color: #ff4757; }
-    .lb-row-dq td { opacity: 0.4; text-decoration: line-through; }
-
-    .results-summary { display: flex; justify-content: center; gap: 32px; padding: 0 20px 20px; flex-wrap: wrap; }
-    .results-summary .stat-item { text-align: center; }
-    .results-summary .stat-item .num { font-family: 'Orbitron', monospace; font-size: 1.3rem; font-weight: 700; color: var(--blue-light); }
-    .results-summary .stat-item .label { font-size: 0.7rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; }
   </style>
 </head>
 <body class="page-home">
@@ -87,106 +599,149 @@
     <nav class="site-nav" aria-label="Primary navigation">
       <a href="index">Home</a>
       <a href="team-dashboard">Team Dashboard</a>
-      <span style="color:var(--blue-light);font-size:0.8rem;font-weight:700;letter-spacing:0.04em;">ADMIN</span>
+      <span style="color:var(--cyan);font-size:0.8rem;font-weight:700;letter-spacing:0.04em;">ADMIN MONITOR</span>
     </nav>
   </header>
 
   <main>
     <div class="admin-header">
-      <p class="eyebrow">Admin Panel</p>
-      <h1>Exam <span class="text-blue">Monitor</span></h1>
-      <p style="color:var(--muted);font-size:0.85rem;">Round 1 : Individual Qualification</p>
+      <p class="eyebrow" style="letter-spacing:0.25em;">GAAC 2026 Admin</p>
+      <h1>Exam <span class="text-blue">Submissions &amp; Proctoring</span></h1>
+      <p style="color:var(--muted);font-size:0.85rem;">Review individual submissions, examine proctoring snapshots, and check device analytics.</p>
     </div>
 
+    <!-- Login Form -->
     <div id="admin-login-form">
-      <div style="max-width:360px;margin:40px auto;padding:24px;border:1px solid var(--line);border-radius:16px;text-align:center;">
-        <h2 style="font-size:1.1rem;margin-bottom:20px;">Admin <span class="text-blue">Login</span></h2>
-        <div class="form-group" style="margin-bottom:16px;">
-          <label for="admin-email" style="font-size:0.85rem;">Admin Email</label>
-          <input type="email" id="admin-email" placeholder="astronomyclub64@gmail.com" style="width:100%;" />
+      <div style="max-width:380px;margin:40px auto;padding:28px;border:1px solid var(--panel-border);border-radius:16px;text-align:center;background:rgba(13,20,36,0.85);backdrop-filter:blur(10px);">
+        <h2 style="font-size:1.15rem;margin-bottom:18px;">Admin <span class="text-blue">Authentication</span></h2>
+        <div class="form-group" style="margin-bottom:16px;text-align:left;">
+          <label for="admin-email" style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:6px;">Admin Email</label>
+          <input type="email" id="admin-email" placeholder="astronomyclub64@gmail.com" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--panel-border);background:rgba(0,0,0,0.3);color:#fff;" />
         </div>
-        <div class="form-group" style="margin-bottom:16px;">
-          <label for="admin-password" style="font-size:0.85rem;">Password</label>
-          <input type="password" id="admin-password" placeholder="Password" style="width:100%;" />
+        <div class="form-group" style="margin-bottom:18px;text-align:left;">
+          <label for="admin-password" style="font-size:0.75rem;color:var(--muted);display:block;margin-bottom:6px;">Password</label>
+          <input type="password" id="admin-password" placeholder="Admin Password" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--panel-border);background:rgba(0,0,0,0.3);color:#fff;" />
         </div>
-        <p id="admin-login-error" style="color:#ff4757;font-size:0.82rem;display:none;"></p>
-        <button class="button primary" id="btn-admin-login" style="width:100%;">Sign In</button>
+        <p id="admin-login-error" style="color:var(--red);font-size:0.82rem;display:none;margin-bottom:12px;"></p>
+        <button class="button primary" id="btn-admin-login" style="width:100%;">Sign In as Admin</button>
       </div>
     </div>
 
+    <!-- Main Dashboard -->
     <div id="admin-dashboard" class="hidden">
-      <!-- Dashboard: My Team Only -->
-      <div id="tab-dashboard">
-        <div class="stats-summary" id="stats-summary"></div>
-        <div style="text-align:center;padding:8px 20px 0;">
-          <button class="button secondary" id="btn-refresh" style="min-height:38px;font-size:0.8rem;">Refresh</button>
+      <!-- Stats summary -->
+      <div class="stats-bar" id="stats-bar">
+        <div class="stat-box">
+          <div class="num" id="stat-total">0</div>
+          <div class="label">Total Submissions</div>
         </div>
-        <div id="my-team-view" style="max-width:800px;margin:20px auto;padding:0 20px 40px;"></div>
-      </div>
-
-      <!-- Mock Test Schedule -->
-      <div id="mock-schedule-section" class="hidden" style="max-width:860px;margin:28px auto 0;padding:0 20px 40px;">
-        <div style="border:1px solid rgba(38,183,255,0.22);border-radius:14px;padding:22px 20px;background:rgba(10,14,23,0.5);">
-          <h2 style="margin:0 0 4px;font-size:1.1rem;">Round 1 <span style="color:var(--blue-light);">Schedule</span></h2>
-          <p style="color:var(--muted);font-size:0.82rem;margin:0 0 18px;">Single live countdown drives the Round 1 entry window (Cairo, GMT+3). Entry opens at <strong style="color:var(--blue-light);">7:00 PM</strong> and closes at <strong style="color:var(--blue-light);">8:00 PM</strong> on 5 September 2026.</p>
-
-          <div style="display:flex;align-items:center;justify-content:center;gap:10px;margin-bottom:10px;">
-            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
-              <div id="mock-days" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
-              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Days</div>
-            </div>
-            <span style="font-size:1.6rem;color:var(--muted);font-weight:700;">:</span>
-            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
-              <div id="mock-hours" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
-              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Hours</div>
-            </div>
-            <span style="font-size:1.6rem;color:var(--muted);font-weight:700;">:</span>
-            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
-              <div id="mock-minutes" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
-              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Minutes</div>
-            </div>
-            <span style="font-size:1.6rem;color:var(--muted);font-weight:700;">:</span>
-            <div style="text-align:center;min-width:74px;padding:16px 12px;border:1px solid rgba(38,183,255,0.25);border-radius:12px;background:rgba(38,183,255,0.06);">
-              <div id="mock-seconds" style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--blue-light);font-weight:800;line-height:1;">00</div>
-              <div style="font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.08em;margin-top:8px;">Seconds</div>
-            </div>
-          </div>
-          <div id="mock-timer-note" style="text-align:center;font-size:0.78rem;color:var(--muted);margin-bottom:22px;">Loadingâ€¦</div>
-
-          <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;">
-            <div style="margin:0;">
-              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Entry window opens</label>
-              <input type="datetime-local" id="mock-start-at" style="width:100%;" />
-            </div>
-            <div style="margin:0;">
-              <label style="font-size:0.75rem;display:block;margin-bottom:6px;">Entry window closes</label>
-              <input type="datetime-local" id="mock-close-at" style="width:100%;" />
-            </div>
-          </div>
-          <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-            <button class="button primary" id="btn-save-mock-schedule" style="min-height:38px;font-size:0.8rem;">Save Round 1 Schedule</button>
-            <span id="mock-save-status" style="font-size:0.8rem;color:var(--muted);"></span>
-          </div>
+        <div class="stat-box">
+          <div class="num" id="stat-avg-score">--</div>
+          <div class="label">Average Score</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="stat-high-score" style="color:var(--gold);">--</div>
+          <div class="label">Highest Score</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="stat-flagged" style="color:var(--orange);">0</div>
+          <div class="label">With Violations</div>
+        </div>
+        <div class="stat-box">
+          <div class="num" id="stat-dq" style="color:var(--red);">0</div>
+          <div class="label">Disqualified</div>
         </div>
       </div>
 
-      <!-- Event Modal -->
-      <div id="event-modal" class="event-modal hidden">
-        <div class="event-modal-content">
-          <h2>Event Log: <span id="modal-team-name"></span></h2>
-          <div id="modal-events-body"></div>
-          <button class="button secondary" id="btn-close-modal" style="margin-top:16px;">Close</button>
+      <!-- Controls & Filter Bar -->
+      <div class="controls-bar">
+        <div class="search-box">
+          <span class="search-icon">&#128269;</span>
+          <input type="text" id="search-input" placeholder="Search by student name, email, team name, registration ID..." />
         </div>
+        <div class="filter-group">
+          <select id="filter-status">
+            <option value="all">All Submissions</option>
+            <option value="high">High Scores (&ge; 80%)</option>
+            <option value="passed">Passed (&ge; 60%)</option>
+            <option value="violations">Has Violations</option>
+            <option value="dq">Disqualified</option>
+            <option value="clean">Clean (0 Events)</option>
+          </select>
+          <select id="sort-order">
+            <option value="score-desc">Sort: Score (Highest First)</option>
+            <option value="score-asc">Sort: Score (Lowest First)</option>
+            <option value="time-desc">Sort: Submitted (Latest First)</option>
+            <option value="time-asc">Sort: Submitted (Earliest First)</option>
+            <option value="events-desc">Sort: Violations (Most First)</option>
+          </select>
+          <button class="button secondary" id="btn-refresh" style="min-height:38px;padding:6px 16px;font-size:0.8rem;">Refresh</button>
+        </div>
+      </div>
+
+      <!-- Submissions List -->
+      <div class="submissions-wrap" id="submissions-container">
+        <div class="empty-placeholder">Loading submissions from Firestore...</div>
       </div>
     </div>
   </main>
 
+  <!-- Interactive Lightbox Modal -->
+  <div id="lightbox-modal" class="lightbox-modal hidden">
+    <div class="lightbox-header">
+      <div class="lightbox-title">
+        <span id="lb-candidate-title">Candidate Snapshots</span>
+        <span class="lightbox-meta" id="lb-index-counter">Image 1 of 10</span>
+      </div>
+      <button class="lightbox-close-btn" id="lb-close-btn" title="Close (Esc)">&times;</button>
+    </div>
+    <div class="lightbox-stage">
+      <button class="lightbox-nav-btn lightbox-prev" id="lb-prev-btn" title="Previous (&larr;)">&lsaquo;</button>
+      <div class="lightbox-img-wrap">
+        <img id="lb-main-img" class="lightbox-img" src="" alt="Proctoring Snapshot" />
+        <div class="lightbox-caption-bar" id="lb-caption-bar">
+          <span class="cap-badge cap-violation" id="lb-event-type">Violation</span>
+          <span id="lb-event-time" style="color:#e2e8f0;font-weight:600;">07:00:00 PM</span>
+          <span id="lb-event-source" style="color:var(--muted);font-size:0.75rem;">[Webcam]</span>
+        </div>
+      </div>
+      <button class="lightbox-nav-btn lightbox-next" id="lb-next-btn" title="Next (&rarr;)">&rsaquo;</button>
+    </div>
+    <div class="lightbox-thumbs-bar" id="lb-thumbs-bar"></div>
+  </div>
+
+  <!-- Detail Modal (Event Log + Answers) -->
+  <div id="detail-modal" class="detail-modal hidden">
+    <div class="detail-modal-card">
+      <div class="detail-head">
+        <div>
+          <h2 id="dt-name" style="margin:0 0 4px;font-size:1.15rem;">Student Details</h2>
+          <div id="dt-meta" style="font-size:0.8rem;color:var(--muted);">Team: ...</div>
+        </div>
+        <button class="lightbox-close-btn" id="dt-close-btn">&times;</button>
+      </div>
+      <div class="detail-body">
+        <h3 style="font-size:0.95rem;margin:0 0 8px;color:var(--cyan);">Device &amp; Environment Analytics</h3>
+        <div id="dt-device-box" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px;margin-bottom:20px;"></div>
+
+        <h3 style="font-size:0.95rem;margin:16px 0 8px;color:var(--cyan);">Submitted Answers (40 Questions)</h3>
+        <div class="answers-grid" id="dt-answers-grid"></div>
+
+        <h3 style="font-size:0.95rem;margin:24px 0 8px;color:var(--cyan);">Proctoring Event Timeline</h3>
+        <div id="dt-events-container"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification -->
+  <div class="toast-msg" id="toast-msg">Action updated successfully!</div>
+
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, query, where, orderBy, setDoc, deleteDoc, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-    import { getStorage, ref as storageRef, listAll, getDownloadURL, deleteObject } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
+    import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, collectionGroup, query, where, orderBy, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getStorage, ref as storageRef, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
       authDomain: "gaac-registration-2026.firebaseapp.com",
@@ -197,447 +752,627 @@
       measurementId: "G-CEB6Z0RF5E"
     };
 
-    const app = initializeApp(firebaseConfig, 'admin-exam');
+    const app = initializeApp(firebaseConfig, 'admin-exam-app');
     const auth = getAuth(app);
     const db = getFirestore(app);
     const storage = getStorage(app);
 
     const ADMIN_EMAIL = 'astronomyclub64@gmail.com';
-    const MY_TEAM_ID = 'GAAC-2026-0605';
 
+    let allSubmissions = [];
+    const registrationCache = new Map();
+    let currentGalleryImages = [];
+    let currentGalleryIndex = 0;
+
+    // Toast helper
+    function showToast(msg) {
+      const el = document.getElementById('toast-msg');
+      el.textContent = msg;
+      el.style.display = 'block';
+      setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    // Login Handling
     document.getElementById('btn-admin-login').addEventListener('click', async () => {
       const email = document.getElementById('admin-email').value.trim().toLowerCase();
       const password = document.getElementById('admin-password').value.trim();
       const errorEl = document.getElementById('admin-login-error');
       errorEl.style.display = 'none';
-      if (email !== ADMIN_EMAIL) { errorEl.textContent = 'Not authorized as admin.'; errorEl.style.display = 'block'; return; }
+
+      if (email !== ADMIN_EMAIL) {
+        errorEl.textContent = 'Not authorized as admin.';
+        errorEl.style.display = 'block';
+        return;
+      }
+
       try {
         await signInWithEmailAndPassword(auth, email, password);
         document.getElementById('admin-login-form').classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
-        loadMyTeam();
-        document.getElementById('mock-schedule-section').classList.remove('hidden');
-        initMockSchedule();
-        document.getElementById('btn-refresh').addEventListener('click', () => {
-          document.getElementById('btn-refresh').disabled = true;
-          document.getElementById('btn-refresh').textContent = 'Refreshing...';
-          loadMyTeam().then(() => {
-            document.getElementById('btn-refresh').disabled = false;
-            document.getElementById('btn-refresh').textContent = 'Refresh';
-          }).catch(() => {
-            document.getElementById('btn-refresh').disabled = false;
-            document.getElementById('btn-refresh').textContent = 'Refresh';
-          });
-        });
-      } catch (e) { errorEl.textContent = e.message || 'Login failed.'; errorEl.style.display = 'block'; }
+        loadAllSubmissions();
+      } catch (e) {
+        errorEl.textContent = e.message || 'Login failed.';
+        errorEl.style.display = 'block';
+      }
     });
 
-    // ----- Round 1 schedule (live countdown) -----
-    const R1_DEFAULT = {
-      round1OpenAt: Date.UTC(2026, 8, 5, 16, 0, 0),    // 7:00 PM Cairo (GMT+3)
-      round1CloseAt: Date.UTC(2026, 8, 5, 17, 0, 0)    // 8:00 PM Cairo (GMT+3)
-    };
-    const MOCK_KEYS = ['round1OpenAt', 'round1CloseAt'];
-    const MOCK_EDIT_KEYS = ['round1OpenAt', 'round1CloseAt'];
-    let mockSched = { ...R1_DEFAULT };
+    onAuthStateChanged(auth, (user) => {
+      if (user && user.email === ADMIN_EMAIL) {
+        document.getElementById('admin-login-form').classList.add('hidden');
+        document.getElementById('admin-dashboard').classList.remove('hidden');
+        loadAllSubmissions();
+      }
+    });
 
-    const cairoClock = (epoch) => {
-      const d = new Date(epoch + 3 * 3600 * 1000);
-      let h = d.getUTCHours();
-      const ampm = h >= 12 ? 'PM' : 'AM';
-      h = h % 12 || 12;
-      return `${h}:${String(d.getUTCMinutes()).padStart(2, '0')} ${ampm}`;
-    };
-    const fmtCountdown = (ms) => {
-      const t = Math.max(0, Math.floor(ms / 1000));
-      const d = Math.floor(t / 86400);
-      const h = Math.floor((t % 86400) / 3600);
-      const m = Math.floor((t % 3600) / 60);
-      const s = t % 60;
-      return {
-        d: String(d).padStart(2, '0'),
-        h: String(h).padStart(2, '0'),
-        m: String(m).padStart(2, '0'),
-        s: String(s).padStart(2, '0')
+    document.getElementById('btn-refresh').addEventListener('click', () => {
+      loadAllSubmissions();
+    });
+
+    // Helper: format timestamps
+    function fmtDateTime(val) {
+      if (!val) return '—';
+      let d = null;
+      if (typeof val === 'number') d = new Date(val);
+      else if (val.seconds) d = new Date(val.seconds * 1000);
+      else if (typeof val === 'string') d = new Date(val);
+      else if (val.toDate) d = val.toDate();
+      if (!d || isNaN(d.getTime())) return '—';
+      return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ', ' + d.toLocaleDateString([], { month: 'short', day: 'numeric' });
+    }
+
+    function calcDuration(startVal, endVal) {
+      if (!startVal || !endVal) return '—';
+      const toMs = (v) => {
+        if (typeof v === 'number') return v;
+        if (v.seconds) return v.seconds * 1000;
+        if (v.toDate) return v.toDate().getTime();
+        return new Date(v).getTime();
       };
-    };
-    const toLocalInput = (epoch) => {
-      const d = new Date(epoch);
-      const p = (n) => String(n).padStart(2, '0');
-      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
-    };
+      const s = toMs(startVal);
+      const e = toMs(endVal);
+      if (isNaN(s) || isNaN(e) || e < s) return '—';
+      const diffSec = Math.round((e - s) / 1000);
+      const mins = Math.floor(diffSec / 60);
+      const secs = diffSec % 60;
+      return `${mins}m ${secs}s`;
+    }
 
-    const setCells = (d, h, m, s) => {
-      const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
-      set('mock-days', d); set('mock-hours', h); set('mock-minutes', m); set('mock-seconds', s);
-    };
+    // Step 1: Query only submitted exams efficiently
+    async function loadAllSubmissions() {
+      const container = document.getElementById('submissions-container');
+      container.innerHTML = '<div class="empty-placeholder">Loading submissions from Firestore...</div>';
 
-    const mockScheduleTick = () => {
-      const note = document.getElementById('mock-timer-note');
-      if (!note) return;
-      const now = Date.now();
-      const { round1OpenAt, round1CloseAt } = mockSched;
-      if (now < round1OpenAt) {
-        const { d, h, m, s } = fmtCountdown(round1OpenAt - now);
-        setCells(d, h, m, s);
-        note.textContent = `Round 1 opens at ${cairoClock(round1OpenAt)}. Entry allowed between ${cairoClock(round1OpenAt)} and ${cairoClock(round1CloseAt)} (Cairo Time, GMT+3).`;
-      } else if (now < round1CloseAt) {
-        const { d, h, m, s } = fmtCountdown(round1CloseAt - now);
-        setCells(d, h, m, s);
-        note.textContent = `Entry open. Allowed between ${cairoClock(round1OpenAt)} and ${cairoClock(round1CloseAt)} (Cairo Time, GMT+3). Closes in the countdown above.`;
-      } else {
-        setCells('00', '00', '00', '00');
-        note.textContent = `Entry window closed. The join window was ${cairoClock(round1OpenAt)} - ${cairoClock(round1CloseAt)} (Cairo Time, GMT+3).`;
-      }
-    };
-
-    const initMockSchedule = async () => {
-      const functions = getFunctions(app);
-      const statusFn = httpsCallable(functions, 'getCompetitionStatus');
       try {
-        const res = await statusFn();
-        const data = res.data || {};
-        const s = { ...R1_DEFAULT };
-        MOCK_KEYS.forEach(k => { if (typeof data[k] === 'number') s[k] = data[k]; });
-        mockSched = s;
-        document.getElementById('mock-start-at').value = toLocalInput(s.round1OpenAt);
-        document.getElementById('mock-close-at').value = toLocalInput(s.round1CloseAt);
-        mockScheduleTick();
-        setInterval(mockScheduleTick, 1000);
-      } catch (e) {
-        console.warn('Failed to load Round 1 schedule:', e);
-      }
-    };
-
-    document.getElementById('btn-save-mock-schedule').addEventListener('click', async () => {
-      const statusEl = document.getElementById('mock-save-status');
-      statusEl.textContent = 'Savingâ€¦';
-      const functions = getFunctions(app);
-      const updateFn = httpsCallable(functions, 'updateCompetitionControl');
-      try {
-        const payload = {
-          round1OpenAt: new Date(document.getElementById('mock-start-at').value).getTime(),
-          round1CloseAt: new Date(document.getElementById('mock-close-at').value).getTime()
-        };
-        for (const k of MOCK_EDIT_KEYS) {
-          if (!Number.isFinite(payload[k])) throw new Error(`Invalid value for ${k}.`);
+        let examDocs = [];
+        try {
+          // Optimized collectionGroup query: fetch ONLY submitted exams
+          const q = query(collectionGroup(db, 'exam'), where('status', '==', 'submitted'));
+          const snap = await getDocs(q);
+          snap.forEach(d => {
+            const teamId = d.ref.parent.parent ? d.ref.parent.parent.id : 'unknown';
+            examDocs.push({
+              id: d.id,
+              memberUid: d.id,
+              teamId: teamId,
+              ...d.data()
+            });
+          });
+        } catch (err) {
+          console.warn('Collection group query failed, falling back to teams query:', err);
+          // Fallback: query teams and read their exam subcollections
+          const teamsSnap = await getDocs(collection(db, 'teams'));
+          for (const tDoc of teamsSnap.docs) {
+            const subExams = await getDocs(query(collection(db, 'teams', tDoc.id, 'exam'), where('status', '==', 'submitted')));
+            subExams.forEach(d => {
+              examDocs.push({
+                id: d.id,
+                memberUid: d.id,
+                teamId: tDoc.id,
+                ...d.data()
+              });
+            });
+          }
         }
-        await updateFn(payload);
-        mockSched = { ...mockSched, ...payload };
-        statusEl.textContent = 'Saved. Countdown restarted from current times.';
-        setTimeout(() => { statusEl.textContent = ''; }, 4000);
-      } catch (e) {
-        console.error('Failed to save Round 1 schedule:', e);
-        statusEl.textContent = 'Save failed: ' + (e.message || 'unknown error');
-      }
-    });
 
-    const continuousTypes = new Set(['fullscreen-exit', 'tab-hidden', 'window-blur', 'camera-disabled', 'camera-covered', 'no-face-20s', 'multiple-faces']);
-    const fmtDuration = (secs, evtTimestamp, evtType) => {
-      if (secs != null) {
-        const h = Math.floor(secs / 3600), m = Math.floor((secs % 3600) / 60), s = secs % 60;
-        let str = '';
-        if (h > 0) str += `${h}h `;
-        if (m > 0 || h > 0) str += `${m}m `;
-        str += `${s.toFixed(1)}s`;
-        return str;
-      }
-      if (continuousTypes.has(evtType) && evtTimestamp) {
-        const elapsed = (Date.now() - new Date(evtTimestamp).getTime()) / 1000;
-        if (elapsed < 300) {
-          const h = Math.floor(elapsed / 3600), m = Math.floor((elapsed % 3600) / 60), s = elapsed % 60;
-          let str = '';
-          if (h > 0) str += `${h}h `;
-          if (m > 0 || h > 0) str += `${m}m `;
-          str += `${s.toFixed(1)}s (active)`;
-          return str;
+        if (examDocs.length === 0) {
+          container.innerHTML = '<div class="empty-placeholder">No submitted exams found in Firestore yet.</div>';
+          updateStats([]);
+          allSubmissions = [];
+          return;
         }
-      }
-      return '\u2014';
-    };
 
-    const fmtTimeOnly = (d) => d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false });
-    const normEmail = (email) => (email || '').trim().toLowerCase();
-    const eventBelongsToMember = (evt, memberUid) => {
-      const eventUid = evt.memberUid || evt.uid || '';
-      return !!memberUid && !!eventUid && eventUid === memberUid;
-    };
-
-    const loadMyTeam = async () => {
-      const container = document.getElementById('my-team-view');
-      container.innerHTML = '<div class="empty-state">Loading team data...</div>';
-      try {
-        const [regSnap, teamSnap, examSnap, eventsSnap, teamMembersSnap] = await Promise.all([
-          getDoc(doc(db, 'registrations', MY_TEAM_ID)),
-          getDoc(doc(db, 'teams', MY_TEAM_ID)),
-          getDocs(collection(db, 'teams', MY_TEAM_ID, 'exam')),
-          getDocs(query(collection(db, 'teams', MY_TEAM_ID, 'events'), orderBy('timestamp', 'desc'))),
-          getDocs(query(collection(db, 'teamMembers'), where('teamId', '==', MY_TEAM_ID)))
-        ]);
-        if (!regSnap.exists()) { container.innerHTML = '<div class="empty-state">Team not found.</div>'; return; }
-        const reg = regSnap.data();
-        const team = teamSnap.exists() ? teamSnap.data() : {};
-        const roleLabels = ['Leader', 'Member 2', 'Member 3'];
-        const roleColors = ['#ffd700', 'var(--blue-light)', '#51cf66'];
-        const roleBadgeIds = ['leader', 'member2', 'member3'];
-        const members = [
-          { ...reg.leader, role: 'leader', roleIdx: 0 },
-          reg.member2 ? { ...reg.member2, role: 'member2', roleIdx: 1 } : null,
-          reg.member3 ? { ...reg.member3, role: 'member3', roleIdx: 2 } : null
-        ].filter(Boolean);
-        const uidByEmail = {};
-        teamMembersSnap.forEach(d => {
-          const data = d.data();
-          if (data.email) uidByEmail[normEmail(data.email)] = d.id;
-        });
-        await Promise.all(members.map(async (m) => {
-          if (!m.uid && m.email && uidByEmail[normEmail(m.email)]) m.uid = uidByEmail[normEmail(m.email)];
-          if (m.uid || !m.email) return;
-          try {
-            const emailSnap = await getDoc(doc(db, 'registeredEmails', normEmail(m.email)));
-            if (emailSnap.exists() && emailSnap.data().uid) m.uid = emailSnap.data().uid;
-          } catch (e) {
-            console.warn('Failed to resolve member uid:', m.email, e);
+        // Step 2: Fetch corresponding team registrations (cached)
+        const uniqueTeamIds = [...new Set(examDocs.map(e => e.teamId))];
+        await Promise.all(uniqueTeamIds.map(async (tId) => {
+          if (!registrationCache.has(tId)) {
+            try {
+              const regSnap = await getDoc(doc(db, 'registrations', tId));
+              if (regSnap.exists()) {
+                registrationCache.set(tId, regSnap.data());
+              }
+            } catch (e) {
+              console.warn('Failed to fetch registration for', tId, e);
+            }
           }
         }));
-        const memberExams = [];
-        examSnap.forEach(d => memberExams.push({ uid: d.id, ...d.data() }));
-        members.forEach(m => {
-          if (m.uid) return;
-          const byEmail = memberExams.find(e => normEmail(e.memberEmail) === normEmail(m.email));
-          if (byEmail) {
-            m.uid = byEmail.uid;
-            return;
+
+        // Enrich each submission with team and candidate data
+        allSubmissions = examDocs.map(exam => {
+          const reg = registrationCache.get(exam.teamId) || {};
+          const teamName = reg.teamName || exam.teamId;
+          let memberData = null;
+
+          const norm = (s) => (s || '').trim().toLowerCase();
+          const targetEmail = norm(exam.memberEmail);
+
+          if (reg.leader && norm(reg.leader.email) === targetEmail) memberData = { ...reg.leader, role: 'leader' };
+          else if (reg.member2 && norm(reg.member2.email) === targetEmail) memberData = { ...reg.member2, role: 'member2' };
+          else if (reg.member3 && norm(reg.member3.email) === targetEmail) memberData = { ...reg.member3, role: 'member3' };
+          else {
+            memberData = {
+              name: exam.memberName || exam.memberEmail || 'Student',
+              email: exam.memberEmail || '',
+              country: '',
+              school: '',
+              role: exam.memberRole || 'member'
+            };
           }
-          const byRole = memberExams.filter(e => e.memberRole === m.role);
-          if (byRole.length === 1) m.uid = byRole[0].uid;
+
+          const score = typeof exam.score === 'number' ? exam.score : (typeof exam.examScore === 'number' ? exam.examScore : 0);
+          const answeredCount = exam.answers ? Object.keys(exam.answers).length : 0;
+
+          return {
+            ...exam,
+            score,
+            answeredCount,
+            teamName,
+            memberData,
+            dq: !!(exam.dq || exam.disqualified)
+          };
         });
-        const allEvents = [];
-        eventsSnap.forEach(d => allEvents.push({ id: d.id, ...d.data() }));
-        const status = team.disqualified ? 'disqualified' : (team.examStatus || team.status || 'registered');
-        const flagged = (team.severeEventCount || 0) > 3 || (team.eventCount || 0) > 20;
 
-        let html = `<div class="team-card ${flagged ? 'flagged' : ''}" style="margin-bottom:16px;">
-          <h3>${reg.teamName || 'Unknown Team'}</h3>
-          <div class="team-meta">${MY_TEAM_ID}</div>
-          <div style="margin:8px 0;"><span class="status-badge ${status}">${status}</span>
-            ${team.examScore != null ? `<span style="margin-left:8px;font-family:Orbitron,monospace;color:var(--blue-light);font-size:0.85rem;">${team.examScore}%</span>` : ''}
-          </div>
-          <div class="event-count">Events: ${team.eventCount || 0} ${team.severeEventCount > 0 ? `<span class="severe">(${team.severeEventCount} severe)</span>` : ''}</div>
-          <div class="event-count">Members Submitted: ${team.submittedCount || 0} / ${team.memberCount || members.length}</div>
-          <div class="card-actions">
-            <button class="${team.disqualified ? 'lb-dq-btn dq-active' : 'lb-dq-btn'}" id="btn-toggle-dq" style="min-height:30px;">${team.disqualified ? 'Reinstate' : 'DQ'}</button>
-            <button class="button secondary" id="btn-reset-exam" style="min-height:30px;border-color:rgba(255,183,77,0.4);color:#ffb74d;">Reset Exam</button>
-          </div>
-        </div>`;
+        updateStats(allSubmissions);
+        renderSubmissions();
+      } catch (e) {
+        console.error('Error loading submissions:', e);
+        container.innerHTML = `<div class="empty-placeholder" style="color:var(--red);">Error loading submissions: ${e.message}</div>`;
+      }
+    }
 
-        html += '<div id="member-tabs" style="display:flex;gap:4px;margin-bottom:16px;flex-wrap:wrap;">';
-        members.forEach((m, i) => {
-          html += `<button class="tab-btn member-tab ${i === 0 ? 'active-tab' : ''}" data-tab="${i}" style="flex:1;min-width:120px;">${roleLabels[i]}: ${m.name || m.email || '?'}</button>`;
+    // Step 3: Update Top Stats Bar
+    function updateStats(subs) {
+      document.getElementById('stat-total').textContent = subs.length;
+      if (subs.length === 0) {
+        document.getElementById('stat-avg-score').textContent = '--';
+        document.getElementById('stat-high-score').textContent = '--';
+        document.getElementById('stat-flagged').textContent = '0';
+        document.getElementById('stat-dq').textContent = '0';
+        return;
+      }
+      const scores = subs.map(s => s.score || 0);
+      const avg = Math.round(scores.reduce((a, b) => a + b, 0) / subs.length);
+      const max = Math.max(...scores);
+      const flagged = subs.filter(s => (s.severeEventCount || 0) > 0 || (s.eventCount || 0) > 10).length;
+      const dqs = subs.filter(s => s.dq).length;
+
+      document.getElementById('stat-avg-score').textContent = `${avg}%`;
+      document.getElementById('stat-high-score').textContent = `${max}%`;
+      document.getElementById('stat-flagged').textContent = flagged;
+      document.getElementById('stat-dq').textContent = dqs;
+    }
+
+    // Step 4: Render Submissions with Filter & Sorting
+    function renderSubmissions() {
+      const container = document.getElementById('submissions-container');
+      const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
+      const statusFilter = document.getElementById('filter-status').value;
+      const sortOrder = document.getElementById('sort-order').value;
+
+      let list = [...allSubmissions];
+
+      // Search Filter
+      if (searchQuery) {
+        list = list.filter(s => {
+          const name = (s.memberData?.name || '').toLowerCase();
+          const email = (s.memberEmail || '').toLowerCase();
+          const team = (s.teamName || '').toLowerCase();
+          const regId = (s.teamId || '').toLowerCase();
+          const country = (s.memberData?.country || '').toLowerCase();
+          const school = (s.memberData?.school || '').toLowerCase();
+          return name.includes(searchQuery) || email.includes(searchQuery) || team.includes(searchQuery) || regId.includes(searchQuery) || country.includes(searchQuery) || school.includes(searchQuery);
         });
-        html += '</div>';
+      }
 
-        html += '<div id="member-views"></div>';
-        container.innerHTML = html;
+      // Status Filter
+      if (statusFilter === 'high') list = list.filter(s => s.score >= 80);
+      else if (statusFilter === 'passed') list = list.filter(s => s.score >= 60);
+      else if (statusFilter === 'violations') list = list.filter(s => (s.severeEventCount || 0) > 0 || (s.eventCount || 0) > 0);
+      else if (statusFilter === 'dq') list = list.filter(s => s.dq);
+      else if (statusFilter === 'clean') list = list.filter(s => (s.eventCount || 0) === 0);
 
-        const viewsEl = document.getElementById('member-views');
+      // Sorting
+      if (sortOrder === 'score-desc') list.sort((a, b) => (b.score || 0) - (a.score || 0));
+      else if (sortOrder === 'score-asc') list.sort((a, b) => (a.score || 0) - (b.score || 0));
+      else if (sortOrder === 'time-desc') list.sort((a, b) => (new Date(b.submittedAt?.toDate ? b.submittedAt.toDate() : b.submittedAt).getTime()) - (new Date(a.submittedAt?.toDate ? a.submittedAt.toDate() : a.submittedAt).getTime()));
+      else if (sortOrder === 'time-asc') list.sort((a, b) => (new Date(a.submittedAt?.toDate ? a.submittedAt.toDate() : a.submittedAt).getTime()) - (new Date(b.submittedAt?.toDate ? b.submittedAt.toDate() : b.submittedAt).getTime()));
+      else if (sortOrder === 'events-desc') list.sort((a, b) => (b.severeEventCount || 0) - (a.severeEventCount || 0) || (b.eventCount || 0) - (a.eventCount || 0));
 
-        members.forEach((m, i) => {
-          const mUid = m.uid || '';
-          let mEvents = allEvents.filter(e => eventBelongsToMember(e, mUid));
-          const mExam = memberExams.find(e => mUid && e.uid === mUid);
-          const answered = mExam && mExam.answers ? Object.keys(mExam.answers).length : 0;
-          const subAt = mExam && mExam.submittedAt ? (mExam.submittedAt.seconds ? new Date(mExam.submittedAt.seconds * 1000) : new Date(mExam.submittedAt)) : null;
+      if (list.length === 0) {
+        container.innerHTML = '<div class="empty-placeholder">No matching submissions found.</div>';
+        return;
+      }
 
-          let vHtml = `<div class="member-view" data-member="${i}" style="display:${i === 0 ? 'block' : 'none'};">
-            <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px;">
-              <div style="padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(10,14,23,0.6);">
-                <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">${roleLabels[i]} Info</div>
-                <div style="font-size:0.82rem;"><strong>${m.name || 'N/A'}</strong></div>
-                <div style="font-size:0.75rem;color:var(--muted);">${m.email || ''}</div>
-                <div style="font-size:0.75rem;color:var(--muted);">${m.country || ''} &middot; ${m.school || ''}</div>
+      let html = '';
+      list.forEach((sub, idx) => {
+        const rank = idx + 1;
+        const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+        const m = sub.memberData || {};
+        const dev = sub.deviceInfo || {};
+        const severeCount = sub.severeEventCount || 0;
+        const totalEvents = sub.eventCount || 0;
+        const role = m.role || sub.memberRole || 'leader';
+        const roleClass = role === 'leader' ? 'role-leader' : (role === 'member2' ? 'role-member2' : 'role-member3');
+        const roleLabel = role === 'leader' ? 'Team Leader' : (role === 'member2' ? 'Member 2' : 'Member 3');
+        const dur = calcDuration(sub.startedAt, sub.submittedAt);
+
+        html += `
+          <div class="sub-card ${sub.dq ? 'dq-active' : ''} ${severeCount > 0 ? 'has-severe' : ''}" id="sub-card-${sub.memberUid}">
+            <div class="card-top">
+              <div class="card-identity">
+                <div class="rank-badge ${rankClass}">#${rank}</div>
+                <div>
+                  <h3 class="candidate-name">${escapeHtml(m.name || 'Student')}</h3>
+                  <div class="candidate-sub">
+                    <span class="role-badge ${roleClass}">${roleLabel}</span>
+                    <span>&bull;</span>
+                    <strong style="color:var(--cyan);">${escapeHtml(sub.teamName)}</strong>
+                    <span style="color:var(--muted);">(${sub.teamId})</span>
+                    <span>&bull;</span>
+                    <span>${escapeHtml(sub.memberEmail || '')}</span>
+                  </div>
+                </div>
               </div>
-              <div style="padding:14px;border:1px solid var(--line);border-radius:12px;background:rgba(10,14,23,0.6);">
-                <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:6px;">Exam Submission</div>
-                ${mExam ? `
-                  <div style="font-size:0.82rem;">Status: <span class="status-badge ${mExam.status || 'registered'}">${mExam.status || 'registered'}</span></div>
-                  <div style="font-size:0.82rem;margin-top:4px;">Score: <strong style="color:var(--blue-light);">${mExam.score != null ? mExam.score + '%' : '\u2014'}</strong></div>
-                  <div style="font-size:0.78rem;color:var(--muted);">Correct: ${mExam.correctCount != null ? mExam.correctCount + '/' + mExam.totalQuestions : '\u2014'}</div>
-                  <div style="font-size:0.78rem;color:var(--muted);">Answers: ${answered}/40</div>
-                  <div style="font-size:0.75rem;color:var(--muted);">Submitted: ${subAt ? subAt.toLocaleString() : '\u2014'}</div>
-                ` : '<div style="font-size:0.82rem;color:var(--muted);">Not started</div>'}
+              <div class="score-display">
+                <div class="score-num">${sub.score}%</div>
+                <div class="score-correct">${sub.correctCount != null ? sub.correctCount + '/40 Correct' : sub.answeredCount + '/40 Answered'}</div>
               </div>
-            </div>`;
+            </div>
 
-          vHtml += '<h3 style="margin-bottom:8px;">Event Log</h3>';
-          if (mEvents.length === 0) {
-            vHtml += '<p style="color:var(--muted);font-size:0.82rem;margin-bottom:16px;">No events.</p>';
-          } else {
-            vHtml += '<table class="event-table" style="margin-bottom:16px;"><thead><tr><th>Time</th><th>End</th><th>Duration</th><th>Type</th><th>Severity</th></tr></thead><tbody>';
-            mEvents.slice(0, 30).forEach(evt => {
-              const start = new Date(evt.timestamp);
-              const endTime = evt.actualSecs != null ? new Date(start.getTime() + evt.actualSecs * 1000) : null;
-              vHtml += `<tr><td style="font-size:0.75rem;color:var(--muted);">${fmtTimeOnly(start)}</td><td style="font-size:0.75rem;color:var(--muted);">${endTime ? fmtTimeOnly(endTime) : 'Active'}</td><td style="font-family:Orbitron,monospace;font-size:0.75rem;color:var(--blue-light);">${fmtDuration(evt.actualSecs, evt.timestamp, evt.type)}</td><td>${evt.type}</td><td class="sev-${evt.severity}">${evt.severity}</td></tr>`;
-            });
-            vHtml += '</tbody></table>';
-          }
+            <div class="card-grid">
+              <div class="info-tile">
+                <div class="lbl">Location &amp; School</div>
+                <div class="val">${escapeHtml(m.country || '—')} &bull; ${escapeHtml(m.school || '—')}</div>
+              </div>
+              <div class="info-tile">
+                <div class="lbl">Device &amp; Environment</div>
+                <div class="val">
+                  <span>${dev.isDesktop ? '🖥️ Desktop' : (dev.isTablet ? '📱 Tablet' : '📱 Mobile')}</span>
+                  <span>(${escapeHtml(dev.os || 'Unknown OS')})</span>
+                </div>
+              </div>
+              <div class="info-tile">
+                <div class="lbl">Timing &amp; Duration</div>
+                <div class="val">
+                  <div>Started: ${fmtDateTime(sub.startedAt)}</div>
+                  <div>Submitted: ${fmtDateTime(sub.submittedAt)} (Took ${dur})</div>
+                </div>
+              </div>
+              <div class="info-tile">
+                <div class="lbl">Proctoring Events &amp; Status</div>
+                <div class="val" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px;">
+                  <span class="pill-badge ${severeCount > 0 ? 'ev-severe' : (totalEvents > 0 ? 'ev-warn' : '')}">
+                    ${totalEvents} Events ${severeCount > 0 ? `(${severeCount} Severe)` : ''}
+                  </span>
+                  ${sub.dq ? '<span class="pill-badge dq-badge">&#9888; DISQUALIFIED</span>' : '<span class="pill-badge" style="color:var(--green);">&#10003; Valid</span>'}
+                </div>
+              </div>
+            </div>
 
-          vHtml += `<h3 style="margin-bottom:8px;">Event Snapshots</h3><div id="snap-grid-${i}" class="snap-grid"></div>`;
-          vHtml += `<h3 style="margin-top:20px;margin-bottom:8px;">Auto Snapshots</h3><div id="snap-auto-grid-${i}" class="snap-grid"></div>`;
-          vHtml += '</div>';
-          viewsEl.innerHTML += vHtml;
-        });
-
-        loadMemberSnapshots(members);
-
-        document.querySelectorAll('.member-tab').forEach(tab => {
-          tab.addEventListener('click', () => {
-            document.querySelectorAll('.member-tab').forEach(t => t.classList.remove('active-tab'));
-            tab.classList.add('active-tab');
-            const idx = tab.dataset.tab;
-            document.querySelectorAll('.member-view').forEach(v => v.style.display = 'none');
-            document.querySelector(`.member-view[data-member="${idx}"]`).style.display = 'block';
-          });
-        });
-
-        document.getElementById('btn-toggle-dq').addEventListener('click', async () => {
-          const currentlyDq = !!team.disqualified;
-          if (!confirm(`${currentlyDq ? 'Reinstate' : 'Disqualify'} this team?`)) return;
-          await setDoc(doc(db, 'teams', MY_TEAM_ID), { disqualified: !currentlyDq }, { merge: true });
-          loadMyTeam();
-        });
-
-        document.getElementById('btn-reset-exam').addEventListener('click', async () => {
-          if (!confirm('Delete ALL exam data, events, and snapshots for this team?\n\nRegistration info will NOT be affected.\nThis cannot be undone.')) return;
-          if (!confirm('Are you ABSOLUTELY sure? All exam submissions and event logs will be permanently deleted.')) return;
-          const btn = document.getElementById('btn-reset-exam');
-          btn.disabled = true;
-          btn.textContent = 'Resetting...';
-          try {
-            let deleted = 0;
-            const eventsSnap2 = await getDocs(collection(db, 'teams', MY_TEAM_ID, 'events'));
-            if (!eventsSnap2.empty) {
-              const b = writeBatch(db);
-              eventsSnap2.forEach(d => { b.delete(d.ref); deleted++; });
-              await b.commit();
-            }
-            const examSnap2 = await getDocs(collection(db, 'teams', MY_TEAM_ID, 'exam'));
-            if (!examSnap2.empty) {
-              const b = writeBatch(db);
-              examSnap2.forEach(d => { b.delete(d.ref); });
-              await b.commit();
-            }
-            await setDoc(doc(db, 'teams', MY_TEAM_ID), {
-              examStatus: 'registered', status: 'registered', submittedCount: 0,
-              eventCount: 0, severeEventCount: 0, examScore: null, examPassed: null,
-              correctCount: null, totalQuestions: null, disqualified: false, lastEventAt: null,
-              resetAt: Date.now()
-            }, { merge: true });
-            try {
-              const listRef = storageRef(storage, `snapshots/round1/${MY_TEAM_ID}`);
-              const allItems = [];
-              const collect = async (ref) => {
-                const res = await listAll(ref);
-                allItems.push(...res.items);
-                for (const prefix of res.prefixes) await collect(prefix);
-              };
-              await collect(listRef);
-              for (const item of allItems) { try { await deleteObject(item); } catch {} }
-            } catch {}
-            alert(`Reset complete! Deleted ${deleted} events, ${examSnap2.size} exams, snapshots cleared.`);
-            loadMyTeam();
-          } catch (e) {
-            alert('Reset failed: ' + e.message);
-            btn.disabled = false;
-            btn.textContent = 'Reset Exam';
-          }
-        });
-
-        document.getElementById('stats-summary').innerHTML = `
-          <div class="stat-item"><div class="num" style="color:var(--blue-light);">${team.examScore != null ? team.examScore + '%' : '\u2014'}</div><div class="label">Score</div></div>
-          <div class="stat-item"><div class="num" style="color:${status === 'disqualified' ? '#ff4757' : status === 'submitted' ? '#00c850' : '#ffb74d'};">${status}</div><div class="label">Status</div></div>
-          <div class="stat-item"><div class="num" style="color:var(--blue-light);">${team.submittedCount || 0}/${team.memberCount || members.length}</div><div class="label">Submitted</div></div>
-          <div class="stat-item"><div class="num" style="color:${(team.severeEventCount || 0) > 0 ? '#ff6b6b' : 'var(--muted)'};">${team.eventCount || 0}</div><div class="label">Events</div></div>
+            <div class="card-actions-bar">
+              <button class="btn-act btn-snap" onclick="window.openSnapshots('${sub.teamId}', '${sub.memberUid}', '${escapeHtml(m.name)}', '${role}')">
+                📸 View Snapshots Gallery
+              </button>
+              <button class="btn-act btn-log" onclick="window.openDetails('${sub.memberUid}')">
+                📋 Log &amp; Answers
+              </button>
+              <button class="btn-act ${sub.dq ? 'btn-reinit' : 'btn-dq'}" onclick="window.toggleMemberDq('${sub.teamId}', '${sub.memberUid}', ${sub.dq})">
+                ${sub.dq ? '&#10003; Reinstate Member' : '&#9888; DQ Member'}
+              </button>
+            </div>
+          </div>
         `;
-      } catch (e) { container.innerHTML = `<div class="empty-state">Error: ${e.message}</div>`; }
-    };
+      });
 
-    const loadMemberSnapshots = async (members) => {
-      const fillGrid = async (items, gridId) => {
-        const grid = document.getElementById(gridId);
-        if (!grid) return;
-        grid.innerHTML = '';
-        const sortedItems = [...items].sort((a, b) => b.name > a.name ? 1 : -1);
-        for (const item of sortedItems) {
-          try {
-            const url = await getDownloadURL(item);
-            const parts = item.name.replace('.jpg', '').split('_');
-            const ts = parseInt(parts[parts.length - 1]);
-            const date = isNaN(ts) ? new Date() : new Date(ts);
-            const violation = parts.length >= 2 ? parts.slice(0, -1).join('_') : '';
-            const div = document.createElement('div');
-            div.style.cssText = 'border:1px solid rgba(38,183,255,0.15);border-radius:8px;overflow:hidden;background:rgba(10,14,23,0.8);';
-            div.innerHTML = `
-              <img src="${url}" style="width:100%;display:block;cursor:pointer;aspect-ratio:16/9;object-fit:cover;" onclick="window.open(this.src,'_blank')" loading="lazy" />
-              <div style="padding:4px 6px;font-size:0.65rem;">
-                <div style="color:var(--blue-light);font-weight:600;">${violation.replace(/-/g, ' ')}</div>
-                <div style="color:var(--muted);">${fmtTimeOnly(date)}</div>
-              </div>
-            `;
-            grid.appendChild(div);
-          } catch (e) { console.warn('Failed to load snapshot:', item.name, e); }
-        }
-      };
+      container.innerHTML = html;
+    }
+
+    // Step 5: Toggle Member DQ
+    window.toggleMemberDq = async (teamId, memberUid, currentDq) => {
+      const newDq = !currentDq;
+      const sub = allSubmissions.find(s => s.memberUid === memberUid);
+      const studentName = sub?.memberData?.name || 'this student';
+
+      if (!confirm(`Are you sure you want to ${newDq ? 'DISQUALIFY' : 'REINSTATE'} ${studentName}?\n\n(This flags this specific member only)`)) return;
 
       try {
-        // Pre-fill every member's grids so the sections ALWAYS show, even empty.
-        members.forEach((m, i) => {
-          const e = document.getElementById(`snap-grid-${i}`);
-          if (e && !e.childElementCount) e.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">No event snapshots.</p>';
-          const a = document.getElementById(`snap-auto-grid-${i}`);
-          if (a && !a.childElementCount) a.innerHTML = '<p style="color:var(--muted);font-size:0.8rem;">No auto snapshots.</p>';
-        });
+        await setDoc(doc(db, 'teams', teamId, 'exam', memberUid), {
+          dq: newDq,
+          disqualified: newDq,
+          dqUpdatedAt: new Date().toISOString()
+        }, { merge: true });
 
-        const listRef = storageRef(storage, `snapshots/round1/${MY_TEAM_ID}`);
-        const result = await listAll(listRef);
-        if (result.prefixes.length === 0 && result.items.length === 0) return;
+        if (sub) sub.dq = newDq;
+        showToast(`${studentName} ${newDq ? 'disqualified' : 'reinstated'} successfully!`);
+        updateStats(allSubmissions);
+        renderSubmissions();
+      } catch (e) {
+        alert('Failed to update DQ status: ' + e.message);
+      }
+    };
 
-        const folderMap = {};
-        members.forEach((m, i) => {
-          const safeName = (m.name || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
-          const safeRole = (m.role || 'member').replace(/[^a-zA-Z0-9]/g, '_');
-          folderMap[`${safeName}_${safeRole}`] = i;
-          if (m.uid) folderMap[m.uid] = i;
-        });
+    // Step 6: Interactive Gallery (Lightbox) with Keyboard & Touch Navigation
+    window.openSnapshots = async (teamId, memberUid, memberName, role) => {
+      const modal = document.getElementById('lightbox-modal');
+      const thumbsBar = document.getElementById('lb-thumbs-bar');
+      const titleEl = document.getElementById('lb-candidate-title');
 
-        const memberFolders = result.prefixes.length > 0 ? result.prefixes : [listRef];
-        for (let fi = 0; fi < memberFolders.length; fi++) {
-          const folderRef = memberFolders[fi];
-          const folderResult = await listAll(folderRef);
-          if (folderResult.items.length === 0 && folderResult.prefixes.length === 0) continue;
+      titleEl.textContent = `Snapshots: ${memberName} (${teamId})`;
+      thumbsBar.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:20px;">Scanning Storage for snapshots...</div>';
+      modal.classList.remove('hidden');
 
-          const folderName = folderRef.name;
-          const memberIdx = folderMap[folderName] !== undefined ? folderMap[folderName] : -1;
+      currentGalleryImages = [];
+      currentGalleryIndex = 0;
 
-          // Auto snapshots live in a dedicated /auto/ subfolder per member.
-          const autoPrefix = folderResult.prefixes.find(p => p.name.toLowerCase() === 'auto');
-          const eventItems = folderResult.items.filter(it => !it.name.startsWith('auto_'));
-          const autoItems = autoPrefix ? (await listAll(autoPrefix)).items : [];
+      try {
+        const safeName = (memberName || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
+        const safeRole = (role || 'member').replace(/[^a-zA-Z0-9]/g, '_');
+        const folderName = `${safeName}_${safeRole}`;
 
-          // If the folder doesn't map to a known member, show items under the
-          // first member view so nothing is ever invisible.
-          const targetIdx = memberIdx >= 0 ? memberIdx : 0;
+        // Discover candidate snapshots folder
+        const listRef = storageRef(storage, `snapshots/round1/${teamId}`);
+        const rootResult = await listAll(listRef);
 
-          if (eventItems.length > 0) {
-            await fillGrid(eventItems, `snap-grid-${targetIdx}`);
+        const foldersToScan = [];
+        rootResult.prefixes.forEach(p => {
+          if (p.name === folderName || p.name === memberUid || p.name.includes(safeName)) {
+            foldersToScan.push(p);
           }
+        });
+        if (foldersToScan.length === 0 && rootResult.prefixes.length > 0) {
+          foldersToScan.push(...rootResult.prefixes);
+        } else if (foldersToScan.length === 0) {
+          foldersToScan.push(listRef);
+        }
 
-          if (autoItems.length > 0) {
-            await fillGrid(autoItems, `snap-auto-grid-${targetIdx}`);
+        const imageItems = [];
+        for (const f of foldersToScan) {
+          const res = await listAll(f);
+          res.items.forEach(it => imageItems.push({ item: it, isAuto: false }));
+          // Check /auto/ subfolder
+          const autoPrefix = res.prefixes.find(p => p.name.toLowerCase() === 'auto');
+          if (autoPrefix) {
+            const autoRes = await listAll(autoPrefix);
+            autoRes.items.forEach(it => imageItems.push({ item: it, isAuto: true }));
           }
         }
-      } catch (e) { console.warn('Failed to list snapshots:', e); }
+
+        if (imageItems.length === 0) {
+          thumbsBar.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:20px;">No snapshots captured for this member.</div>';
+          document.getElementById('lb-main-img').src = '';
+          document.getElementById('lb-caption-bar').style.display = 'none';
+          document.getElementById('lb-index-counter').textContent = '0 images';
+          return;
+        }
+
+        // Parse items and fetch URLs
+        const parsedList = await Promise.all(imageItems.map(async ({ item, isAuto }) => {
+          const url = await getDownloadURL(item);
+          const rawName = item.name.replace('.jpg', '');
+          const parts = rawName.split('_');
+          const ts = parseInt(parts[parts.length - 1]);
+          const date = isNaN(ts) ? new Date() : new Date(ts);
+          const violation = parts.length >= 2 ? parts.slice(0, -1).join(' ').replace(/-/g, ' ') : rawName;
+          return {
+            url,
+            name: rawName,
+            isAuto: isAuto || rawName.startsWith('auto_'),
+            violation: violation.toUpperCase(),
+            date: date
+          };
+        }));
+
+        // Sort chronological
+        parsedList.sort((a, b) => a.date - b.date);
+        currentGalleryImages = parsedList;
+        currentGalleryIndex = 0;
+
+        renderGalleryThumbs();
+        showGallerySlide(0);
+      } catch (e) {
+        console.error('Error loading gallery:', e);
+        thumbsBar.innerHTML = `<div style="color:var(--red);font-size:0.8rem;padding:20px;">Error loading snapshots: ${e.message}</div>`;
+      }
     };
+
+    function renderGalleryThumbs() {
+      const thumbsBar = document.getElementById('lb-thumbs-bar');
+      thumbsBar.innerHTML = '';
+      currentGalleryImages.forEach((img, idx) => {
+        const div = document.createElement('div');
+        div.className = `thumb-item ${idx === 0 ? 'active' : ''}`;
+        div.id = `thumb-item-${idx}`;
+        div.innerHTML = `
+          <img src="${img.url}" loading="lazy" />
+          <span class="thumb-tag" style="color:${img.isAuto ? 'var(--cyan)' : 'var(--red)'};">${img.isAuto ? 'AUTO' : 'EVENT'}</span>
+        `;
+        div.onclick = () => showGallerySlide(idx);
+        thumbsBar.appendChild(div);
+      });
+    }
+
+    function showGallerySlide(idx) {
+      if (currentGalleryImages.length === 0) return;
+      if (idx < 0) idx = currentGalleryImages.length - 1;
+      if (idx >= currentGalleryImages.length) idx = 0;
+      currentGalleryIndex = idx;
+
+      const cur = currentGalleryImages[idx];
+      const mainImg = document.getElementById('lb-main-img');
+      const counterEl = document.getElementById('lb-index-counter');
+      const typeEl = document.getElementById('lb-event-type');
+      const timeEl = document.getElementById('lb-event-time');
+      const srcEl = document.getElementById('lb-event-source');
+      const capBar = document.getElementById('lb-caption-bar');
+
+      mainImg.src = cur.url;
+      capBar.style.display = 'flex';
+      counterEl.textContent = `Image ${idx + 1} of ${currentGalleryImages.length}`;
+
+      if (cur.isAuto) {
+        typeEl.className = 'cap-badge cap-auto';
+        typeEl.textContent = '📸 PERIODIC AUTO CAPTURE';
+        srcEl.textContent = '[Full Screen / Camera]';
+      } else {
+        typeEl.className = 'cap-badge cap-violation';
+        typeEl.textContent = `🚨 ${cur.violation}`;
+        srcEl.textContent = cur.violation.includes('FACE') || cur.violation.includes('CAMERA') ? '[📷 Camera]' : '[🖥️ Screen Share]';
+      }
+
+      timeEl.textContent = cur.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+      // Update active thumbnail
+      document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
+      const activeThumb = document.getElementById(`thumb-item-${idx}`);
+      if (activeThumb) {
+        activeThumb.classList.add('active');
+        activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+      }
+    }
+
+    // Gallery Controls
+    document.getElementById('lb-prev-btn').addEventListener('click', () => showGallerySlide(currentGalleryIndex - 1));
+    document.getElementById('lb-next-btn').addEventListener('click', () => showGallerySlide(currentGalleryIndex + 1));
+    document.getElementById('lb-close-btn').addEventListener('click', () => {
+      document.getElementById('lightbox-modal').classList.add('hidden');
+    });
+
+    // Keyboard Arrow Keys Navigation
+    window.addEventListener('keydown', (e) => {
+      const lb = document.getElementById('lightbox-modal');
+      if (lb && !lb.classList.contains('hidden')) {
+        if (e.key === 'ArrowRight' || e.key === 'Space') {
+          e.preventDefault();
+          showGallerySlide(currentGalleryIndex + 1);
+        } else if (e.key === 'ArrowLeft') {
+          e.preventDefault();
+          showGallerySlide(currentGalleryIndex - 1);
+        } else if (e.key === 'Escape') {
+          e.preventDefault();
+          lb.classList.add('hidden');
+        }
+      }
+      const dt = document.getElementById('detail-modal');
+      if (dt && !dt.classList.contains('hidden') && e.key === 'Escape') {
+        dt.classList.add('hidden');
+      }
+    });
+
+    // Step 7: Detailed Modal (Answers & Event Log)
+    window.openDetails = async (memberUid) => {
+      const sub = allSubmissions.find(s => s.memberUid === memberUid);
+      if (!sub) return;
+
+      const modal = document.getElementById('detail-modal');
+      const m = sub.memberData || {};
+      const dev = sub.deviceInfo || {};
+
+      document.getElementById('dt-name').textContent = `${m.name || 'Student'} (${sub.memberEmail || ''})`;
+      document.getElementById('dt-meta').textContent = `Team: ${sub.teamName} (${sub.teamId}) &bull; Score: ${sub.score}%`;
+
+      // Device Analytics Box
+      const devBox = document.getElementById('dt-device-box');
+      devBox.innerHTML = `
+        <div class="info-tile"><div class="lbl">Device Type</div><div class="val">${dev.deviceType || 'Desktop'}</div></div>
+        <div class="info-tile"><div class="lbl">Operating System</div><div class="val">${dev.os || 'Unknown'}</div></div>
+        <div class="info-tile"><div class="lbl">Screen Share Required</div><div class="val">${dev.screenShareRequired ? 'Yes' : 'No (Mobile/Tablet)'}</div></div>
+        <div class="info-tile"><div class="lbl">Fullscreen Enforced</div><div class="val">${dev.fullscreenRequired ? 'Yes' : 'No'}</div></div>
+        <div class="info-tile" style="grid-column: 1 / -1;"><div class="lbl">User Agent</div><div class="val" style="font-size:0.75rem;font-family:monospace;">${escapeHtml(dev.userAgent || 'N/A')}</div></div>
+      `;
+
+      // Answers Grid (40 Questions)
+      const answersGrid = document.getElementById('dt-answers-grid');
+      answersGrid.innerHTML = '';
+      const ansObj = sub.answers || {};
+      const flaggedObj = sub.flagged || {};
+      for (let i = 1; i <= 40; i++) {
+        const qId = `q${i}`;
+        const chosen = ansObj[qId] || '—';
+        const isFlagged = !!flaggedObj[qId];
+        const div = document.createElement('div');
+        div.className = `ans-box ${isFlagged ? 'flagged' : ''}`;
+        div.innerHTML = `
+          <div class="ans-q">Q${i} ${isFlagged ? '🚩' : ''}</div>
+          <div class="ans-val">${chosen}</div>
+        `;
+        answersGrid.appendChild(div);
+      }
+
+      // Events Log (fetch on-demand)
+      const evCont = document.getElementById('dt-events-container');
+      evCont.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;">Loading events from Firestore...</div>';
+      modal.classList.remove('hidden');
+
+      try {
+        const evSnap = await getDocs(query(collection(db, 'teams', sub.teamId, 'events'), orderBy('timestamp', 'desc')));
+        const memberEvents = [];
+        evSnap.forEach(d => {
+          const data = d.data();
+          if ((data.memberUid && data.memberUid === memberUid) || (data.uid && data.uid === memberUid)) {
+            memberEvents.push({ id: d.id, ...data });
+          }
+        });
+
+        if (memberEvents.length === 0) {
+          evCont.innerHTML = '<p style="color:var(--muted);font-size:0.85rem;">No security events or violations recorded for this candidate.</p>';
+        } else {
+          let tbl = '<table class="ev-table"><thead><tr><th>Time</th><th>Type</th><th>Duration</th><th>Severity</th></tr></thead><tbody>';
+          memberEvents.forEach(evt => {
+            const start = new Date(evt.timestamp);
+            const durStr = evt.actualSecs != null ? `${evt.actualSecs.toFixed(1)}s` : '—';
+            tbl += `
+              <tr>
+                <td style="color:var(--muted);">${fmtDateTime(start)}</td>
+                <td style="font-weight:600;">${escapeHtml(evt.type || 'Event')}</td>
+                <td style="font-family:Orbitron,monospace;color:var(--cyan);">${durStr}</td>
+                <td style="color:${evt.severity === 'severe' ? 'var(--red)' : 'var(--orange)'};font-weight:700;">${evt.severity || 'warning'}</td>
+              </tr>
+            `;
+          });
+          tbl += '</tbody></table>';
+          evCont.innerHTML = tbl;
+        }
+      } catch (e) {
+        evCont.innerHTML = `<p style="color:var(--red);font-size:0.8rem;">Error loading events: ${e.message}</p>`;
+      }
+    };
+
+    document.getElementById('dt-close-btn').addEventListener('click', () => {
+      document.getElementById('detail-modal').classList.add('hidden');
+    });
+
+    // Search and Filter Listeners
+    document.getElementById('search-input').addEventListener('input', renderSubmissions);
+    document.getElementById('filter-status').addEventListener('change', renderSubmissions);
+    document.getElementById('sort-order').addEventListener('change', renderSubmissions);
+
+    function escapeHtml(s) {
+      return String(s == null ? '' : s)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#39;');
+    }
   </script>
 </body>
 </html>
