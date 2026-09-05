@@ -3,7 +3,7 @@
     "id": "q1",
     "order": 1,
     "text": "A rest-frame optical absorption line at $\\lambda_0 = 480.00$ nm is measured at $\\lambda = 480.24$ nm in a star's spectrum. What is the star's radial velocity?",
-    "text_ar": "A rest-frame optical absorption line at $\\lambda_0 = 480.00$ nm is measured at $\\lambda = 480.24$ nm in a star's spectrum. What is the star's radial velocity?",
+    "text_ar": "تم قياس خط امتصاص بصري له طول موجي في الإطار الساكن عند $\\lambda_0 = 480.00$ nm، ولوحظ عند $\\lambda = 480.24$ nm في طيف أحد النجوم. ما هي السرعة الشعاعية للنجم؟",
     "options": [
       "$150$ km/s toward us",
       "$150$ km/s away from us",
@@ -11,10 +11,10 @@
       "$1500$ km/s away from us"
     ],
     "options_ar": [
-      "$150$ km/s toward us",
-      "$150$ km/s away from us",
-      "$15$ km/s away from us",
-      "$1500$ km/s away from us"
+      "$150$ km/s باتجاهنا",
+      "$150$ km/s مبتعداً عنا",
+      "$15$ km/s مبتعداً عنا",
+      "$1500$ km/s مبتعداً عنا"
     ],
     "correctAnswer": "B",
     "difficulty": "Medium"
@@ -23,7 +23,7 @@
     "id": "q2",
     "order": 2,
     "text": "Using Wien's displacement law, find the peak emission wavelength for a hot O-type star with $T = 29\\,000$ K.",
-    "text_ar": "Using Wien's displacement law, find the peak emission wavelength for a hot O-type star with $T = 29\\,000$ K.",
+    "text_ar": "باستخدام قانون فين للإزاحة، أوجد الطول الموجي لقمة الانبعاث لنجم ساخن من النوع O درجة حرارته $T = 29\\,000$ K.",
     "options": [
       "$100$ nm",
       "$290$ nm",
@@ -43,7 +43,7 @@
     "id": "q3",
     "order": 3,
     "text": "The Astronomy Club's observing list is being finalized when its resident cat, Nebula, walks across the desk and smudges the distance printed beside a nearby star. The only surviving measurement is an annual parallax of $0.025$ arcseconds. What distance should be entered in the catalogue?",
-    "text_ar": "The Astronomy Club's observing list is being finalized when its resident cat, Nebula, walks across the desk and smudges the distance printed beside a nearby star. The only surviving measurement is an annual parallax of $0.025$ arcseconds. What distance should be entered in the catalogue?",
+    "text_ar": "أثناء الانتهاء من إعداد قائمة الرصد لنادي الفلك، قامت القطة 'نيبيولا' بالسير فوق المكتب ولطخت المسافة المطبوعة بجوار نجم قريب. القياس الوحيد المتبقي هو زاوية اختلاف المنظر السنوي وتساوي $0.025$ ثانية قوسية. ما هي المسافة التي يجب تسجيلها في الكتالوج؟",
     "options": [
       "$4$ pc",
       "$20$ pc",
@@ -63,7 +63,7 @@
     "id": "q4",
     "order": 4,
     "text": "Two stars have the same absolute magnitude, but Star~A is $10$ times closer to Earth than Star~B. How many times brighter does Star~A appear compared to Star~B?",
-    "text_ar": "Two stars have the same absolute magnitude, but Star~A is $10$ times closer to Earth than Star~B. How many times brighter does Star~A appear compared to Star~B?",
+    "text_ar": "نجمان لهما نفس القدر المطلق، لكن النجم A أقرب إلى الأرض بمقدار $10$ مرات من النجم B. كم مرة يبدو النجم A أكثر سطوعاً مقارنة بالنجم B؟",
     "options": [
       "$10$ times",
       "$20$ times",
@@ -71,10 +71,10 @@
       "$1000$ times"
     ],
     "options_ar": [
-      "$10$ times",
-      "$20$ times",
-      "$100$ times",
-      "$1000$ times"
+      "$10$ مرات",
+      "$20$ مرة",
+      "$100$ مرة",
+      "$1000$ مرة"
     ],
     "correctAnswer": "C",
     "difficulty": "Easy"
@@ -83,7 +83,7 @@
     "id": "q5",
     "order": 5,
     "text": "For the annual observing night, the Astronomy Club has access to two telescopes. The first has a $20$ cm primary mirror and the second has a $50$ cm primary mirror. Both telescopes use a filter centered at $550$ nm. A close binary is known to have an angular separation of $0.30''$. Under ideal conditions, which telescope should be capable of resolving the pair?",
-    "text_ar": "For the annual observing night, the Astronomy Club has access to two telescopes. The first has a $20$ cm primary mirror and the second has a $50$ cm primary mirror. Both telescopes use a filter centered at $550$ nm. A close binary is known to have an angular separation of $0.30''$. Under ideal conditions, which telescope should be capable of resolving the pair?",
+    "text_ar": "في ليلة الرصد السنوية، يتوفر لنادي الفلك تلسكوبان: الأول بمرآة رئيسية قطرها $20$ cm والثاني بمرآة رئيسية قطرها $50$ cm. يستخدم كلا التلسكوبين مرشحاً بمركزه عند $550$ nm. من المعروف أن نجماً ثنائياً قريباً له انفصال زاوي قدره $0.30''$. في ظل ظروف مثالية، أي التلسكوبين قادر على فصل النجمين؟",
     "options": [
       "Only the $20$ cm telescope",
       "Only the $50$ cm telescope",
@@ -91,10 +91,10 @@
       "Neither telescope"
     ],
     "options_ar": [
-      "Only the $20$ cm telescope",
-      "Only the $50$ cm telescope",
-      "Both telescopes",
-      "Neither telescope"
+      "تلسكوب الـ $20$ cm فقط",
+      "تلسكوب الـ $50$ cm فقط",
+      "كلا التلسكوبين",
+      "لا أحد منهما"
     ],
     "correctAnswer": "B",
     "difficulty": "Medium"
@@ -103,7 +103,7 @@
     "id": "q6",
     "order": 6,
     "text": "Which of the following spectral classifications represents the hottest stellar surface temperature?",
-    "text_ar": "Which of the following spectral classifications represents the hottest stellar surface temperature?",
+    "text_ar": "أي من التصنيفات الطيفية التالية يمثل أعلى درجة حرارة لسطح النجم؟",
     "options": [
       "G2V",
       "A0V",
@@ -123,7 +123,7 @@
     "id": "q7",
     "order": 7,
     "text": "While reducing a spectrum from a distant galaxy, Adel finds that the broad maximum of its thermal continuum is observed at $650$ nm. The galaxy has a measured redshift of $z=0.30$. What temperature should Adel infer for the emitting stars if the continuum is approximated by a blackbody?",
-    "text_ar": "While reducing a spectrum from a distant galaxy, Adel finds that the broad maximum of its thermal continuum is observed at $650$ nm. The galaxy has a measured redshift of $z=0.30$. What temperature should Adel infer for the emitting stars if the continuum is approximated by a blackbody?",
+    "text_ar": "أثناء معالجة طيف مجرة بعيدة، وجد عادل أن القمة العريضة للطيف المستمر الحراري تُرصد عند $650$ nm. للمجرة انزياح أحمر مُقاس قدره $z=0.30$. ما هي درجة الحرارة التي يجب أن يستنتجها عادل للنجوم الباعثة إذا قُرِّب الطيف المستمر كجسم أسود؟",
     "options": [
       "$2900$ K",
       "$4500$ K",
@@ -143,7 +143,7 @@
     "id": "q8",
     "order": 8,
     "text": "At what fraction of the Eddington limit ($L/L_{\\text{Edd}}$) does outward radiation force balance $50\\%$ of inward gravitational force on ionized hydrogen near a stellar surface?",
-    "text_ar": "At what fraction of the Eddington limit ($L/L_{\\text{Edd}}$) does outward radiation force balance $50\\%$ of inward gravitational force on ionized hydrogen near a stellar surface?",
+    "text_ar": "عند أي نسبة من حد إدنجتون ($L/L_{\\text{Edd}}$) توازن قوة الإشعاع المتجهة للخارج $50\\%$ من قوة الجاذبية المتجهة للداخل والمؤثرة على الهيدروجين المتأين بالقرب من سطح النجم؟",
     "options": [
       "$0.25$",
       "$0.50$",
@@ -163,7 +163,7 @@
     "id": "q9",
     "order": 9,
     "text": "Sami is comparing two stellar models produced by a cluster simulation. Model A has a surface area nine times larger than Model B, but its surface temperature is only half as high. The simulation predicts that one of the two stars is more luminous. What is the ratio $L_A/L_B$?",
-    "text_ar": "Sami is comparing two stellar models produced by a cluster simulation. Model A has a surface area nine times larger than Model B, but its surface temperature is only half as high. The simulation predicts that one of the two stars is more luminous. What is the ratio $L_A/L_B$?",
+    "text_ar": "يقارن سامي بين نموذجين نجميين ناتجين عن محاكاة عنقود نجمي. النموذج A له مساحة سطح أكبر بـ 9 مرات من النموذج B، لكن درجة حرارة سطحه تساوي نصف درجة حرارة B فقط. تتوقع المحاكاة أن أحد النجمين أكثر لمعاناً. ما هي النسبة $L_A/L_B$؟",
     "options": [
       "$9/16$",
       "$3/4$",
@@ -183,7 +183,7 @@
     "id": "q10",
     "order": 10,
     "text": "Dr. Hussein is testing a simple model for a white dwarf left behind by a Sun-like star. The object has mass $0.80M_\\odot$ and a radius approximately equal to Earth's radius. A probe leaves the surface at $5000$ km/s. Ignoring atmosphere and rotation, what should Dr. Hussein conclude?",
-    "text_ar": "Dr. Hussein is testing a simple model for a white dwarf left behind by a Sun-like star. The object has mass $0.80M_\\odot$ and a radius approximately equal to Earth's radius. A probe leaves the surface at $5000$ km/s. Ignoring atmosphere and rotation, what should Dr. Hussein conclude?",
+    "text_ar": "يختبر د. حسين نموذجاً بسيطاً لقزم أبيض خلّفه نجم شبيه بالشمس. كتلة الجرم $0.80M_\\odot$ ونصف قطره يساوي تقريباً نصف قطر الأرض. ينطلق مسبار من السطح بسرعة $5000$ km/s. بإهمال الغلاف الجوي والدوران، ماذا يجب أن يستنتج د. حسين؟",
     "options": [
       "The probe escapes and never returns",
       "The probe escapes only if launched vertically",
@@ -191,10 +191,10 @@
       "The probe is unbound because the white dwarf has no atmosphere"
     ],
     "options_ar": [
-      "The probe escapes and never returns",
-      "The probe escapes only if launched vertically",
-      "The probe remains gravitationally bound",
-      "The probe is unbound because the white dwarf has no atmosphere"
+      "المسبار يفلت ولا يعود أبداً",
+      "المسبار يفلت فقط إذا انطلق عمودياً",
+      "المسبار يظل مقيداً جاذبياً",
+      "المسبار غير مقيد لأن القزم الأبيض ليس له غلاف جوي"
     ],
     "correctAnswer": "C",
     "difficulty": "Hard"
@@ -203,7 +203,7 @@
     "id": "q11",
     "order": 11,
     "text": "At approximately what stellar mass threshold on the main sequence does the CNO cycle surpass the proton--proton chain as the dominant hydrogen fusion mechanism?",
-    "text_ar": "At approximately what stellar mass threshold on the main sequence does the CNO cycle surpass the proton--proton chain as the dominant hydrogen fusion mechanism?",
+    "text_ar": "عند أي حد تقريبي لكتلة النجم على التتابع الرئيسي تتفوق دورة CNO على سلسلة بروتون-بروتون كآلية مهيمنة لاندماج الهيدروجين؟",
     "options": [
       "$0.08\\;M_\\odot$",
       "$0.5\\;M_\\odot$",
@@ -223,7 +223,7 @@
     "id": "q12",
     "order": 12,
     "text": "The Astronomy Club is building a simple lifetime model for a massive star. The star has a mass of $10M_\\odot$, but only $10\\%$ of that mass is available for core hydrogen burning. Of the processed mass, $0.70\\%$ is converted into energy. The star shines steadily at $10^4L_\\odot$. Ignoring all other energy sources, approximately how long could this fuel supply the observed luminosity?",
-    "text_ar": "The Astronomy Club is building a simple lifetime model for a massive star. The star has a mass of $10M_\\odot$, but only $10\\%$ of that mass is available for core hydrogen burning. Of the processed mass, $0.70\\%$ is converted into energy. The star shines steadily at $10^4L_\\odot$. Ignoring all other energy sources, approximately how long could this fuel supply the observed luminosity?",
+    "text_ar": "يبني نادي الفلك نموذجاً مبسطاً لعمر نجم ضخم. كتلة النجم $10M_\\odot$، ولكن $10\\%$ فقط من هذه الكتلة متاح لاندماج الهيدروجين في اللب. ومن الكتلة المعالجة، يتحول $0.70\\%$ إلى طاقة. يسطع النجم بثبات بلمعان $10^4L_\\odot$. بإهمال جميع مصادر الطاقة الأخرى، كم سنة تقريباً يمكن لهذا الوقود أن يمد هذا اللمعان المرصود؟",
     "options": [
       "$10^5$ years",
       "$10^6$ years",
@@ -231,10 +231,10 @@
       "$10^8$ years"
     ],
     "options_ar": [
-      "$10^5$ years",
-      "$10^6$ years",
-      "$10^7$ years",
-      "$10^8$ years"
+      "$10^5$ سنة",
+      "$10^6$ سنة",
+      "$10^7$ سنة",
+      "$10^8$ سنة"
     ],
     "correctAnswer": "C",
     "difficulty": "Hard"
@@ -243,7 +243,7 @@
     "id": "q13",
     "order": 13,
     "text": "Star~X has twice the Sun's mass and the same radius as the Sun. According to the surface gravity relation $g = GM/R^2$, how does the surface gravitational acceleration of Star~X compare with the Sun's?",
-    "text_ar": "Star~X has twice the Sun's mass and the same radius as the Sun. According to the surface gravity relation $g = GM/R^2$, how does the surface gravitational acceleration of Star~X compare with the Sun's?",
+    "text_ar": "النجم X له ضعف كتلة الشمس ونفس نصف قطر الشمس. وفقاً لعلاقة الجاذبية السطحية $g = GM/R^2$، كيف تُقارَن عجلة الجاذبية السطحية للنجم X بعجلة الجاذبية للشمس؟",
     "options": [
       "It is the same",
       "It is twice as large",
@@ -251,10 +251,10 @@
       "It is half as large"
     ],
     "options_ar": [
-      "It is the same",
-      "It is twice as large",
-      "It is four times as large",
-      "It is half as large"
+      "متساوية معها",
+      "ضعف جاذبية الشمس",
+      "أربعة أضعاف جاذبية الشمس",
+      "نصف جاذبية الشمس"
     ],
     "correctAnswer": "B",
     "difficulty": "Easy"
@@ -263,7 +263,7 @@
     "id": "q14",
     "order": 14,
     "text": "The supermassive black hole Sagittarius~A* has a mass of $4.0\\times10^6\\;M_\\odot$. What is the radius of its event horizon?",
-    "text_ar": "The supermassive black hole Sagittarius~A* has a mass of $4.0\\times10^6\\;M_\\odot$. What is the radius of its event horizon?",
+    "text_ar": "الثقب الأسود فائق الكتلة الرامي A* (Sagittarius A*) كتلته $4.0\\times10^6\\;M_\\odot$. ما هو نصف قطر أفق الحدث الخاص به؟",
     "options": [
       "$30$ km",
       "$1.2\\times10^5$ km",
@@ -283,7 +283,7 @@
     "id": "q15",
     "order": 15,
     "text": "Calculate the Eddington luminosity for an accreting neutron star of mass $1.4\\;M_\\odot$, assuming standard Thomson scattering opacity ($\\kappa = 0.04\\;\\text{m}^2/\\text{kg}$).",
-    "text_ar": "Calculate the Eddington luminosity for an accreting neutron star of mass $1.4\\;M_\\odot$, assuming standard Thomson scattering opacity ($\\kappa = 0.04\\;\\text{m}^2/\\text{kg}$).",
+    "text_ar": "احسب لمعان إدنجتون (Eddington luminosity) لنجم نيوتروني ممتص كتلته $1.4\\;M_\\odot$، بافتراض عتامة تشتت طومسون القياسية ($\\kappa = 0.04\\;\\text{m}^2/\\text{kg}$).",
     "options": [
       "$1.3\\times10^{31}$ W",
       "$1.8\\times10^{31}$ W",
@@ -303,7 +303,7 @@
     "id": "q16",
     "order": 16,
     "text": "Dr. Hussein is analysing a light curve from an eclipsing binary. During the deeper eclipse the system's brightness falls by $36\\%$, while during the shallower eclipse it falls by $9\\%$. Assume the two stars have the same surface brightness and that each eclipse completely covers the smaller star's projected disk when the larger star passes in front of it. What is the ratio of the larger star's radius to the smaller star's radius?",
-    "text_ar": "Dr. Hussein is analysing a light curve from an eclipsing binary. During the deeper eclipse the system's brightness falls by $36\\%$, while during the shallower eclipse it falls by $9\\%$. Assume the two stars have the same surface brightness and that each eclipse completely covers the smaller star's projected disk when the larger star passes in front of it. What is the ratio of the larger star's radius to the smaller star's radius?",
+    "text_ar": "يحلل د. حسين منحنى ضوئي لثنائي كسوفي. أثناء الكسوف الأعمق ينخفض سطوع النظام بنسبة $36\\%$، بينما أثناء الكسوف الضحل ينخفض بنسبة $9\\%$. افترض أن للنجمين نفس السطوع السطحي وأن كل كسوف يغطي قرص النجم الأصغر المسقط بالكامل عندما يمر النجم الأكبر أمامه. ما هي نسبة نصف قطر النجم الأكبر إلى نصف قطر النجم الأصغر؟",
     "options": [
       "$2$",
       "$4$",
@@ -323,7 +323,7 @@
     "id": "q17",
     "order": 17,
     "text": "According to the Virial Theorem, when a protostellar cloud contracts quasi-statically, how is the released gravitational potential energy ($\\Delta U$) distributed?",
-    "text_ar": "According to the Virial Theorem, when a protostellar cloud contracts quasi-statically, how is the released gravitational potential energy ($\\Delta U$) distributed?",
+    "text_ar": "وفقاً لنظرية فيريال (Virial Theorem)، عندما تنكمش سحابة نجمية أولية انكماشاً شبه مستقر، كيف تتوزع طاقة الوضع الجاذبية المتحررة ($\\Delta U$)؟",
     "options": [
       "All $\\Delta U$ is converted into radiation",
       "Half increases thermal kinetic energy; half is radiated away",
@@ -331,10 +331,10 @@
       "Two-thirds is radiated away; one-third increases thermal kinetic energy"
     ],
     "options_ar": [
-      "All $\\Delta U$ is converted into radiation",
-      "Half increases thermal kinetic energy; half is radiated away",
-      "All $\\Delta U$ increases internal thermal kinetic energy",
-      "Two-thirds is radiated away; one-third increases thermal kinetic energy"
+      "تتحول كامل $\\Delta U$ إلى إشعاع",
+      "نصفها يزيد الطاقة الحركية الحرارية والنصف الآخر يُشَع بعيداً",
+      "تزيد كامل $\\Delta U$ الطاقة الحركية الحرارية الداخلية",
+      "ثلثاها يُشَع بعيداً وثلثها يزيد الطاقة الحركية الحرارية"
     ],
     "correctAnswer": "B",
     "difficulty": "Medium"
@@ -343,7 +343,7 @@
     "id": "q18",
     "order": 18,
     "text": "Sami is comparing ordinary stellar fusion with the energy released when matter falls onto a neutron star. He considers a neutron star of mass $1.4M_\\odot$ and radius $12$ km. For each kilogram that reaches the surface, approximately what fraction of its rest-mass energy is released as gravitational energy in this simplified model?",
-    "text_ar": "Sami is comparing ordinary stellar fusion with the energy released when matter falls onto a neutron star. He considers a neutron star of mass $1.4M_\\odot$ and radius $12$ km. For each kilogram that reaches the surface, approximately what fraction of its rest-mass energy is released as gravitational energy in this simplified model?",
+    "text_ar": "يقارن سامي بين الاندماج النجمي العادي والطاقة المنبعثة عند سقوط المادة على نجم نيوتروني. يدرس نجماً نيوترونياً كتلته $1.4M_\\odot$ ونصف قطره $12$ km. لكل كيلوجرام يصل إلى السطح، ما الكسر التقريبي من طاقة كتلته الساكنة الذي يتحرر كطاقة جاذبية في هذا النموذج المبسط؟",
     "options": [
       "$0.017$",
       "$0.083$",
@@ -363,7 +363,7 @@
     "id": "q19",
     "order": 19,
     "text": "When a low- or intermediate-mass star exhausts the hydrogen in its core and leaves the main sequence, its core contracts and heats up while the outer layers expand greatly. What does the star become at this point?",
-    "text_ar": "When a low- or intermediate-mass star exhausts the hydrogen in its core and leaves the main sequence, its core contracts and heats up while the outer layers expand greatly. What does the star become at this point?",
+    "text_ar": "عندما يستنفد نجم منخفض أو متوسط الكتلة الهيدروجين في لبه ويغادر التتابع الرئيسي، ينكمش لبه ويسخن بينما تتمدد طبقاته الخارجية بشكل هائل. إلى ماذا يتحول النجم عند هذه النقطة؟",
     "options": [
       "A red giant",
       "A white dwarf",
@@ -371,10 +371,10 @@
       "A black hole"
     ],
     "options_ar": [
-      "A red giant",
-      "A white dwarf",
-      "A neutron star",
-      "A black hole"
+      "عملاق أحمر (Red giant)",
+      "قزم أبيض (White dwarf)",
+      "نجم نيوتروني (Neutron star)",
+      "ثقب أسود (Black hole)"
     ],
     "correctAnswer": "A",
     "difficulty": "Easy"
@@ -383,7 +383,7 @@
     "id": "q20",
     "order": 20,
     "text": "A yellow giant star has $100$ times the Sun's luminosity and $10$ times the Sun's radius. What is its effective surface temperature relative to the Sun ($T_\\odot$)?",
-    "text_ar": "A yellow giant star has $100$ times the Sun's luminosity and $10$ times the Sun's radius. What is its effective surface temperature relative to the Sun ($T_\\odot$)?",
+    "text_ar": "نجم عملاق أصفر لمعانه $100$ ضعف لمعان الشمس ونصف قطره $10$ أضعاف نصف قطر الشمس. ما هي درجة حرارة سطحه الفعالة بالنسبة للشمس ($T_\\odot$)؟",
     "options": [
       "$0.5\\;T_\\odot$",
       "$1.0\\;T_\\odot$",
@@ -403,7 +403,7 @@
     "id": "q21",
     "order": 21,
     "text": "What is the escape velocity from the surface of a $2.0\\;M_\\odot$ neutron star with a radius of $12$ km, expressed as a fraction of the speed of light $c$?",
-    "text_ar": "What is the escape velocity from the surface of a $2.0\\;M_\\odot$ neutron star with a radius of $12$ km, expressed as a fraction of the speed of light $c$?",
+    "text_ar": "ما هي سرعة الإفلات من سطح نجم نيوتروني كتلته $2.0\\;M_\\odot$ ونصف قطره $12$ km، معبراً عنها ككسر من سرعة الضوء $c$؟",
     "options": [
       "$0.35\\;c$",
       "$0.50\\;c$",
@@ -423,7 +423,7 @@
     "id": "q22",
     "order": 22,
     "text": "In an old observatory at the edge of a kingdom, a mage uses a crystal telescope to study the Sun. When the telescope is pointed toward the middle of the solar disk, the Sun appears intensely bright. As the mage slowly moves the view toward the Sun's edge, the surface fades noticeably, as if the outer rim were hidden behind a cooler veil. What solar phenomenon creates this effect?",
-    "text_ar": "In an old observatory at the edge of a kingdom, a mage uses a crystal telescope to study the Sun. When the telescope is pointed toward the middle of the solar disk, the Sun appears intensely bright. As the mage slowly moves the view toward the Sun's edge, the surface fades noticeably, as if the outer rim were hidden behind a cooler veil. What solar phenomenon creates this effect?",
+    "text_ar": "في مرصد قديم عند أطراف المملكة، يستخدم حكيم تلسكوباً بلورياً لدراسة الشمس. عندما يوجه التلسكوب نحو مركز القرص الشمسي، تبدو الشمس شديدة السطوع. وبينما يحرك الرؤية تدريجياً نحو حافة الشمس، يخفت السطوع بوضوح وكأن الحافة الخارجية محجوبة خلف حجاب أبرد. ما هي الظاهرة الشمسية التي تسبب هذا التأثير؟",
     "options": [
       "Solar limb darkening",
       "Gravitational lensing",
@@ -431,10 +431,10 @@
       "Doppler brightening"
     ],
     "options_ar": [
-      "Solar limb darkening",
-      "Gravitational lensing",
-      "Solar differential rotation",
-      "Doppler brightening"
+      "إعتام حافة الشمس (Solar limb darkening)",
+      "عدسة الجاذبية (Gravitational lensing)",
+      "الدوران الشمسي التفاضلي (Differential rotation)",
+      "سطوع دوبلر (Doppler brightening)"
     ],
     "correctAnswer": "A",
     "difficulty": "Medium"
@@ -443,7 +443,7 @@
     "id": "q23",
     "order": 23,
     "text": "A binary star is too close to be separated in ordinary images. Interferometry measures an angular semimajor axis of $0.50''$, while parallax measurements place the system at $10$ pc. Spectroscopy gives an orbital period of $2.0$ years. What total mass should be assigned to the binary system?",
-    "text_ar": "A binary star is too close to be separated in ordinary images. Interferometry measures an angular semimajor axis of $0.50''$, while parallax measurements place the system at $10$ pc. Spectroscopy gives an orbital period of $2.0$ years. What total mass should be assigned to the binary system?",
+    "text_ar": "نجم ثنائي قريب جداً بحيث لا يمكن فصله في الصور العادية. قياس التداخل (Interferometry) يحدد نصف المحور الأكبر الزاوي بـ $0.50''$، بينما قياسات المنظر تضع النظام على مسافة $10$ pc. التحليل الطيفي يعطي فترة مدارية مدتها $2.0$ سنة. ما هي الكتلة الإجمالية لهذا النظام الثنائي؟",
     "options": [
       "$5.0M_\\odot$",
       "$12.5M_\\odot$",
@@ -463,7 +463,7 @@
     "id": "q24",
     "order": 24,
     "text": "For a main-sequence star with mass $M = 2\\;M_\\odot$, whose luminosity scales with mass to the power $3.5$ on the main sequence, what is its luminosity in units of $L_\\odot$?",
-    "text_ar": "For a main-sequence star with mass $M = 2\\;M_\\odot$, whose luminosity scales with mass to the power $3.5$ on the main sequence, what is its luminosity in units of $L_\\odot$?",
+    "text_ar": "لنجم من نجوم التتابع الرئيسي كتلته $M = 2\\;M_\\odot$، ولمعانه يتناسب طردياً مع الكتلة مرفوعة للأس $3.5$ على التتابع الرئيسي، ما هو لمعانه بوحدات $L_\\odot$؟",
     "options": [
       "$7.0\\;L_\\odot$",
       "$11.3\\;L_\\odot$",
@@ -483,7 +483,7 @@
     "id": "q25",
     "order": 25,
     "text": "A planet orbits a star at a semimajor axis distance of $4$ AU. What is its orbital period in years?",
-    "text_ar": "A planet orbits a star at a semimajor axis distance of $4$ AU. What is its orbital period in years?",
+    "text_ar": "كوكب يدور حول نجم بنصف محور أكبر للمدار مقداره $4$ AU. ما هي فترته المدارية بالسنوات؟",
     "options": [
       "$2$ years",
       "$4$ years",
@@ -491,10 +491,10 @@
       "$16$ years"
     ],
     "options_ar": [
-      "$2$ years",
-      "$4$ years",
-      "$8$ years",
-      "$16$ years"
+      "$2$ سنة",
+      "$4$ سنوات",
+      "$8$ سنوات",
+      "$16$ سنة"
     ],
     "correctAnswer": "C",
     "difficulty": "Easy"
@@ -503,7 +503,7 @@
     "id": "q26",
     "order": 26,
     "text": "Astronomers discover a small, icy moon with mass $2.0\\times10^{20}$ kg and volume $1.0\\times10^{17}$ m$^3$. What is its average density?",
-    "text_ar": "Astronomers discover a small, icy moon with mass $2.0\\times10^{20}$ kg and volume $1.0\\times10^{17}$ m$^3$. What is its average density?",
+    "text_ar": "اكتشف علماء الفلك قمراً جليدياً صغيراً كتلته $2.0\\times10^{20}$ kg وحجمه $1.0\\times10^{17}$ m$^3$. ما هي كثافته المتوسطة؟",
     "options": [
       "$200$ kg/m$^3$",
       "$1000$ kg/m$^3$",
@@ -523,7 +523,7 @@
     "id": "q27",
     "order": 27,
     "text": "The Astronomy Club receives a light curve from a newly reported exoplanet candidate. Most measurements are constant, but each transit produces a brightness drop of $1.44\\%$. The host star has radius $7.0\\times10^8$ m. Ignoring limb darkening, what is the most reasonable estimate of the planet's radius?",
-    "text_ar": "The Astronomy Club receives a light curve from a newly reported exoplanet candidate. Most measurements are constant, but each transit produces a brightness drop of $1.44\\%$. The host star has radius $7.0\\times10^8$ m. Ignoring limb darkening, what is the most reasonable estimate of the planet's radius?",
+    "text_ar": "يتلقى نادي الفلك منحنى ضوئياً لمرشح كوكب خارجي جديد. معظم القياسات ثابتة، ولكن كل عبور (transit) ينتج انخفاضاً في السطوع مقداره $1.44\\%$. النجم المضيف نصف قطره $7.0\\times10^8$ m. بإهمال إعتام الحافة، ما هو التقدير الأكثر منطقية لنصف قطر الكوكب؟",
     "options": [
       "$7.0\\times10^6$ m",
       "$8.4\\times10^7$ m",
@@ -543,7 +543,7 @@
     "id": "q28",
     "order": 28,
     "text": "Earth's escape velocity is roughly $11.2$ km/s. A newly discovered rocky ``Super-Earth'' has $8$ times Earth's mass and $2$ times Earth's radius. What is its approximate escape velocity?",
-    "text_ar": "Earth's escape velocity is roughly $11.2$ km/s. A newly discovered rocky ``Super-Earth'' has $8$ times Earth's mass and $2$ times Earth's radius. What is its approximate escape velocity?",
+    "text_ar": "سرعة الإفلات من الأرض تقريباً $11.2$ km/s. كوكب صخري مكتشف حديثاً من نوع 'أرض فائقة' (Super-Earth) له $8$ أضعاف كتلة الأرض وضعف نصف قطر الأرض. ما هي سرعة الإفلات التقريبية منه؟",
     "options": [
       "$11.2$ km/s",
       "$22.4$ km/s",
@@ -563,7 +563,7 @@
     "id": "q29",
     "order": 29,
     "text": "During the formation of terrestrial planets, heavy elements like iron and nickel sink toward the core while lighter silicate materials rise to form the crust. What is this process called?",
-    "text_ar": "During the formation of terrestrial planets, heavy elements like iron and nickel sink toward the core while lighter silicate materials rise to form the crust. What is this process called?",
+    "text_ar": "أثناء تكوّن الكواكب الأرضية، تهبط العناصر الثقيلة مثل الحديد والنيكل نحو اللب بينما تصعد معادن السيليكات الأخف لتشكيل القشرة. ماذا تُسمى هذه العملية؟",
     "options": [
       "Accretion",
       "Planetary differentiation",
@@ -571,10 +571,10 @@
       "Tidal heating"
     ],
     "options_ar": [
-      "Accretion",
-      "Planetary differentiation",
-      "Subduction",
-      "Tidal heating"
+      "التنامي (Accretion)",
+      "التمايز الكوكبي (Planetary differentiation)",
+      "الاندساس (Subduction)",
+      "التسخين المدي (Tidal heating)"
     ],
     "correctAnswer": "B",
     "difficulty": "Very Easy"
@@ -583,7 +583,7 @@
     "id": "q30",
     "order": 30,
     "text": "A survey telescope detects a Type Ia supernova after its light has crossed intergalactic space. After correcting for extinction, its apparent magnitude is $18.7$. The calibrated absolute magnitude is $-19.3$. What luminosity distance should the survey report?",
-    "text_ar": "A survey telescope detects a Type Ia supernova after its light has crossed intergalactic space. After correcting for extinction, its apparent magnitude is $18.7$. The calibrated absolute magnitude is $-19.3$. What luminosity distance should the survey report?",
+    "text_ar": "يرصد تلسكوب مسحي مستعراً أعظم من النوع Ia بعد أن قطع ضوؤه الفضاء بين المجري. بعد التصحيح من الامتصاص والاندثار، يكون قدره الظاهري $18.7$. وقدره المطلق المعاير هو $-19.3$. ما هي مسافة اللمعان التي يجب أن يسجلها المسح؟",
     "options": [
       "$39.8$ Mpc",
       "$180$ Mpc",
@@ -603,7 +603,7 @@
     "id": "q31",
     "order": 31,
     "text": "A distant galaxy is observed moving away from Earth at $14\\,000$ km/s. Estimate its distance.",
-    "text_ar": "A distant galaxy is observed moving away from Earth at $14\\,000$ km/s. Estimate its distance.",
+    "text_ar": "تُرصد مجرة بعيدة وهي تبتعد عن الأرض بسرعة $14\\,000$ km/s. قدّر المسافة إليها (باعتبار ثابت هابل $H_0 \\approx 70$ km/s/Mpc).",
     "options": [
       "$100$ Mpc",
       "$200$ Mpc",
@@ -623,7 +623,7 @@
     "id": "q32",
     "order": 32,
     "text": "Two students are comparing eclipse diagrams. In one event, the Moon passes between Earth and the Sun; in the other, Earth passes between the Sun and the Moon. They know that the second event can turn the Moon's surface noticeably red, while the first can make the Sun disappear for observers in a narrow region of Earth. Which statement correctly matches the two events?",
-    "text_ar": "Two students are comparing eclipse diagrams. In one event, the Moon passes between Earth and the Sun; in the other, Earth passes between the Sun and the Moon. They know that the second event can turn the Moon's surface noticeably red, while the first can make the Sun disappear for observers in a narrow region of Earth. Which statement correctly matches the two events?",
+    "text_ar": "يقارن طالبان بين مخططي كسوف وخسوف. في الحدث الأول يمر القمر بين الأرض والشمس، وفي الحدث الثاني تمر الأرض بين الشمس والقمر. يعلمان أن الحدث الثاني يمكن أن يحول سطح القمر للون أحمر ملحوظ، بينما الحدث الأول يمكن أن يخفي الشمس لراصدين في منطقة ضيقة من الأرض. أي العبارات تطابق الحدثين بشكل صحيح؟",
     "options": [
       "First: lunar eclipse; Second: solar eclipse",
       "First: solar eclipse; Second: lunar eclipse",
@@ -631,10 +631,10 @@
       "Both are lunar eclipses, but with different Earth positions"
     ],
     "options_ar": [
-      "First: lunar eclipse; Second: solar eclipse",
-      "First: solar eclipse; Second: lunar eclipse",
-      "Both are solar eclipses, but with different Moon phases",
-      "Both are lunar eclipses, but with different Earth positions"
+      "الأول: خسوف قمري؛ الثاني: كسوف شمسي",
+      "الأول: كسوف شمسي؛ الثاني: خسوف قمري",
+      "كلاهما كسوف شمسي، ولكن بأطوار مختلفة للقمر",
+      "كلاهما خسوف قمري، ولكن بمواقع مختلفة للأرض"
     ],
     "correctAnswer": "B",
     "difficulty": "Easy"
@@ -643,7 +643,7 @@
     "id": "q33",
     "order": 33,
     "text": "During an Astronomy Club discussion, Adel considers two galaxies that are both visible in today's sky. He points out that seeing both galaxies does not mean that light from one could have reached the other before the light we now observe was emitted. What boundary marks the greatest region from which light could have reached us since the beginning of the Universe?",
-    "text_ar": "During an Astronomy Club discussion, Adel considers two galaxies that are both visible in today's sky. He points out that seeing both galaxies does not mean that light from one could have reached the other before the light we now observe was emitted. What boundary marks the greatest region from which light could have reached us since the beginning of the Universe?",
+    "text_ar": "أثناء مناقشة في نادي الفلك، يدرس عادل مجرتين مرئيتين في سماء اليوم. ويوضح أن رؤية كلتا المجرتين لا تعني بالضرورة أن الضوء من إحداهما كان يمكن أن يصل إلى الأخرى قبل انبعاث الضوء الذي نراه الآن. ما هو الحد الذي يمثل أقصى منطقة كان بإمكان الضوء أن يصلنا منها منذ بداية الكون؟",
     "options": [
       "Schwarzschild radius",
       "Roche limit",
@@ -651,10 +651,10 @@
       "Hill sphere"
     ],
     "options_ar": [
-      "Schwarzschild radius",
-      "Roche limit",
-      "Cosmological particle horizon",
-      "Hill sphere"
+      "نصف قطر شفارتزشيلد (Schwarzschild radius)",
+      "حد روش (Roche limit)",
+      "أفق الجسيمات الكوني (Cosmological particle horizon)",
+      "كرة هيل (Hill sphere)"
     ],
     "correctAnswer": "C",
     "difficulty": "Easy"
@@ -663,7 +663,7 @@
     "id": "q34",
     "order": 34,
     "text": "An astronaut is analysing a relic radio background from a very early epoch of the Universe. The signal comes from a time corresponding to redshift $z=10$. How hot was the cosmic microwave background at that epoch?",
-    "text_ar": "An astronaut is analysing a relic radio background from a very early epoch of the Universe. The signal comes from a time corresponding to redshift $z=10$. How hot was the cosmic microwave background at that epoch?",
+    "text_ar": "يحلل رائد فضاء إشعاعاً راديوياً أثرياً من حقبة مبكرة جداً من الكون. تأتي الإشارة من زمن يوافق انزياحاً أحمر $z=10$. كم كانت درجة حرارة إشعاع الخلفية الكونية الميكروي (CMB) في تلك الحقبة؟",
     "options": [
       "$27.3$ K",
       "$30.0$ K",
@@ -683,7 +683,7 @@
     "id": "q35",
     "order": 35,
     "text": "The specific orbital energy of a bound two-body orbit with semimajor axis $a$ is:",
-    "text_ar": "The specific orbital energy of a bound two-body orbit with semimajor axis $a$ is:",
+    "text_ar": "الطاقة المدارية النوعية (Specific orbital energy) لمدار مقيد لجسمين بنصف محور أكبر $a$ تُعطى بالعلاقة:",
     "options": [
       "$\\varepsilon = -GM/(2a)$",
       "$\\varepsilon = GM/a^2$",
@@ -703,7 +703,7 @@
     "id": "q36",
     "order": 36,
     "text": "A spacecraft needs to rotate its orbital plane by a fixed angle. Where is the plane-change burn usually cheapest?",
-    "text_ar": "A spacecraft needs to rotate its orbital plane by a fixed angle. Where is the plane-change burn usually cheapest?",
+    "text_ar": "تحتاج مركبة فضائية إلى تدوير مستوى مدارها بزاوية محددة. أين تكون مناورة تغيير المستوى المداري بأقل استهلاك للطاقة والوقود عادةً؟",
     "options": [
       "Where orbital speed is highest",
       "Where orbital speed is lowest",
@@ -711,10 +711,10 @@
       "During atmospheric entry"
     ],
     "options_ar": [
-      "Where orbital speed is highest",
-      "Where orbital speed is lowest",
-      "At the centre of the planet",
-      "During atmospheric entry"
+      "عندما تكون السرعة المدارية أعلى ما يمكن",
+      "عندما تكون السرعة المدارية أقل ما يمكن",
+      "عند مركز الكوكب",
+      "أثناء دخول الغلاف الجوي"
     ],
     "correctAnswer": "B",
     "difficulty": "Medium"
@@ -723,7 +723,7 @@
     "id": "q37",
     "order": 37,
     "text": "Before a crewed mission departs, a ground station checks an elliptical Earth orbit. The spacecraft has a perigee distance of $7000$ km and an apogee distance of $20\\,000$ km, both measured from Earth's centre. The tracking system reports a perigee speed of $9.18$ km/s. What speed should the spacecraft have at apogee?",
-    "text_ar": "Before a crewed mission departs, a ground station checks an elliptical Earth orbit. The spacecraft has a perigee distance of $7000$ km and an apogee distance of $20\\,000$ km, both measured from Earth's centre. The tracking system reports a perigee speed of $9.18$ km/s. What speed should the spacecraft have at apogee?",
+    "text_ar": "قبل انطلاق مهمة مأهولة، تفحص محطة أرضية مداراً إهليلجياً حول الأرض. للمركبة الفضائية مسافة حضيض أرضي مقاسها $7000$ km ومسافة أوج أرضي مقاسها $20\\,000$ km، كلاهما مقاس من مركز الأرض. نظام التتبع يبلغ عن سرعة عند الحضيض قدرها $9.18$ km/s. ما هي السرعة التي يجب أن تمتلكها المركبة عند الأوج؟",
     "options": [
       "$2.1$ km/s",
       "$3.2$ km/s",
@@ -743,7 +743,7 @@
     "id": "q38",
     "order": 38,
     "text": "A satellite remains stably bound to a planet only inside the planet's region of gravitational dominance. What is this region called?",
-    "text_ar": "A satellite remains stably bound to a planet only inside the planet's region of gravitational dominance. What is this region called?",
+    "text_ar": "يظل القمر الصناعي مقيداً ومستقراً حول كوكب فقط داخل منطقة الهيمنة الجاذبية للكوكب. ماذا تُسمى هذه المنطقة؟",
     "options": [
       "Event horizon",
       "Photosphere",
@@ -751,10 +751,10 @@
       "Habitable zone"
     ],
     "options_ar": [
-      "Event horizon",
-      "Photosphere",
-      "Hill sphere",
-      "Habitable zone"
+      "أفق الحدث (Event horizon)",
+      "الغلاف الضوئي (Photosphere)",
+      "كرة هيل (Hill sphere)",
+      "النطاق الصالح للحياة (Habitable zone)"
     ],
     "correctAnswer": "C",
     "difficulty": "Medium"
@@ -763,7 +763,7 @@
     "id": "q39",
     "order": 39,
     "text": "On the way to an outer-planet destination, an astronaut notices that mission controllers deliberately steer the spacecraft close to a planet instead of firing a large engine burn. After the flyby, the spacecraft is moving faster relative to the Sun and its trajectory has changed. What physical effect makes this possible?",
-    "text_ar": "On the way to an outer-planet destination, an astronaut notices that mission controllers deliberately steer the spacecraft close to a planet instead of firing a large engine burn. After the flyby, the spacecraft is moving faster relative to the Sun and its trajectory has changed. What physical effect makes this possible?",
+    "text_ar": "في الطريق إلى كوكب خارجي، يلاحظ رائد فضاء أن مسؤولي التحكم يوجهون المركبة عمداً بالقرب من كوكب بدلاً من تشغيل محرك صاروخي كبير. بعد التحليق بالقرب من الكوكب، تتحرك المركبة بسرعة أكبر بالنسبة للشمس ويتغير مسارها. ما التأثير الفيزيائي الذي يجعل هذا ممكناً؟",
     "options": [
       "The planet supplies new fuel to the spacecraft",
       "The spacecraft exchanges orbital energy and angular momentum with the planet",
@@ -771,10 +771,10 @@
       "The planet removes the spacecraft's mass"
     ],
     "options_ar": [
-      "The planet supplies new fuel to the spacecraft",
-      "The spacecraft exchanges orbital energy and angular momentum with the planet",
-      "The spacecraft temporarily turns off gravity",
-      "The planet removes the spacecraft's mass"
+      "الكوكب يزود المركبة بوقود جديد",
+      "المركبة تتبادل الطاقة المدارية والزخم الزاوي مع الكوكب (مساعدة الجاذبية)",
+      "المركبة تعطل الجاذبية مؤقتاً",
+      "الكوكب يقلل من كتلة المركبة"
     ],
     "correctAnswer": "B",
     "difficulty": "Medium"
@@ -783,7 +783,7 @@
     "id": "q40",
     "order": 40,
     "text": "A crew aboard a spacecraft is studying galaxies far beyond the Milky Way. They notice that the farther a galaxy is, the faster it appears to be receding. The captain asks, ``What does this pattern tell us about the Universe itself?''",
-    "text_ar": "A crew aboard a spacecraft is studying galaxies far beyond the Milky Way. They notice that the farther a galaxy is, the faster it appears to be receding. The captain asks, ``What does this pattern tell us about the Universe itself?''",
+    "text_ar": "يدرس طاقم على متن مركبة مجرات بعيدة تقع خارج درب التبانة. يلاحظون أنه كلما كانت المجرة أبعد، بدت وكأنها تبتعد بشكل أسرع. يسأل القائد: 'ماذا يخبرنا هذا النمط عن الكون نفسه؟'",
     "options": [
       "Space between distant galaxies is expanding",
       "The Milky Way is at the centre of the Universe",
@@ -791,10 +791,10 @@
       "The farther a galaxy is, the younger it must be"
     ],
     "options_ar": [
-      "Space between distant galaxies is expanding",
-      "The Milky Way is at the centre of the Universe",
-      "Galaxies are moving through a completely static space",
-      "The farther a galaxy is, the younger it must be"
+      "الفضاء بين المجرات البعيدة يتمدد",
+      "درب التبانة يقع في مركز الكون",
+      "المجرات تتحرك عبر فضاء ساكن تماماً",
+      "كلما كانت المجرة أبعد، كانت أصغر عمراً بالضرورة"
     ],
     "correctAnswer": "A",
     "difficulty": "Medium"
