@@ -469,7 +469,7 @@ exports.getRound1Status = onCall(async (request) => {
   return {
     now: Date.now(),
     openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 7, 16, 0, 0),  // 7:00 PM GMT+3 (Sept 7)
-    closeAt: typeof d.round1CloseAt === 'number' ? d.round1CloseAt : Date.UTC(2026, 8, 7, 17, 0, 0), // 8:00 PM GMT+3 (Sept 7)
+    closeAt: typeof d.round1CloseAt === 'number' ? d.round1CloseAt : Date.UTC(2026, 8, 7, 17, 20, 0), // 8:20 PM GMT+3 (Sept 7)
     startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 7, 16, 0, 0), // 7:00 PM GMT+3 (Sept 7)
     round1Open: d.round1Open !== false
   };

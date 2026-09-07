@@ -312,7 +312,7 @@
 <div id="competitions-panel" class="competitions-panel">
             <div class="comp-head">
               <h2><span class="text-blue">Round 1 Make-up</span></h2>
-              <p class="sub">Round 1 Make-up takes place on <strong>7 September 2026 at <span id="r1-local-open-time">7:00 PM</span> in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong id="r1-local-close-time">8:00 PM</strong> in your local time.</p>
+              <p class="sub">Round 1 Make-up takes place on <strong>7 September 2026 at <span id="r1-local-open-time">7:00 PM</span> in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong id="r1-local-close-time">8:20 PM</strong> in your local time.</p>
               <p class="sub" style="color:#ffb86b;">This make-up exam is available only to candidates who received an official email confirming that their Round 1 issue and excuse were accepted. Anyone whose request was not accepted, or who successfully completed Round 1 on 5 September 2026, will be disqualified (DQ) if they attempt this exam.</p>
             </div>
             <div id="mock-card" class="mock-card">
@@ -714,7 +714,7 @@ const app = initializeApp(firebaseConfig);
     }
 
 // ----- Round 1: schedule-driven entry (no portal login) -----
-    // Round 1 Make-up window (Cairo, GMT+3): entry opens 7:00 PM and closes 8:00 PM on
+    // Round 1 Make-up window (Cairo, GMT+3): entry opens 7:00 PM and closes 8:20 PM on
     // Sept 7, 2026. The countdown is calibrated to the server clock so that
     // every device (whatever its wall clock) sees the exact same remaining time.
     const MAKEUP_ADMIN_EMAIL = 'astronomyclub64@gmail.com';
@@ -740,7 +740,7 @@ const app = initializeApp(firebaseConfig);
 
     const R1_DEFAULT = {
       r1OpenAt: Date.UTC(2026, 8, 7, 16, 0, 0),    // 7:00 PM Cairo (Sept 7)
-      r1CloseAt: Date.UTC(2026, 8, 7, 17, 0, 0)    // 8:00 PM Cairo (Sept 7)
+      r1CloseAt: Date.UTC(2026, 8, 7, 17, 20, 0)    // 8:20 PM Cairo (Sept 7)
     };
     let r1Schedule = { ...R1_DEFAULT };
     let r1ServerOffsetMs = 0;   // calibrate the running countdown to the server clock

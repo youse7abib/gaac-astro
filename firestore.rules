@@ -315,9 +315,12 @@ service cloud.firestore {
                   || (request.resource.data.severeEventCount - resource.data.get('severeEventCount', 0) >= 0
                       && request.resource.data.severeEventCount - resource.data.get('severeEventCount', 0) <=
                         request.resource.data.eventCount - resource.data.get('eventCount', 0)))
-              && resource.data.status != 'submitted')
+              && (resource.data.status != 'submitted'
+                  || (examId == request.auth.uid + '_makeup'
+                      && request.resource.data.status == 'in-progress')))
         );
-        allow delete: if isAdmin();
+        allow delete: if isAdmin()
+          || (isAuthenticated() && isTeamMember(teamId) && examId == request.auth.uid + '_makeup');
       }
 
       // Events subcollection

@@ -1,7 +1,7 @@
 import { auth, db, storage } from './exam-shared.js';
 import { SecurityWrapper } from './security.js';
 import { AIMonitor } from './ai-monitor.js';
-import { doc, getDoc, setDoc, serverTimestamp, collection, getDocs, query, orderBy as orderByFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+import { doc, getDoc, setDoc, deleteDoc, serverTimestamp, collection, getDocs, query, orderBy as orderByFirestore } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref, uploadBytes } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
@@ -80,7 +80,7 @@ let r1ServerOffset = 0;          // ms to add to Date.now() to approximate serve
 let r1Window = { openAt: 0, closeAt: 0, startAt: 0 };
 const R1_DEFAULT = {
   openAt: Date.UTC(2026, 8, 7, 16, 0, 0),   // 7:00 PM GMT+3 (Sept 7)
-  closeAt: Date.UTC(2026, 8, 7, 17, 0, 0),  // 8:00 PM GMT+3 (Sept 7)
+  closeAt: Date.UTC(2026, 8, 7, 17, 20, 0),  // 8:20 PM GMT+3 (Sept 7)
   startAt: Date.UTC(2026, 8, 7, 16, 0, 0)   // 7:00 PM GMT+3 (Sept 7)
 };
 let r1ServerReady = false;
@@ -194,10 +194,10 @@ const init = async () => {
     const hasExamDoc = examSnap.exists();
     const examData = hasExamDoc ? examSnap.data() : null;
 
+    // A make-up attempt may be submitted again. Remove the previous make-up
+    // record before the next start so the old submission cannot lock the user.
     if (hasExamDoc && examData.status === 'submitted') {
-      document.getElementById('verify-modal').classList.add('hidden');
-      document.getElementById('exam-submitted').classList.remove('hidden');
-      return;
+      await deleteDoc(examDocRef);
     }
 
     // Check if the team was reset or if no active in-progress exam doc exists in Firestore
