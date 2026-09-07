@@ -832,12 +832,6 @@ _aiMonitor = new AIMonitor(_security, camStream, handleSecurityNotice);
   // Poll track health every 3s — only pauses, does NOT log (onended handles logging)
   healthInterval = setInterval(() => {
     if (examSubmitted) return;
-    // Absolute deadline check — even if paused/offline, time runs out
-    if (absoluteDeadline && Date.now() >= absoluteDeadline && !examSubmitted) {
-      console.log('[healthInterval] Absolute deadline reached, auto-submitting');
-      submitExam();
-      return;
-    }
     if (examPaused) return;
     const camTrack = camStream?.getVideoTracks()[0];
     const ssTrack = screenStream?.getVideoTracks()[0];
@@ -973,11 +967,6 @@ const resumeExam = () => {
   pausedRemaining = null;
   saveState();
   setDoc(examDocRef, { pausedRemaining: null }, { merge: true }).catch(() => {});
-  // Check if deadline already passed while paused
-  if (Date.now() >= absoluteDeadline) {
-    submitExam();
-    return;
-  }
   startTimer(endTime);
 };
 
@@ -1043,11 +1032,6 @@ const autoResume = () => {
     pausedRemaining = null;
     saveState();
     setDoc(examDocRef, { pausedRemaining: null }, { merge: true }).catch(() => {});
-    // Check if deadline already passed while paused
-    if (Date.now() >= absoluteDeadline) {
-      submitExam();
-      return;
-    }
     startTimer(endTime);
   }
 };
@@ -1235,7 +1219,7 @@ const startTimer = (end) => {
     if (remaining <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      submitExam();
+      if (timerDisplay) timerDisplay.title = 'Time is up. Submit manually when ready.';
     }
   };
   update();
