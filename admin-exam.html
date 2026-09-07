@@ -2252,9 +2252,9 @@
 
     // ---- Focus Webcam Inset (Bottom-Right Crop) ----
     let isWebcamCropped = false;
-    let webcamCropOriginX = 92;
-    let webcamCropOriginY = 90;
-    let webcamCropScale = 4.5;
+    let webcamCropOriginX = 78;
+    let webcamCropOriginY = 72;
+    let webcamCropScale = 4.8;
 
     function resetZoom() {
       isWebcamCropped = false;
@@ -2332,6 +2332,14 @@
     window.addEventListener('keydown', (e) => {
       const lb = document.getElementById('lightbox-modal');
       if (lb && !lb.classList.contains('hidden')) {
+        if (isWebcamCropped && e.shiftKey) {
+          if (e.key === 'ArrowRight') { e.preventDefault(); webcamCropOriginX = Math.max(0, webcamCropOriginX - 3); applyWebcamCrop(); return; }
+          if (e.key === 'ArrowLeft') { e.preventDefault(); webcamCropOriginX = Math.min(100, webcamCropOriginX + 3); applyWebcamCrop(); return; }
+          if (e.key === 'ArrowDown') { e.preventDefault(); webcamCropOriginY = Math.max(0, webcamCropOriginY - 3); applyWebcamCrop(); return; }
+          if (e.key === 'ArrowUp') { e.preventDefault(); webcamCropOriginY = Math.min(100, webcamCropOriginY + 3); applyWebcamCrop(); return; }
+          if (e.key === '+' || e.key === '=') { e.preventDefault(); webcamCropScale = Math.min(10, webcamCropScale + 0.3); applyWebcamCrop(); return; }
+          if (e.key === '-' || e.key === '_') { e.preventDefault(); webcamCropScale = Math.max(1, webcamCropScale - 0.3); applyWebcamCrop(); return; }
+        }
         if (e.key === 'ArrowRight' || e.key === 'Space') {
           e.preventDefault();
           showGallerySlide(currentGalleryIndex + 1);
