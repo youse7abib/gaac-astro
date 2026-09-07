@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin : Exam Submissions & Monitor | GAAC</title>
+  <title>Admin : Exam Submissions &amp; Monitor | GAAC</title>
   <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -16,9 +16,10 @@
       --panel-border: rgba(38, 183, 255, 0.15);
       --blue: #0878ff;
       --cyan: #26b7ff;
-      --gold: #ffd700;
-      --silver: #c0c0c0;
-      --bronze: #cd7f32;
+      --silver-bright: #ffffff;
+      --silver: #e2e8f0;
+      --silver-mid: #cbd5e1;
+      --silver-dark: #94a3b8;
       --red: #ff4757;
       --green: #2ed573;
       --orange: #ffa502;
@@ -40,11 +41,44 @@
       margin: 4px 0;
     }
 
+    /* Top Tabs */
+    .top-tabs {
+      display: flex;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px 20px 0;
+      max-width: 900px;
+      margin: 0 auto;
+    }
+    .top-tab-btn {
+      padding: 10px 22px;
+      border-radius: 10px;
+      border: 1px solid var(--panel-border);
+      background: rgba(13, 20, 36, 0.6);
+      color: var(--muted);
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 200ms;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .top-tab-btn:hover {
+      border-color: var(--cyan);
+      color: var(--white);
+    }
+    .top-tab-btn.active {
+      background: rgba(38, 183, 255, 0.15);
+      border-color: var(--cyan);
+      color: var(--cyan);
+    }
+
     /* Stats summary */
     .stats-bar {
       display: flex;
       justify-content: center;
-      gap: 20px;
+      gap: 16px;
       padding: 16px 20px;
       flex-wrap: wrap;
       max-width: 1200px;
@@ -188,9 +222,9 @@
       color: var(--white);
       flex-shrink: 0;
     }
-    .rank-badge.rank-1 { background: rgba(255, 215, 0, 0.15); border-color: var(--gold); color: var(--gold); }
-    .rank-badge.rank-2 { background: rgba(192, 192, 192, 0.15); border-color: var(--silver); color: var(--silver); }
-    .rank-badge.rank-3 { background: rgba(205, 127, 50, 0.15); border-color: var(--bronze); color: var(--bronze); }
+    .rank-badge.rank-1 { background: rgba(255, 255, 255, 0.2); border-color: #ffffff; color: #ffffff; box-shadow: 0 0 14px rgba(255, 255, 255, 0.35); }
+    .rank-badge.rank-2 { background: rgba(226, 232, 240, 0.15); border-color: #e2e8f0; color: #e2e8f0; }
+    .rank-badge.rank-3 { background: rgba(148, 163, 184, 0.15); border-color: #94a3b8; color: #94a3b8; }
 
     .candidate-name {
       font-size: 1.1rem;
@@ -275,6 +309,8 @@
     .pill-badge.ev-warn { background: rgba(255, 165, 2, 0.15); color: var(--orange); }
     .pill-badge.ev-severe { background: rgba(255, 71, 87, 0.2); color: var(--red); font-weight: 700; }
     .pill-badge.dq-badge { background: rgba(255, 71, 87, 0.25); color: var(--red); border: 1px solid var(--red); }
+    .pill-badge.reviewed-badge { background: rgba(46, 213, 115, 0.18); color: var(--green); border: 1px solid rgba(46, 213, 115, 0.4); }
+    .pill-badge.pending-badge { background: rgba(255, 255, 255, 0.05); color: var(--muted); border: 1px solid rgba(255, 255, 255, 0.1); }
 
     .card-actions-bar {
       display: flex;
@@ -296,6 +332,24 @@
       gap: 6px;
       transition: all 180ms;
       min-height: 34px;
+    }
+    .btn-act.btn-reviewed {
+      background: rgba(46, 213, 115, 0.15);
+      border: 1px solid rgba(46, 213, 115, 0.45);
+      color: var(--green);
+    }
+    .btn-act.btn-reviewed:hover {
+      background: rgba(46, 213, 115, 0.28);
+    }
+    .btn-act.btn-unreviewed {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+    }
+    .btn-act.btn-unreviewed:hover {
+      background: rgba(46, 213, 115, 0.12);
+      border-color: rgba(46, 213, 115, 0.4);
+      color: var(--green);
     }
     .btn-act.btn-snap {
       background: rgba(38, 183, 255, 0.12);
@@ -523,22 +577,77 @@
       flex: 1;
     }
 
+    .ans-summary-strip {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 10px 16px;
+      margin-top: 10px;
+      margin-bottom: 12px;
+      font-size: 0.85rem;
+    }
+    .ans-summary-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-weight: 600;
+    }
     .answers-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
-      gap: 8px;
-      margin-top: 10px;
+      grid-template-columns: repeat(auto-fill, minmax(95px, 1fr));
+      gap: 10px;
+      margin-top: 8px;
     }
     .ans-box {
-      background: rgba(0, 0, 0, 0.3);
+      background: rgba(0, 0, 0, 0.35);
       border: 1px solid rgba(255, 255, 255, 0.08);
-      border-radius: 8px;
-      padding: 6px;
+      border-radius: 10px;
+      padding: 8px 6px;
       text-align: center;
+      transition: transform 120ms;
     }
-    .ans-box.flagged { border-color: var(--orange); }
-    .ans-q { font-size: 0.65rem; color: var(--muted); }
-    .ans-val { font-family: 'Orbitron', monospace; font-size: 0.95rem; font-weight: 700; color: var(--cyan); }
+    .ans-box:hover {
+      transform: translateY(-2px);
+    }
+    .ans-box.ans-correct {
+      background: rgba(46, 213, 115, 0.12);
+      border: 1px solid rgba(46, 213, 115, 0.5);
+    }
+    .ans-box.ans-incorrect {
+      background: rgba(255, 71, 87, 0.12);
+      border: 1px solid rgba(255, 71, 87, 0.5);
+    }
+    .ans-box.ans-unanswered {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px dashed rgba(255, 255, 255, 0.15);
+    }
+    .ans-box.flagged {
+      box-shadow: 0 0 0 1px var(--orange);
+    }
+    .ans-q {
+      font-size: 0.7rem;
+      font-weight: 700;
+      color: var(--muted);
+      margin-bottom: 2px;
+    }
+    .ans-val {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.05rem;
+      font-weight: 800;
+      line-height: 1.2;
+    }
+    .ans-val.correct-val { color: #2ed573; }
+    .ans-val.incorrect-val { color: #ff4757; }
+    .ans-val.empty-val { color: var(--muted); font-size: 0.85rem; }
+    .ans-key {
+      font-size: 0.68rem;
+      color: var(--muted);
+      margin-top: 3px;
+    }
 
     .ev-table {
       width: 100%;
@@ -566,6 +675,20 @@
       font-size: 1rem;
     }
 
+    /* Inspector styles */
+    .inspector-box {
+      max-width: 900px;
+      margin: 20px auto 40px;
+      padding: 0 20px;
+    }
+    .lookup-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 22px;
+      margin-bottom: 24px;
+    }
+
     /* Toast */
     .toast-msg {
       position: fixed;
@@ -583,6 +706,138 @@
       animation: fadeIn 200ms ease;
     }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+    /* Team Leaderboard styles */
+    .formula-callout {
+      background: linear-gradient(135deg, rgba(38, 183, 255, 0.08), rgba(0, 114, 255, 0.04));
+      border: 1px solid rgba(38, 183, 255, 0.25);
+      border-radius: 12px;
+      padding: 14px 18px;
+      margin-bottom: 20px;
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+    .formula-callout .formula-title {
+      font-size: 0.82rem;
+      font-weight: 700;
+      color: var(--cyan);
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .formula-callout .formula-item {
+      font-size: 0.78rem;
+      color: #cbd5e1;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 4px 10px;
+      border-radius: 6px;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      font-family: monospace;
+    }
+
+    .team-card {
+      background: var(--panel);
+      border: 1px solid var(--panel-border);
+      border-radius: 14px;
+      padding: 18px 20px;
+      margin-bottom: 16px;
+      position: relative;
+      transition: all 200ms;
+    }
+    .team-card:hover {
+      border-color: rgba(38, 183, 255, 0.4);
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    }
+    .team-card.qualified {
+      border-color: rgba(226, 232, 240, 0.35);
+      background: linear-gradient(135deg, rgba(226, 232, 240, 0.04), rgba(13, 20, 36, 0.95));
+      box-shadow: 0 4px 20px rgba(226, 232, 240, 0.06);
+    }
+    .team-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      padding-bottom: 12px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .team-id-badge {
+      font-family: 'Orbitron', monospace;
+      font-weight: 800;
+      color: var(--cyan);
+      font-size: 1.15rem;
+    }
+    .qualified-tag {
+      background: rgba(226, 232, 240, 0.12);
+      color: #e2e8f0;
+      border: 1px solid rgba(226, 232, 240, 0.4);
+      padding: 3px 10px;
+      border-radius: 999px;
+      font-size: 0.7rem;
+      font-weight: 800;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .team-score-num {
+      font-family: 'Orbitron', monospace;
+      font-size: 1.7rem;
+      font-weight: 900;
+      color: var(--cyan);
+      line-height: 1;
+      text-align: right;
+    }
+    .team-score-num.silver-top { color: #ffffff; text-shadow: 0 0 12px rgba(226, 232, 240, 0.4); }
+    .team-members-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+    .team-member-tile {
+      background: rgba(0, 0, 0, 0.35);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: 10px;
+      padding: 10px 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      position: relative;
+    }
+    .team-member-tile.is-dq {
+      border: 1px solid rgba(255, 71, 87, 0.7) !important;
+      background: rgba(255, 71, 87, 0.08) !important;
+    }
+    .team-member-tile.excluded-outlier {
+      opacity: 0.6;
+      border-style: dashed;
+      border-color: rgba(255, 71, 87, 0.4);
+      background: rgba(255, 71, 87, 0.05);
+    }
+    .team-card.all-dq {
+      opacity: 0.65;
+      border-color: rgba(255, 71, 87, 0.5) !important;
+      background: rgba(255, 71, 87, 0.03) !important;
+    }
+    .cutoff-banner {
+      margin: 28px 0;
+      padding: 14px 20px;
+      text-align: center;
+      background: linear-gradient(90deg, rgba(226, 232, 240, 0.03), rgba(226, 232, 240, 0.12), rgba(226, 232, 240, 0.03));
+      border: 1px dashed rgba(226, 232, 240, 0.45);
+      border-radius: 12px;
+      font-family: 'Orbitron', monospace;
+      font-weight: 800;
+      font-size: 0.92rem;
+      color: #e2e8f0;
+      letter-spacing: 0.08em;
+      box-shadow: 0 0 20px rgba(226, 232, 240, 0.08);
+    }
 
     .hidden { display: none !important; }
   </style>
@@ -606,8 +861,8 @@
   <main>
     <div class="admin-header">
       <p class="eyebrow" style="letter-spacing:0.25em;">GAAC 2026 Admin</p>
-      <h1>Exam <span class="text-blue">Submissions &amp; Proctoring</span></h1>
-      <p style="color:var(--muted);font-size:0.85rem;">Review individual submissions, examine proctoring snapshots, and check device analytics.</p>
+      <h1>Exam <span class="text-blue">Monitor &amp; Submissions</span></h1>
+      <p style="color:var(--muted);font-size:0.85rem;">Review all team submissions, inspect proctoring snapshots, and manage candidate compliance.</p>
     </div>
 
     <!-- Login Form -->
@@ -629,59 +884,174 @@
 
     <!-- Main Dashboard -->
     <div id="admin-dashboard" class="hidden">
-      <!-- Stats summary -->
-      <div class="stats-bar" id="stats-bar">
-        <div class="stat-box">
-          <div class="num" id="stat-total">0</div>
-          <div class="label">Total Submissions</div>
+      <!-- Top Navigation Tabs -->
+      <div class="top-tabs">
+        <button class="top-tab-btn active" id="tab-btn-all" onclick="window.switchTab('all')">
+          All Submissions (Individual)
+        </button>
+        <button class="top-tab-btn" id="tab-btn-teams" onclick="window.switchTab('teams')">
+          Team Leaderboard (Top 100 / Top 32)
+        </button>
+        <button class="top-tab-btn" id="tab-btn-lookup" onclick="window.switchTab('lookup')">
+          Team Inspector
+        </button>
+        <button class="top-tab-btn" id="tab-btn-schedule" onclick="window.switchTab('schedule')">
+          Schedule Control
+        </button>
+      </div>
+
+      <!-- TAB 1: ALL SUBMISSIONS -->
+      <div id="view-all-submissions">
+        <!-- Stats summary -->
+        <div class="stats-bar" id="stats-bar">
+          <div class="stat-box">
+            <div class="num" id="stat-total">0</div>
+            <div class="label">Total Submissions</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="stat-reviewed" style="color:var(--green);">0</div>
+            <div class="label">Reviewed</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="stat-avg-score">--</div>
+            <div class="label">Average Score</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="stat-high-score" style="color:var(--silver-bright);">--</div>
+            <div class="label">Highest Score</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="stat-flagged" style="color:var(--orange);">0</div>
+            <div class="label">With Violations</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="stat-dq" style="color:var(--red);">0</div>
+            <div class="label">Disqualified</div>
+          </div>
         </div>
-        <div class="stat-box">
-          <div class="num" id="stat-avg-score">--</div>
-          <div class="label">Average Score</div>
+
+        <!-- Controls & Filter Bar -->
+        <div class="controls-bar">
+          <div class="search-box">
+            <input type="text" id="search-input" placeholder="Search candidate, email, role, or team ID..." />
+          </div>
+          <div class="filter-group">
+            <select id="filter-status">
+              <option value="all">All Submissions</option>
+              <option value="pending-review">Pending Review</option>
+              <option value="reviewed">Reviewed</option>
+              <option value="high">High Scores (&ge; 80%)</option>
+              <option value="passed">Passed (&ge; 60%)</option>
+              <option value="violations">Has Violations</option>
+              <option value="dq">Disqualified</option>
+              <option value="clean">Clean (0 Events)</option>
+            </select>
+            <select id="sort-order">
+              <option value="score-desc">Sort: Score (Highest First)</option>
+              <option value="score-asc">Sort: Score (Lowest First)</option>
+              <option value="time-desc">Sort: Submitted (Latest First)</option>
+              <option value="time-asc">Sort: Submitted (Earliest First)</option>
+              <option value="events-desc">Sort: Violations (Most First)</option>
+            </select>
+            <div style="display:flex;align-items:center;gap:8px;">
+              <span id="cache-badge" style="font-size:0.75rem;color:var(--muted);background:rgba(255,255,255,0.06);padding:6px 12px;border-radius:8px;border:1px solid var(--panel-border);white-space:nowrap;">Checking cache...</span>
+              <button class="button primary" id="btn-sync" style="min-height:38px;padding:6px 16px;font-size:0.8rem;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;">
+                <span id="sync-icon">&#128260;</span> <span id="sync-text">Sync Fresh Data</span>
+              </button>
+            </div>
+          </div>
         </div>
-        <div class="stat-box">
-          <div class="num" id="stat-high-score" style="color:var(--gold);">--</div>
-          <div class="label">Highest Score</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="stat-flagged" style="color:var(--orange);">0</div>
-          <div class="label">With Violations</div>
-        </div>
-        <div class="stat-box">
-          <div class="num" id="stat-dq" style="color:var(--red);">0</div>
-          <div class="label">Disqualified</div>
+
+        <!-- Submissions List -->
+        <div class="submissions-wrap" id="submissions-container">
+          <div class="empty-placeholder">Loading submissions from Firestore...</div>
         </div>
       </div>
 
-      <!-- Controls & Filter Bar -->
-      <div class="controls-bar">
-        <div class="search-box">
-          <span class="search-icon">&#128269;</span>
-          <input type="text" id="search-input" placeholder="Search by student name, email, team name, registration ID..." />
+      <!-- TAB 2: TEAM LEADERBOARD (TOP 32 QUALIFIED) -->
+      <div id="view-team-leaderboard" class="hidden">
+        <!-- Formula Callout Banner -->
+        <div class="formula-callout">
+          <div class="formula-title">Official GAAC Scoring System:</div>
+          <div class="formula-item">Individual: S_i = C_i × G_i (Grade 9–10: G=1.05, Grade 11–12: G=1.00)</div>
+          <div class="formula-item">1 Member: S_team = S_1</div>
+          <div class="formula-item">2 Members: S_team = ((S_1 + S_2)/2) × 1.05</div>
+          <div class="formula-item">3 Members: S_team = ((S_1 + S_2 + S_3)/3) × 1.08</div>
         </div>
-        <div class="filter-group">
-          <select id="filter-status">
-            <option value="all">All Submissions</option>
-            <option value="high">High Scores (&ge; 80%)</option>
-            <option value="passed">Passed (&ge; 60%)</option>
-            <option value="violations">Has Violations</option>
-            <option value="dq">Disqualified</option>
-            <option value="clean">Clean (0 Events)</option>
-          </select>
-          <select id="sort-order">
-            <option value="score-desc">Sort: Score (Highest First)</option>
-            <option value="score-asc">Sort: Score (Lowest First)</option>
-            <option value="time-desc">Sort: Submitted (Latest First)</option>
-            <option value="time-asc">Sort: Submitted (Earliest First)</option>
-            <option value="events-desc">Sort: Violations (Most First)</option>
-          </select>
-          <button class="button secondary" id="btn-refresh" style="min-height:38px;padding:6px 16px;font-size:0.8rem;">Refresh</button>
+
+        <!-- Controls Bar for Teams -->
+        <div class="controls-bar">
+          <div class="search-box">
+            <input type="text" id="teams-search-input" placeholder="Search team ID (e.g. GAAC-2026-1541), member name, or email..." />
+          </div>
+          <div class="filter-group">
+            <select id="teams-filter-status">
+              <option value="top100" selected>Top 100 Teams</option>
+              <option value="top32">Top 32 Qualified Only</option>
+              <option value="suspicious">Fast Submissions (&lt; 25 mins)</option>
+              <option value="all">All Evaluated Teams (373 Teams)</option>
+              <option value="3mems">3-Member Teams</option>
+              <option value="2mems">2-Member Teams</option>
+              <option value="1mem">1-Member Teams</option>
+              <option value="adjusted">Outlier / Issue / DQ Adjusted</option>
+            </select>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;color:#cbd5e1;cursor:pointer;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);white-space:nowrap;">
+              <input type="checkbox" id="teams-chk-outlier" checked />
+              <span>Exclude Issue / Outlier Members</span>
+            </label>
+            <label style="display:inline-flex;align-items:center;gap:6px;font-size:0.75rem;color:#cbd5e1;cursor:pointer;background:rgba(0,0,0,0.3);padding:6px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.08);white-space:nowrap;">
+              <input type="checkbox" id="teams-chk-grade" checked />
+              <span>Apply Grade 9–10 Bonus (×1.05)</span>
+            </label>
+            <button class="button primary" id="btn-export-teams" onclick="window.exportTeamsCSV()" style="min-height:38px;padding:6px 16px;font-size:0.8rem;white-space:nowrap;display:inline-flex;align-items:center;gap:6px;">
+              <span>Export Rankings (CSV)</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Teams Container -->
+        <div class="submissions-wrap" id="teams-container">
+          <div class="empty-placeholder">Calculating team rankings...</div>
         </div>
       </div>
 
-      <!-- Submissions List -->
-      <div class="submissions-wrap" id="submissions-container">
-        <div class="empty-placeholder">Loading submissions from Firestore...</div>
+      <!-- TAB 3: TEAM INSPECTOR (LOOKUP ANY TEAM) -->
+      <div id="view-team-inspector" class="hidden">
+        <div class="inspector-box">
+          <div class="lookup-card">
+            <h2 style="font-size:1.1rem;margin:0 0 6px;">Inspect Specific <span class="text-blue">Team</span></h2>
+            <p style="color:var(--muted);font-size:0.82rem;margin:0 0 16px;">Look up any team by its Registration ID to view full roster, live progress, answer logs, and photos.</p>
+            <div style="display:flex;gap:10px;align-items:center;">
+              <input type="text" id="lookup-team-id" placeholder="e.g. GAAC-2026-1648 or GAAC-2026-0605" style="flex:1;padding:10px 14px;border-radius:8px;border:1px solid var(--panel-border);background:rgba(0,0,0,0.3);color:#fff;" />
+              <button class="button primary" id="btn-inspect-team" style="padding:10px 22px;min-height:40px;">Inspect Team</button>
+            </div>
+          </div>
+          <div id="inspector-result"></div>
+        </div>
+      </div>
+
+      <!-- TAB 3: SCHEDULE CONTROL -->
+      <div id="view-schedule-control" class="hidden">
+        <div style="max-width:860px;margin:28px auto 0;padding:0 20px 40px;">
+          <div style="border:1px solid var(--panel-border);border-radius:14px;padding:22px 20px;background:rgba(13,20,36,0.8);">
+            <h2 style="margin:0 0 4px;font-size:1.1rem;">Round 1 <span style="color:var(--cyan);">Schedule Control</span></h2>
+            <p style="color:var(--muted);font-size:0.82rem;margin:0 0 18px;">Live countdown drives the Round 1 entry window (Cairo, GMT+3). Entry opens at <strong style="color:var(--cyan);">7:00 PM</strong> and closes at <strong style="color:var(--cyan);">8:00 PM</strong> on 5 September 2026.</p>
+            <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;">
+              <div>
+                <label style="font-size:0.75rem;display:block;margin-bottom:6px;color:var(--muted);">Entry window opens</label>
+                <input type="datetime-local" id="mock-start-at" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--panel-border);background:rgba(0,0,0,0.3);color:#fff;" />
+              </div>
+              <div>
+                <label style="font-size:0.75rem;display:block;margin-bottom:6px;color:var(--muted);">Entry window closes</label>
+                <input type="datetime-local" id="mock-close-at" style="width:100%;padding:10px 14px;border-radius:8px;border:1px solid var(--panel-border);background:rgba(0,0,0,0.3);color:#fff;" />
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
+              <button class="button primary" id="btn-save-mock-schedule" style="min-height:38px;font-size:0.8rem;">Save Round 1 Schedule</button>
+              <span id="mock-save-status" style="font-size:0.8rem;color:var(--muted);"></span>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </main>
@@ -693,12 +1063,16 @@
         <span id="lb-candidate-title">Candidate Snapshots</span>
         <span class="lightbox-meta" id="lb-index-counter">Image 1 of 10</span>
       </div>
-      <button class="lightbox-close-btn" id="lb-close-btn" title="Close (Esc)">&times;</button>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <button id="lb-webcam-crop-btn" title="Crop/Zoom on bottom-right webcam image (W)" style="background:rgba(0,210,255,0.15);border:1px solid rgba(0,210,255,0.4);color:var(--cyan);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:0.75rem;font-weight:600;">Focus Webcam Inset</button>
+        <button id="lb-fullscreen-btn" title="Fullscreen (F)" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:0.75rem;">Fullscreen</button>
+        <button class="lightbox-close-btn" id="lb-close-btn" title="Close (Esc)">&times;</button>
+      </div>
     </div>
     <div class="lightbox-stage">
       <button class="lightbox-nav-btn lightbox-prev" id="lb-prev-btn" title="Previous (&larr;)">&lsaquo;</button>
-      <div class="lightbox-img-wrap">
-        <img id="lb-main-img" class="lightbox-img" src="" alt="Proctoring Snapshot" />
+      <div class="lightbox-img-wrap" id="lb-img-wrap" style="overflow:hidden;cursor:grab;position:relative;">
+        <img id="lb-main-img" class="lightbox-img" src="" alt="Proctoring Snapshot" style="transform-origin:center center;transition:transform 0.1s;user-select:none;pointer-events:none;" />
         <div class="lightbox-caption-bar" id="lb-caption-bar">
           <span class="cap-badge cap-violation" id="lb-event-type">Violation</span>
           <span id="lb-event-time" style="color:#e2e8f0;font-weight:600;">07:00:00 PM</span>
@@ -739,8 +1113,9 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
     import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-    import { getFirestore, doc, getDoc, getDocs, collection, collectionGroup, query, where, orderBy, setDoc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+    import { getFirestore, doc, getDoc, getDocs, collection, collectionGroup, query, where, orderBy, setDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
     import { getStorage, ref as storageRef, listAll, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
     const firebaseConfig = {
       apiKey: "AIzaSyDsYFFtEJ96yg0Rqw7EfCZFoiLIaeDk6zY",
@@ -758,11 +1133,29 @@
     const storage = getStorage(app);
 
     const ADMIN_EMAIL = 'astronomyclub64@gmail.com';
+    const CACHE_KEY = 'gaac_admin_exam_subs_cache_v3';
 
     let allSubmissions = [];
     const registrationCache = new Map();
     let currentGalleryImages = [];
     let currentGalleryIndex = 0;
+    let isSyncing = false;
+
+    // Tab switching
+    window.switchTab = (tabName) => {
+      document.querySelectorAll('.top-tab-btn').forEach(b => b.classList.remove('active'));
+      const btn = document.getElementById(`tab-btn-${tabName}`);
+      if (btn) btn.classList.add('active');
+
+      document.getElementById('view-all-submissions').classList.toggle('hidden', tabName !== 'all');
+      document.getElementById('view-team-leaderboard').classList.toggle('hidden', tabName !== 'teams');
+      document.getElementById('view-team-inspector').classList.toggle('hidden', tabName !== 'lookup');
+      document.getElementById('view-schedule-control').classList.toggle('hidden', tabName !== 'schedule');
+
+      if (tabName === 'teams') {
+        renderTeamLeaderboard();
+      }
+    };
 
     // Toast helper
     function showToast(msg) {
@@ -770,6 +1163,49 @@
       el.textContent = msg;
       el.style.display = 'block';
       setTimeout(() => { el.style.display = 'none'; }, 3000);
+    }
+
+    // Cache Helpers
+    function getLocalCache() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (!raw) return null;
+        return JSON.parse(raw);
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function setLocalCache(subs) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          timestamp: Date.now(),
+          data: subs
+        }));
+      } catch (e) {
+        console.warn('localStorage quota exceeded or disabled:', e);
+      }
+    }
+
+    function updateCacheBadge(ts, count, fromCache) {
+      const badge = document.getElementById('cache-badge');
+      if (!badge) return;
+      if (!ts) {
+        badge.innerHTML = `&#9888; Not synced yet`;
+        badge.style.color = 'var(--orange)';
+        return;
+      }
+      const timeStr = new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+      badge.innerHTML = `<span style="color:var(--green);">&#9679;</span> ${count} subs &bull; ${fromCache ? 'Cached' : 'Synced'} (${timeStr})`;
+      badge.style.color = 'var(--white)';
+    }
+
+    function formatEmailToName(email) {
+      if (!email) return 'Student';
+      const local = email.split('@')[0];
+      const cleaned = local.replace(/[0-9+_-]/g, ' ').trim();
+      if (!cleaned) return 'Student';
+      return cleaned.split(/\s+/).map(p => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(' ');
     }
 
     // Login Handling
@@ -789,7 +1225,7 @@
         await signInWithEmailAndPassword(auth, email, password);
         document.getElementById('admin-login-form').classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
-        loadAllSubmissions();
+        initDashboard();
       } catch (e) {
         errorEl.textContent = e.message || 'Login failed.';
         errorEl.style.display = 'block';
@@ -800,12 +1236,8 @@
       if (user && user.email === ADMIN_EMAIL) {
         document.getElementById('admin-login-form').classList.add('hidden');
         document.getElementById('admin-dashboard').classList.remove('hidden');
-        loadAllSubmissions();
+        initDashboard();
       }
-    });
-
-    document.getElementById('btn-refresh').addEventListener('click', () => {
-      loadAllSubmissions();
     });
 
     // Helper: format timestamps
@@ -837,112 +1269,153 @@
       return `${mins}m ${secs}s`;
     }
 
-    // Step 1: Query only submitted exams efficiently
-    async function loadAllSubmissions() {
-      const container = document.getElementById('submissions-container');
-      container.innerHTML = '<div class="empty-placeholder">Loading submissions from Firestore...</div>';
+    // Calculate age from a DOB string like "2007-11-16"
+    function calcAge(dobStr) {
+      if (!dobStr) return null;
+      const parts = String(dobStr).trim().split(/[-\/]/);
+      if (parts.length < 3) return null;
+      // Support both YYYY-MM-DD and DD-MM-YYYY
+      let year, month, day;
+      if (parts[0].length === 4) {
+        [year, month, day] = parts.map(Number);
+      } else {
+        [day, month, year] = parts.map(Number);
+      }
+      if (!year || year < 1990 || year > 2015) return null;
+      const today = new Date();
+      let age = today.getFullYear() - year;
+      const m = today.getMonth() + 1 - month;
+      if (m < 0 || (m === 0 && today.getDate() < day)) age--;
+      return age;
+    }
 
-      try {
-        let examDocs = [];
-        try {
-          // Optimized collectionGroup query: fetch ONLY submitted exams
-          const q = query(collectionGroup(db, 'exam'), where('status', '==', 'submitted'));
-          const snap = await getDocs(q);
-          snap.forEach(d => {
-            const teamId = d.ref.parent.parent ? d.ref.parent.parent.id : 'unknown';
-            examDocs.push({
-              id: d.id,
-              memberUid: d.id,
-              teamId: teamId,
-              ...d.data()
-            });
-          });
-        } catch (err) {
-          console.warn('Collection group query failed, falling back to teams query:', err);
-          // Fallback: query teams and read their exam subcollections
-          const teamsSnap = await getDocs(collection(db, 'teams'));
-          for (const tDoc of teamsSnap.docs) {
-            const subExams = await getDocs(query(collection(db, 'teams', tDoc.id, 'exam'), where('status', '==', 'submitted')));
-            subExams.forEach(d => {
-              examDocs.push({
-                id: d.id,
-                memberUid: d.id,
-                teamId: tDoc.id,
-                ...d.data()
-              });
-            });
-          }
-        }
-
-        if (examDocs.length === 0) {
-          container.innerHTML = '<div class="empty-placeholder">No submitted exams found in Firestore yet.</div>';
-          updateStats([]);
-          allSubmissions = [];
-          return;
-        }
-
-        // Step 2: Fetch corresponding team registrations (cached)
-        const uniqueTeamIds = [...new Set(examDocs.map(e => e.teamId))];
-        await Promise.all(uniqueTeamIds.map(async (tId) => {
-          if (!registrationCache.has(tId)) {
-            try {
-              const regSnap = await getDoc(doc(db, 'registrations', tId));
-              if (regSnap.exists()) {
-                registrationCache.set(tId, regSnap.data());
-              }
-            } catch (e) {
-              console.warn('Failed to fetch registration for', tId, e);
-            }
-          }
-        }));
-
-        // Enrich each submission with team and candidate data
-        allSubmissions = examDocs.map(exam => {
-          const reg = registrationCache.get(exam.teamId) || {};
-          const teamName = reg.teamName || exam.teamId;
-          let memberData = null;
-
-          const norm = (s) => (s || '').trim().toLowerCase();
-          const targetEmail = norm(exam.memberEmail);
-
-          if (reg.leader && norm(reg.leader.email) === targetEmail) memberData = { ...reg.leader, role: 'leader' };
-          else if (reg.member2 && norm(reg.member2.email) === targetEmail) memberData = { ...reg.member2, role: 'member2' };
-          else if (reg.member3 && norm(reg.member3.email) === targetEmail) memberData = { ...reg.member3, role: 'member3' };
-          else {
-            memberData = {
-              name: exam.memberName || exam.memberEmail || 'Student',
-              email: exam.memberEmail || '',
-              country: '',
-              school: '',
-              role: exam.memberRole || 'member'
-            };
-          }
-
-          const score = typeof exam.score === 'number' ? exam.score : (typeof exam.examScore === 'number' ? exam.examScore : 0);
-          const answeredCount = exam.answers ? Object.keys(exam.answers).length : 0;
-
-          return {
-            ...exam,
-            score,
-            answeredCount,
-            teamName,
-            memberData,
-            dq: !!(exam.dq || exam.disqualified)
-          };
-        });
-
+    // Step 1: Initial Dashboard Loader (Instant from Cache, 0 reads)
+    async function initDashboard() {
+      initScheduleControl();
+      const cached = getLocalCache();
+      if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
+        allSubmissions = cached.data;
         updateStats(allSubmissions);
         renderSubmissions();
-      } catch (e) {
-        console.error('Error loading submissions:', e);
-        container.innerHTML = `<div class="empty-placeholder" style="color:var(--red);">Error loading submissions: ${e.message}</div>`;
+        updateCacheBadge(cached.timestamp, cached.data.length, true);
+      } else {
+        syncSubmissionsFromFirestore();
       }
     }
+
+    // Step 2: High Performance Sync (Single collectionGroup query, zero extra calls)
+    async function syncSubmissionsFromFirestore() {
+      if (isSyncing) return;
+      isSyncing = true;
+      const syncBtn = document.getElementById('btn-sync');
+      const syncIcon = document.getElementById('sync-icon');
+      const syncText = document.getElementById('sync-text');
+      const container = document.getElementById('submissions-container');
+
+      if (syncBtn) syncBtn.disabled = true;
+      if (syncText) syncText.textContent = 'Syncing...';
+      if (syncIcon) syncIcon.style.animation = 'spin 1s linear infinite';
+
+      if (allSubmissions.length === 0) {
+        container.innerHTML = '<div class="empty-placeholder">Querying submitted exams from Firestore...</div>';
+      }
+
+      try {
+        const [snap, regSnap] = await Promise.all([
+          getDocs(collectionGroup(db, 'exam')),
+          getDocs(collection(db, 'registrations'))
+        ]);
+
+        const regMap = new Map();
+        regSnap.forEach(d => {
+          regMap.set(d.id.toLowerCase().trim(), d.data());
+        });
+
+        const list = [];
+        snap.forEach(d => {
+          const data = d.data();
+          if (data.status !== 'submitted') return;
+          const teamId = d.ref.parent.parent ? d.ref.parent.parent.id : 'unknown';
+          const email = (data.memberEmail || '').toLowerCase().trim();
+          const score = typeof data.score === 'number' ? data.score : (typeof data.examScore === 'number' ? data.examScore : 0);
+          const answeredCount = data.answers ? Object.keys(data.answers).length : 0;
+          const role = (data.memberRole || 'member').toLowerCase().trim();
+          const name = data.memberName || formatEmailToName(email);
+
+          const regDoc = regMap.get(teamId.toLowerCase().trim()) || {};
+          let memInfo = null;
+          if (role === 'leader') memInfo = regDoc.leader;
+          else if (role === 'member2' || role === 'member 2') memInfo = regDoc.member2;
+          else if (role === 'member3' || role === 'member 3') memInfo = regDoc.member3;
+          else {
+            if (regDoc.leader && (regDoc.leader.email || '').toLowerCase() === email) memInfo = regDoc.leader;
+            else if (regDoc.member2 && (regDoc.member2.email || '').toLowerCase() === email) memInfo = regDoc.member2;
+            else if (regDoc.member3 && (regDoc.member3.email || '').toLowerCase() === email) memInfo = regDoc.member3;
+          }
+
+          const grade = data.grade || data.gradeLevel || memInfo?.grade || '';
+          const dob = data.dob || data.birthDate || data.birthdate || memInfo?.dob || '';
+          const school = data.school || memInfo?.school || '';
+          const country = data.country || memInfo?.country || '';
+
+          list.push({
+            id: d.id,
+            memberUid: d.id,
+            teamId: teamId,
+            teamName: regDoc.teamName || teamId,
+            memberEmail: email,
+            memberName: memInfo?.name || name,
+            memberRole: role,
+            grade: grade,
+            dob: dob,
+            school: school,
+            country: country,
+            score: score,
+            correctCount: data.correctCount != null ? data.correctCount : null,
+            answeredCount: answeredCount,
+            deviceInfo: data.deviceInfo || {},
+            startedAt: data.startedAt || null,
+            submittedAt: data.submittedAt || null,
+            eventCount: data.eventCount || 0,
+            severeEventCount: data.severeEventCount || 0,
+            dq: !!(data.dq || data.disqualified),
+            reviewed: !!(data.reviewed || data.isReviewed),
+            reviewedAt: data.reviewedAt || null,
+            answers: data.answers || {},
+            flagged: data.flagged || {}
+          });
+        });
+
+        allSubmissions = list;
+        setLocalCache(allSubmissions);
+        updateStats(allSubmissions);
+        renderSubmissions();
+        updateCacheBadge(Date.now(), allSubmissions.length, false);
+        showToast(`Synced ${allSubmissions.length} submissions successfully!`);
+      } catch (err) {
+        console.error('Error syncing submissions:', err);
+        if (allSubmissions.length === 0) {
+          container.innerHTML = `<div class="empty-placeholder" style="color:var(--red);">Error querying Firestore: ${escapeHtml(err.message)}</div>`;
+        } else {
+          showToast('Sync error: ' + err.message);
+        }
+      } finally {
+        isSyncing = false;
+        if (syncBtn) syncBtn.disabled = false;
+        if (syncText) syncText.textContent = 'Sync Fresh Data';
+        if (syncIcon) syncIcon.style.animation = 'none';
+      }
+    }
+
+    document.getElementById('btn-sync').addEventListener('click', () => {
+      syncSubmissionsFromFirestore();
+    });
 
     // Step 3: Update Top Stats Bar
     function updateStats(subs) {
       document.getElementById('stat-total').textContent = subs.length;
       if (subs.length === 0) {
+        document.getElementById('stat-reviewed').textContent = '0';
         document.getElementById('stat-avg-score').textContent = '--';
         document.getElementById('stat-high-score').textContent = '--';
         document.getElementById('stat-flagged').textContent = '0';
@@ -954,14 +1427,16 @@
       const max = Math.max(...scores);
       const flagged = subs.filter(s => (s.severeEventCount || 0) > 0 || (s.eventCount || 0) > 10).length;
       const dqs = subs.filter(s => s.dq).length;
+      const reviewedCount = subs.filter(s => s.reviewed).length;
 
+      document.getElementById('stat-reviewed').textContent = `${reviewedCount} / ${subs.length}`;
       document.getElementById('stat-avg-score').textContent = `${avg}%`;
       document.getElementById('stat-high-score').textContent = `${max}%`;
       document.getElementById('stat-flagged').textContent = flagged;
       document.getElementById('stat-dq').textContent = dqs;
     }
 
-    // Step 4: Render Submissions with Filter & Sorting
+    // Step 4: Render Submissions with Filter & Sorting (High-to-Low score default)
     function renderSubmissions() {
       const container = document.getElementById('submissions-container');
       const searchQuery = document.getElementById('search-input').value.trim().toLowerCase();
@@ -970,27 +1445,27 @@
 
       let list = [...allSubmissions];
 
-      // Search Filter
+      // Instant In-Memory Search Filter
       if (searchQuery) {
         list = list.filter(s => {
-          const name = (s.memberData?.name || '').toLowerCase();
+          const name = (s.memberName || '').toLowerCase();
           const email = (s.memberEmail || '').toLowerCase();
-          const team = (s.teamName || '').toLowerCase();
-          const regId = (s.teamId || '').toLowerCase();
-          const country = (s.memberData?.country || '').toLowerCase();
-          const school = (s.memberData?.school || '').toLowerCase();
-          return name.includes(searchQuery) || email.includes(searchQuery) || team.includes(searchQuery) || regId.includes(searchQuery) || country.includes(searchQuery) || school.includes(searchQuery);
+          const teamId = (s.teamId || '').toLowerCase();
+          const role = (s.memberRole || '').toLowerCase();
+          return name.includes(searchQuery) || email.includes(searchQuery) || teamId.includes(searchQuery) || role.includes(searchQuery);
         });
       }
 
       // Status Filter
-      if (statusFilter === 'high') list = list.filter(s => s.score >= 80);
+      if (statusFilter === 'pending-review') list = list.filter(s => !s.reviewed);
+      else if (statusFilter === 'reviewed') list = list.filter(s => s.reviewed);
+      else if (statusFilter === 'high') list = list.filter(s => s.score >= 80);
       else if (statusFilter === 'passed') list = list.filter(s => s.score >= 60);
       else if (statusFilter === 'violations') list = list.filter(s => (s.severeEventCount || 0) > 0 || (s.eventCount || 0) > 0);
       else if (statusFilter === 'dq') list = list.filter(s => s.dq);
       else if (statusFilter === 'clean') list = list.filter(s => (s.eventCount || 0) === 0);
 
-      // Sorting
+      // Sorting: default high-to-low score
       if (sortOrder === 'score-desc') list.sort((a, b) => (b.score || 0) - (a.score || 0));
       else if (sortOrder === 'score-asc') list.sort((a, b) => (a.score || 0) - (b.score || 0));
       else if (sortOrder === 'time-desc') list.sort((a, b) => (new Date(b.submittedAt?.toDate ? b.submittedAt.toDate() : b.submittedAt).getTime()) - (new Date(a.submittedAt?.toDate ? a.submittedAt.toDate() : a.submittedAt).getTime()));
@@ -1006,27 +1481,26 @@
       list.forEach((sub, idx) => {
         const rank = idx + 1;
         const rankClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
-        const m = sub.memberData || {};
         const dev = sub.deviceInfo || {};
         const severeCount = sub.severeEventCount || 0;
         const totalEvents = sub.eventCount || 0;
-        const role = m.role || sub.memberRole || 'leader';
+        const role = sub.memberRole || 'leader';
         const roleClass = role === 'leader' ? 'role-leader' : (role === 'member2' ? 'role-member2' : 'role-member3');
         const roleLabel = role === 'leader' ? 'Team Leader' : (role === 'member2' ? 'Member 2' : 'Member 3');
         const dur = calcDuration(sub.startedAt, sub.submittedAt);
+        const candidateName = sub.memberName || formatEmailToName(sub.memberEmail);
 
         html += `
-          <div class="sub-card ${sub.dq ? 'dq-active' : ''} ${severeCount > 0 ? 'has-severe' : ''}" id="sub-card-${sub.memberUid}">
+          <div class="sub-card ${sub.dq ? 'dq-active' : ''} ${severeCount > 0 ? 'has-severe' : ''} ${sub.reviewed ? 'is-reviewed' : ''}" id="sub-card-${sub.memberUid}">
             <div class="card-top">
               <div class="card-identity">
                 <div class="rank-badge ${rankClass}">#${rank}</div>
                 <div>
-                  <h3 class="candidate-name">${escapeHtml(m.name || 'Student')}</h3>
+                  <h3 class="candidate-name">${escapeHtml(candidateName)}</h3>
                   <div class="candidate-sub">
                     <span class="role-badge ${roleClass}">${roleLabel}</span>
                     <span>&bull;</span>
-                    <strong style="color:var(--cyan);">${escapeHtml(sub.teamName)}</strong>
-                    <span style="color:var(--muted);">(${sub.teamId})</span>
+                    <strong style="color:var(--cyan);font-family:Orbitron,monospace;">${escapeHtml(sub.teamId)}</strong>
                     <span>&bull;</span>
                     <span>${escapeHtml(sub.memberEmail || '')}</span>
                   </div>
@@ -1040,8 +1514,8 @@
 
             <div class="card-grid">
               <div class="info-tile">
-                <div class="lbl">Location &amp; School</div>
-                <div class="val">${escapeHtml(m.country || '—')} &bull; ${escapeHtml(m.school || '—')}</div>
+                <div class="lbl">Registration ID &amp; Role</div>
+                <div class="val" style="font-family:Orbitron,monospace;color:var(--cyan);">${escapeHtml(sub.teamId)} &bull; ${roleLabel}</div>
               </div>
               <div class="info-tile">
                 <div class="lbl">Device &amp; Environment</div>
@@ -1058,25 +1532,29 @@
                 </div>
               </div>
               <div class="info-tile">
-                <div class="lbl">Proctoring Events &amp; Status</div>
+                <div class="lbl">Proctoring &amp; Review Status</div>
                 <div class="val" style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-top:2px;">
                   <span class="pill-badge ${severeCount > 0 ? 'ev-severe' : (totalEvents > 0 ? 'ev-warn' : '')}">
                     ${totalEvents} Events ${severeCount > 0 ? `(${severeCount} Severe)` : ''}
                   </span>
-                  ${sub.dq ? '<span class="pill-badge dq-badge">&#9888; DISQUALIFIED</span>' : '<span class="pill-badge" style="color:var(--green);">&#10003; Valid</span>'}
+                  ${sub.dq ? '<span class="pill-badge dq-badge">DISQUALIFIED</span>' : '<span class="pill-badge" style="color:var(--green);">Valid</span>'}
+                  ${sub.reviewed ? '<span class="pill-badge reviewed-badge">Reviewed</span>' : '<span class="pill-badge pending-badge">Pending Review</span>'}
                 </div>
               </div>
             </div>
 
             <div class="card-actions-bar">
-              <button class="btn-act btn-snap" onclick="window.openSnapshots('${sub.teamId}', '${sub.memberUid}', '${escapeHtml(m.name)}', '${role}')">
-                📸 View Snapshots Gallery
+              <button class="btn-act ${sub.reviewed ? 'btn-reviewed' : 'btn-unreviewed'}" onclick="window.toggleReviewStatus('${sub.teamId}', '${sub.memberUid}', ${sub.reviewed})">
+                ${sub.reviewed ? 'Reviewed' : 'Mark Reviewed'}
+              </button>
+              <button class="btn-act btn-snap" onclick="window.openSnapshots('${sub.teamId}', '${sub.memberUid}', '${escapeHtml(candidateName)}', '${role}')">
+                Photos
               </button>
               <button class="btn-act btn-log" onclick="window.openDetails('${sub.memberUid}')">
-                📋 Log &amp; Answers
+                Log &amp; Answers
               </button>
               <button class="btn-act ${sub.dq ? 'btn-reinit' : 'btn-dq'}" onclick="window.toggleMemberDq('${sub.teamId}', '${sub.memberUid}', ${sub.dq})">
-                ${sub.dq ? '&#10003; Reinstate Member' : '&#9888; DQ Member'}
+                ${sub.dq ? 'Reinstate Member' : 'DQ Member'}
               </button>
             </div>
           </div>
@@ -1086,13 +1564,39 @@
       container.innerHTML = html;
     }
 
-    // Step 5: Toggle Member DQ
+    // Step 5: Toggle Review Status (Mark Reviewed / Pending)
+    window.toggleReviewStatus = async (teamId, memberUid, currentReviewed) => {
+      const newReviewed = !currentReviewed;
+      const sub = allSubmissions.find(s => s.memberUid === memberUid);
+      const studentName = sub?.memberName || sub?.memberEmail || 'this student';
+
+      try {
+        await setDoc(doc(db, 'teams', teamId, 'exam', memberUid), {
+          reviewed: newReviewed,
+          reviewedAt: new Date().toISOString()
+        }, { merge: true });
+
+        if (sub) {
+          sub.reviewed = newReviewed;
+          sub.reviewedAt = new Date().toISOString();
+          setLocalCache(allSubmissions);
+        }
+        showToast(newReviewed ? `${studentName} marked as Reviewed ✅` : `${studentName} marked as Pending ⏳`);
+        updateStats(allSubmissions);
+        renderSubmissions();
+        renderTeamLeaderboard();
+      } catch (e) {
+        alert('Failed to update review status: ' + e.message);
+      }
+    };
+
+    // Step 6: Toggle Member DQ (Per member only)
     window.toggleMemberDq = async (teamId, memberUid, currentDq) => {
       const newDq = !currentDq;
       const sub = allSubmissions.find(s => s.memberUid === memberUid);
-      const studentName = sub?.memberData?.name || 'this student';
+      const studentName = sub?.memberName || sub?.memberEmail || 'this student';
 
-      if (!confirm(`Are you sure you want to ${newDq ? 'DISQUALIFY' : 'REINSTATE'} ${studentName}?\n\n(This flags this specific member only)`)) return;
+      if (!confirm(`Are you sure you want to ${newDq ? 'DISQUALIFY' : 'REINSTATE'} ${studentName}?\n\n(Team: ${teamId})`)) return;
 
       try {
         await setDoc(doc(db, 'teams', teamId, 'exam', memberUid), {
@@ -1101,14 +1605,478 @@
           dqUpdatedAt: new Date().toISOString()
         }, { merge: true });
 
-        if (sub) sub.dq = newDq;
+        if (sub) {
+          sub.dq = newDq;
+          sub.disqualified = newDq;
+          setLocalCache(allSubmissions);
+        }
         showToast(`${studentName} ${newDq ? 'disqualified' : 'reinstated'} successfully!`);
         updateStats(allSubmissions);
         renderSubmissions();
+        renderTeamLeaderboard();
       } catch (e) {
         alert('Failed to update DQ status: ' + e.message);
       }
     };
+
+    // Step 6b: Toggle WHOLE TEAM DQ
+    window.toggleTeamDq = async (teamId, setDq) => {
+      const teamSubs = allSubmissions.filter(s => s.teamId === teamId);
+      if (teamSubs.length === 0) { showToast('No submissions found for this team.'); return; }
+
+      const action = setDq ? 'DISQUALIFY ALL members of' : 'REINSTATE ALL members of';
+      const memberNames = teamSubs.map(s => s.memberName || s.memberEmail).join(', ');
+      if (!confirm(`Are you sure you want to ${action} team ${teamId}?\n\nMembers: ${memberNames}\n\nThis will affect ALL ${teamSubs.length} member(s).`)) return;
+
+      try {
+        await Promise.all(teamSubs.map(sub =>
+          setDoc(doc(db, 'teams', teamId, 'exam', sub.memberUid), {
+            dq: setDq,
+            disqualified: setDq,
+            dqUpdatedAt: new Date().toISOString()
+          }, { merge: true })
+        ));
+
+        teamSubs.forEach(sub => {
+          sub.dq = setDq;
+          sub.disqualified = setDq;
+        });
+        setLocalCache(allSubmissions);
+        showToast(`Team ${teamId} — all ${teamSubs.length} member(s) ${setDq ? 'DISQUALIFIED' : 'REINSTATED'}!`);
+        updateStats(allSubmissions);
+        renderSubmissions();
+        renderTeamLeaderboard();
+      } catch (e) {
+        alert('Failed to update team DQ status: ' + e.message);
+      }
+    };
+
+    // =========================================================================
+    // STEP 7: TEAM LEADERBOARD & TOP 100 / TOP 32 QUALIFIED CALCULATOR
+    // =========================================================================
+    const ISSUES_SET = new Set([
+      "sweetnanola.6@gmail.com", "nanolaa", "radwa12k@gmail.com", "rihanamhmd12345@gmail.com", "gaac-2026-1776",
+      "meklitsolomon322@gmail.com", "mahleteyasu6@gmail.com", "the invincibles", "sndsahmd490@gmail.com", "gaac-2026-0133",
+      "pantheral101202@gmail.com", "gaac-2026-0955", "ayumi1552009@gmail.com", "hannaalemnew@gmail.com", "lunaabay20@gmail.com",
+      "gaac-2026-0901", "teslamichael22@gmail.com", "gaac-2026-0554", "liyabaye83@gmail.com", "gaac-2026-0542",
+      "geniusastroboy1347@gmail.com", "gaac-2026-1257", "koppongboat234@gmail.com", "gaac-2026-0538", "nattyzeray10@gmail.com",
+      "arsemamengistu@gmail.com", "0683", "swayampratap061@gmail.com", "gaac-2026-1947", "yousrelghreeb277@gmail.com",
+      "gaac-2026-0339", "www.agyekumhenry999@gmail.com", "gaac-2026-0711", "nahelibedru@gmail.com", "tamoujantnour@gmail.com",
+      "gaac-2026-1928", "bethlihemtola@gmail.com", "gaac-2026-0400", "oomarplayer123@gmail.com", "gaac-2026-0768",
+      "halaabdelrahim75@gmail.com", "ibrahim.hamdi.rizk@gmail.com", "gaac-2026-0095", "zakariaelidrissi559@gmail.com",
+      "gaac-2026-1358", "letienxinhgai123@gmail.com", "gaac-2026-0780", "loginagaber45@gmail.com", "gaac-2026-0278",
+      "surafelayanew@gmail.com", "mariamsalah90009@gmail.com", "gaac-2026-0271", "redietgarkebo@gmail.com", "gaac-2026-0466",
+      "retajelkazafy@gmail.com", "gaac-2026-1190", "f2farwaq@gmail.com", "gaac-2026-1580", "tewodrosmusse036@gmail.com",
+      "gaac-1881", "muhand.1325010@stemdakahlia.moe.edu.eg", "gaac-2026-0319", "kenenisaeshetu659@gmail.com", "reginanketiaantwi@gmail.com",
+      "gaac-2026-1826", "tajsobeh470@gmail.com", "haidaraibrahim2010@gmail.com", "gaac-2026-1066", "ayelemilkesa372@gmail.com",
+      "gaac-2026-0793", "zainabtaha938@gmail.com", "surafelayanew1@gmail.com", "gaac-2026-1924", "pharny333@gmail.com",
+      "oubennayichraq@gmail.com", "gaac-2026-1314", "chattaraj.chhanda1234@gmail.com", "gaac-2026-0045", "jounir0tharwat@gmail.com",
+      "gaac-2026-0819", "islamgharbi2412@gmail.com", "gaac-2026-1917", "janaramy932009@gmail.com", "gaac-2026-0801",
+      "essaihmariam1984@gmail.com", "christinapaulos67@gmail.com", "sefankumela@gmail.com", "gaac-2026-1004", "khensaniimbodii@gmail.com",
+      "gaac-2026-1048", "nsmhsd88@gmail.com", "ahmedmedhatt40@gmail.com", "am0376176@gmail.com", "dezwag24@gmail.com",
+      "gaac-2026-0397", "malakakrami24@gmail.com", "gaac-2026-1142", "zemaryamgetu14@gmail.com", "gaac-2026-1689",
+      "douniatafaoui5@gmail.com", "gaac-2026-1630", "tareqkhalil1415@gmail.com", "gaac-2026-1665", "abdelrahman.usf.4blue@gmail.com",
+      "malakalaa1704@gmail.com", "gaac-2026-1860", "amr.2525017@stemelsadat.moe.edu.eg", "arsemawitmulualem@gmail.com", "gaac-2026-1024",
+      "johnelvistaye@gmail.com", "gaac-2026-1796", "linda.19.1.dh@gmail.com", "gaac-2026-0455", "chakir2roma@gmail.com",
+      "gaac-2026-0618", "pillewan2008@gmail.com", "gaac-2026-0033", "giovanniemad94@gmail.com", "gaac-2026-1017",
+      "maxynentiforo@gmail.com", "gaac-2026-0762", "ezzaabdo2013@gmail.com", "gaac-2026-1941", "ac3691252@gmail.com",
+      "gaac-2026-1033", "abdelrhman15sayed16@gmail.com", "raghedrara81@gmail.com", "gaac-2026-0053", "niranjanbarhate64@gmail.com"
+    ]);
+
+    let evaluatedTeamRankings = [];
+
+    function renderTeamLeaderboard() {
+      const container = document.getElementById('teams-container');
+      if (!container) return;
+      const searchQuery = (document.getElementById('teams-search-input')?.value || '').trim().toLowerCase();
+      const statusFilter = document.getElementById('teams-filter-status')?.value || 'top100';
+      const excludeOutliers = document.getElementById('teams-chk-outlier')?.checked ?? true;
+      const applyGradeFactor = document.getElementById('teams-chk-grade')?.checked ?? true;
+
+      // Group allSubmissions by teamId
+      const teamMap = new Map();
+      allSubmissions.forEach(sub => {
+        const tid = sub.teamId || 'unknown';
+        if (tid === 'unknown') return;
+        if (!teamMap.has(tid)) teamMap.set(tid, []);
+
+        // Recalculate exact C_i correct count using active keys for this submission
+        let c_i = 0;
+        const ansObj = sub.answers || {};
+        const activeKeys = getKeysForSubmission(sub);
+        for (let idx = 0; idx < 40; idx++) {
+          const qId = `q${idx + 1}`;
+          let chosenRaw = (sub.details && sub.details[idx] && sub.details[idx].userAnswer) !== undefined
+            ? sub.details[idx].userAnswer
+            : ansObj[idx] !== undefined
+            ? ansObj[idx]
+            : ansObj[String(idx)] !== undefined
+            ? ansObj[String(idx)]
+            : ansObj[qId] !== undefined
+            ? ansObj[qId]
+            : ansObj[idx + 1] !== undefined
+            ? ansObj[idx + 1]
+            : null;
+          if (chosenRaw && String(chosenRaw).trim().toUpperCase() === activeKeys[idx]) {
+            c_i++;
+          }
+        }
+        sub.c_i = c_i;
+        sub.score_pct = Math.round((c_i / 40) * 100);
+        teamMap.get(tid).push(sub);
+      });
+
+      // Calculate each team's official score
+      const teamList = [];
+      teamMap.forEach((members, tid) => {
+        let hasAnyIssue = false;
+        const parsedMembers = members.map(m => {
+          const email = (m.memberEmail || '').toLowerCase().trim();
+          const role = (m.memberRole || 'member').toLowerCase().trim();
+          const memGrade = m.grade || m.gradeLevel || '';
+          
+          let g_i = 1.00;
+          if (applyGradeFactor) {
+            const gStr = String(memGrade).toLowerCase();
+            if (gStr.includes('9') || gStr.includes('10') || gStr.includes('ninth') || gStr.includes('tenth')) {
+              g_i = 1.05;
+            }
+          }
+
+          const s_i = m.c_i * g_i;
+          const isIssue = ISSUES_SET.has(email) || ISSUES_SET.has(tid.toLowerCase());
+          if (isIssue) hasAnyIssue = true;
+
+          // Duration in minutes
+          let durMins = null;
+          let durStr = '—';
+          if (m.startedAt && m.submittedAt) {
+            const toMs = (v) => (typeof v === 'number' ? v : (v.seconds ? v.seconds * 1000 : (v.toDate ? v.toDate().getTime() : new Date(v).getTime())));
+            const sMs = toMs(m.startedAt);
+            const eMs = toMs(m.submittedAt);
+            if (!isNaN(sMs) && !isNaN(eMs) && eMs >= sMs) {
+              durMins = Math.round(((eMs - sMs) / 60000) * 10) / 10;
+              durStr = `${durMins} min`;
+            }
+          }
+
+          const isFast = m.c_i >= 35 && durMins !== null && durMins <= 25;
+
+          return {
+            uid: m.memberUid,
+            name: m.memberName || formatEmailToName(email),
+            email: email,
+            role: role,
+            grade: memGrade || 'Grade 11/12',
+            dob: m.dob || '',
+            school: m.school || '',
+            country: m.country || '',
+            c_i: m.c_i,
+            g_i: g_i,
+            s_i: s_i,
+            score_pct: m.score_pct,
+            startedAt: m.startedAt,
+            submittedAt: m.submittedAt,
+            startedAtFmt: fmtDateTime(m.startedAt),
+            submittedAtFmt: fmtDateTime(m.submittedAt),
+            durMins: durMins,
+            durStr: durStr,
+            isFast: isFast,
+            isReviewed: !!m.reviewed,
+            has_issue: isIssue,
+            dq: !!m.dq
+          };
+        });
+
+        const validMembers = parsedMembers.filter(m => !m.dq);
+        const hasDqMembers = parsedMembers.some(m => m.dq);
+        const dqMembersCount = parsedMembers.filter(m => m.dq).length;
+        const totalMembersCount = parsedMembers.length;
+
+        // Rule: If 2 or more members in a team are DQ'ed (or all members are DQ'ed), the whole team is disqualified!
+        const allDq = validMembers.length === 0 || (totalMembersCount >= 3 && dqMembersCount >= 2) || (totalMembersCount === 2 && dqMembersCount >= 2);
+
+        // Raw team score calculation (all valid members)
+        const rawN = allDq ? 0 : validMembers.length;
+        const rawAvg = rawN > 0 ? validMembers.reduce((a, b) => a + b.s_i, 0) / rawN : 0;
+        const rawMult = rawN >= 3 ? 1.08 : (rawN === 2 ? 1.05 : (rawN === 1 ? 1.00 : 0));
+        const rawTeamScore = rawAvg * rawMult;
+
+        // Outlier / Issue Adjusted Calculation
+        let adjMembers = allDq ? [] : [...validMembers];
+        let outlierExcluded = false;
+        let excludedInfo = null;
+
+        if (!allDq && excludeOutliers && validMembers.length === 3) {
+          const sorted = [...validMembers].sort((a, b) => a.c_i - b.c_i);
+          const lowest = sorted[0];
+          const otherTwo = sorted.slice(1);
+          const otherAvg = (otherTwo[0].c_i + otherTwo[1].c_i) / 2;
+
+          if ((lowest.c_i <= 10 && otherAvg >= 28) || (lowest.has_issue && lowest.c_i < otherAvg - 15)) {
+            adjMembers = otherTwo;
+            outlierExcluded = true;
+            excludedInfo = lowest;
+          }
+        }
+
+        const adjN = adjMembers.length;
+        const adjAvg = adjN > 0 ? adjMembers.reduce((a, b) => a + b.s_i, 0) / adjN : 0;
+        const adjMult = adjN >= 3 ? 1.08 : (adjN === 2 ? 1.05 : (adjN === 1 ? 1.00 : 0));
+        const finalTeamScore = allDq ? 0 : adjAvg * adjMult;
+
+        teamList.push({
+          teamId: tid,
+          teamName: members[0]?.teamName || tid,
+          submittedCount: members.length,
+          validCount: validMembers.length,
+          effectiveCount: adjN,
+          rawScore: Number(rawTeamScore.toFixed(2)),
+          finalScore: Number(finalTeamScore.toFixed(2)),
+          multiplier: adjMult,
+          members: parsedMembers,
+          activeMembers: adjMembers,
+          outlierExcluded: outlierExcluded,
+          excludedInfo: excludedInfo,
+          hasAnyIssue: hasAnyIssue,
+          hasFastMember: parsedMembers.some(m => m.isFast),
+          hasDqMembers: hasDqMembers,
+          dqMembersCount: dqMembersCount,
+          allDq: allDq
+        });
+      });
+
+      // Sort by finalScore descending
+      teamList.sort((a, b) => b.finalScore - a.finalScore || b.rawScore - a.rawScore);
+      evaluatedTeamRankings = teamList;
+
+      // Filter
+      let displayed = [...teamList];
+      if (searchQuery) {
+        displayed = displayed.filter(t => {
+          const matchId = t.teamId.toLowerCase().includes(searchQuery);
+          const matchMem = t.members.some(m => m.name.toLowerCase().includes(searchQuery) || m.email.includes(searchQuery));
+          return matchId || matchMem;
+        });
+      }
+
+      if (statusFilter === 'top100') {
+        displayed = displayed.filter((_, idx) => teamList.indexOf(_) < 100);
+      } else if (statusFilter === 'top32') {
+        displayed = displayed.filter((_, idx) => teamList.indexOf(_) < 32);
+      } else if (statusFilter === 'suspicious') {
+        displayed = displayed.filter(t => t.hasFastMember);
+      } else if (statusFilter === '3mems') {
+        displayed = displayed.filter(t => t.effectiveCount >= 3);
+      } else if (statusFilter === '2mems') {
+        displayed = displayed.filter(t => t.effectiveCount === 2);
+      } else if (statusFilter === '1mem') {
+        displayed = displayed.filter(t => t.effectiveCount === 1);
+      } else if (statusFilter === 'adjusted') {
+        displayed = displayed.filter(t => t.outlierExcluded || t.hasAnyIssue || t.hasDqMembers);
+      }
+
+      if (displayed.length === 0) {
+        container.innerHTML = '<div class="empty-placeholder">No matching teams found.</div>';
+        return;
+      }
+
+      let html = '';
+      displayed.forEach((team) => {
+        const globalRank = teamList.indexOf(team) + 1;
+        const isTop32 = globalRank <= 32 && !team.allDq;
+
+        // Cutoff Banner right before team 33 if viewing list beyond 32
+        if (globalRank === 33 && statusFilter !== 'top32') {
+          html += `
+            <div class="cutoff-banner">
+              --- TOP 32 QUALIFICATION CUTOFF (ROUND 2 ADVANCEMENT) ---
+            </div>
+          `;
+        }
+
+        const rankClass = globalRank === 1 ? 'rank-1' : (globalRank === 2 ? 'rank-2' : (globalRank === 3 ? 'rank-3' : ''));
+        const multLabel = team.effectiveCount >= 3 ? '3 Members × 1.08' : (team.effectiveCount === 2 ? '2 Members × 1.05' : (team.effectiveCount === 1 ? '1 Member × 1.00' : 'None'));
+
+        html += `
+          <div class="team-card ${isTop32 ? 'qualified' : ''} ${team.allDq ? 'all-dq' : ''}" id="team-card-${team.teamId}">
+            <div class="team-card-header">
+              <div style="display:flex;align-items:center;gap:12px;">
+                <div class="rank-badge ${rankClass}">#${globalRank}</div>
+                <div>
+                  <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;">
+                    <span class="team-id-badge">${escapeHtml(team.teamId)}</span>
+                    ${isTop32 ? '<span class="qualified-tag">TOP 32 QUALIFIED</span>' : ''}
+                    ${team.allDq ? '<span class="pill-badge ev-severe" style="font-size:0.68rem;background:rgba(255,71,87,0.25);">DISQUALIFIED (2+ Members DQ\'ed)</span>' : ''}
+                    ${team.hasDqMembers && !team.allDq ? `<span class="pill-badge ev-severe" style="font-size:0.68rem;background:rgba(255,71,87,0.15);">${team.dqMembersCount} Member DQ'ed</span>` : ''}
+                    ${team.outlierExcluded ? '<span class="pill-badge ev-warn" style="font-size:0.68rem;">Outlier Adjusted</span>' : ''}
+                    ${team.hasFastMember ? '<span class="pill-badge ev-severe" style="font-size:0.68rem;">Fast Submission</span>' : ''}
+                  </div>
+                  <div style="color:var(--muted);font-size:0.78rem;margin-top:2px;">
+                    <span>Active: <strong>${team.effectiveCount} Valid Member(s)</strong></span> &bull;
+                    <span>Multiplier: <strong style="color:var(--cyan);">${multLabel}</strong></span>
+                    ${team.hasDqMembers && !team.allDq ? `&bull; <span style="color:var(--red);font-weight:600;">(1 DQ excluded; evaluated on remaining 2 members)</span>` : ''}
+                    ${team.outlierExcluded ? `&bull; <span style="color:var(--orange);">Excluded Outlier: ${escapeHtml(team.excludedInfo?.name)} (${team.excludedInfo?.c_i}/40)</span>` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <div style="text-align:right;">
+                <div class="team-score-num ${isTop32 ? 'silver-top' : (team.allDq ? 'ev-severe' : '')}">${team.finalScore}</div>
+                <div style="font-size:0.72rem;color:var(--muted);margin-top:3px;">
+                  ${team.allDq ? 'Disqualified' : `Score (${team.effectiveCount} valid mems)`}
+                </div>
+                <div style="margin-top:8px;display:flex;justify-content:flex-end;gap:6px;">
+                  ${team.allDq
+                    ? `<button class="btn-act btn-reinit" style="padding:4px 10px;font-size:0.7rem;" onclick="window.toggleTeamDq('${team.teamId}', false)">Reinstate Team</button>`
+                    : `<button class="btn-act btn-dq" style="padding:4px 10px;font-size:0.7rem;background:rgba(255,71,87,0.25);border-color:rgba(255,71,87,0.6);color:#ff4757;font-weight:700;" onclick="window.toggleTeamDq('${team.teamId}', true)">DQ Team</button>`
+                  }
+                </div>
+              </div>
+            </div>
+
+            <!-- Members Breakdown Grid -->
+            <div class="team-members-grid">
+              ${team.members.map(m => {
+                const isExcluded = team.outlierExcluded && team.excludedInfo?.uid === m.uid;
+                const roleLabel = m.role === 'leader' ? 'Leader' : (m.role === 'member2' ? 'Member 2' : 'Member 3');
+                return `
+                  <div class="team-member-tile ${isExcluded ? 'excluded-outlier' : ''} ${m.dq ? 'is-dq' : ''}">
+                    <div style="display:flex;justify-content:space-between;align-items:center;">
+                      <span style="font-weight:700;font-size:0.85rem;color:${m.dq ? 'var(--red)' : (isExcluded ? 'var(--muted)' : '#fff')};">
+                        ${escapeHtml(m.name)}
+                      </span>
+                      <span class="role-badge role-${m.role}" style="font-size:0.6rem;">${roleLabel}</span>
+                    </div>
+                    <div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(m.email)}</div>
+                    
+                    <div style="font-size:0.72rem;color:var(--silver-dark);margin-top:2px;display:flex;gap:8px;flex-wrap:wrap;">
+                      <span>Grade: <strong style="color:var(--silver);">${escapeHtml(m.grade || 'N/A')}</strong></span>
+                      <span>&bull;</span>
+                      <span>Age: <strong style="color:var(--cyan);">${(()=>{ const a=calcAge(m.dob); return a!==null ? a+' yrs' : 'N/A'; })()}</strong></span>
+                      ${m.dob ? `<span style="color:var(--muted);font-size:0.68rem;">(${escapeHtml(m.dob)})</span>` : ''}
+                    </div>
+
+                    <div style="font-size:0.7rem;color:var(--muted);margin-top:3px;display:flex;gap:8px;flex-wrap:wrap;background:rgba(255,255,255,0.02);padding:2px 4px;border-radius:4px;">
+                      <span>Entry: <strong style="color:#cbd5e1;">${escapeHtml(m.startedAtFmt)}</strong></span>
+                      <span>&bull;</span>
+                      <span>Exit: <strong style="color:#cbd5e1;">${escapeHtml(m.submittedAtFmt)}</strong></span>
+                    </div>
+                    
+                    <div style="display:flex;justify-content:space-between;align-items:center;margin-top:4px;padding-top:4px;border-top:1px solid rgba(255,255,255,0.05);">
+                      <div>
+                        <strong style="color:${m.dq ? 'var(--red)' : (m.score_pct >= 90 ? '#2ed573' : (m.score_pct >= 60 ? 'var(--cyan)' : 'var(--red)'))};font-size:0.9rem;${m.dq ? 'text-decoration:line-through;' : ''}">${m.c_i}/40</strong>
+                        <span style="font-size:0.7rem;color:var(--muted);">(${m.score_pct}%)</span>
+                      </div>
+                      <div style="font-size:0.72rem;color:var(--muted);">
+                        <span>G=${m.g_i}</span> &bull; <span>S<sub>i</sub>=${m.s_i.toFixed(1)}</span>
+                      </div>
+                    </div>
+
+                    <div style="display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:0.68rem;margin-top:3px;">
+                      <span style="color:#94a3b8;">Duration: ${m.durStr}</span>
+                      ${m.isFast ? '<span style="color:var(--red);font-weight:700;background:rgba(255,71,87,0.15);padding:1px 5px;border-radius:4px;border:1px solid rgba(255,71,87,0.3);">Fast (&lt; 25m)</span>' : ''}
+                      ${m.isReviewed ? '<span style="color:var(--green);font-weight:700;">Reviewed</span>' : '<span style="color:var(--muted);">Pending</span>'}
+                      ${m.dq ? '<span style="color:var(--red);font-weight:800;background:rgba(255,71,87,0.2);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,71,87,0.5);">DISQUALIFIED</span>' : ''}
+                      ${m.has_issue ? '<span style="color:var(--orange);">Issue reported</span>' : ''}
+                      ${isExcluded ? '<span style="color:var(--red);font-weight:700;">Excluded Outlier</span>' : ''}
+                    </div>
+
+                    <!-- Actions Bar per Member -->
+                    <div style="display:flex;gap:5px;align-items:center;margin-top:6px;padding-top:6px;border-top:1px solid rgba(255,255,255,0.06);flex-wrap:wrap;">
+                      <button class="btn-act btn-snap" style="padding:3px 8px;font-size:0.68rem;min-height:24px;" onclick="window.openSnapshots('${team.teamId}', '${m.uid}', '${escapeHtml(m.name)}', '${m.role}')">
+                        Photos
+                      </button>
+                      <button class="btn-act btn-log" style="padding:3px 8px;font-size:0.68rem;min-height:24px;" onclick="window.openDetails('${m.uid}')">
+                        Log &amp; Answers
+                      </button>
+                      <button class="btn-act ${m.isReviewed ? 'btn-reviewed' : 'btn-unreviewed'}" style="padding:3px 8px;font-size:0.68rem;min-height:24px;" onclick="window.toggleReviewStatus('${team.teamId}', '${m.uid}', ${m.isReviewed})">
+                        ${m.isReviewed ? 'Reviewed' : 'Mark Reviewed'}
+                      </button>
+                      <button class="btn-act ${m.dq ? 'btn-reinit' : 'btn-dq'}" style="padding:3px 8px;font-size:0.68rem;min-height:24px;" onclick="window.toggleMemberDq('${team.teamId}', '${m.uid}', ${m.dq})">
+                        ${m.dq ? 'Reinstate' : 'Disqualify'}
+                      </button>
+                    </div>
+                  </div>
+                `;
+              }).join('')}
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+    // CSV Export for Top 32 Qualified Teams
+    window.exportTeamsCSV = () => {
+      if (!evaluatedTeamRankings || evaluatedTeamRankings.length === 0) {
+        showToast('Please wait for team calculations to complete.');
+        return;
+      }
+
+      const rows = [
+        [
+          'Rank', 'Team ID', 'Qualified Status', 'Final Team Score', 'Raw Score', 'Active Members Count', 'Multiplier', 'Outlier Excluded',
+          'Member 1 Name', 'Member 1 Role', 'Member 1 Grade', 'Member 1 DOB', 'Member 1 Age', 'Member 1 Entry Time', 'Member 1 Exit Time', 'Member 1 Duration', 'Member 1 Score', 'Member 1 Grade Factor',
+          'Member 2 Name', 'Member 2 Role', 'Member 2 Grade', 'Member 2 DOB', 'Member 2 Age', 'Member 2 Entry Time', 'Member 2 Exit Time', 'Member 2 Duration', 'Member 2 Score', 'Member 2 Grade Factor',
+          'Member 3 Name', 'Member 3 Role', 'Member 3 Grade', 'Member 3 DOB', 'Member 3 Age', 'Member 3 Entry Time', 'Member 3 Exit Time', 'Member 3 Duration', 'Member 3 Score', 'Member 3 Grade Factor'
+        ]
+      ];
+
+      evaluatedTeamRankings.forEach((t, idx) => {
+        const rank = idx + 1;
+        const isQual = (rank <= 32 && !t.allDq) ? 'QUALIFIED (Top 32)' : (t.allDq ? 'DISQUALIFIED' : 'Did Not Qualify');
+        const m1 = t.members[0] || {};
+        const m2 = t.members[1] || {};
+        const m3 = t.members[2] || {};
+
+        const getMemFields = (m) => [
+          `"${m.name || ''}"`,
+          `"${m.role || ''}"`,
+          `"${m.grade || ''}"`,
+          `"${m.dob || ''}"`,
+          calcAge(m.dob) !== null ? calcAge(m.dob) : '',
+          `"${m.startedAtFmt || ''}"`,
+          `"${m.submittedAtFmt || ''}"`,
+          `"${m.durStr || ''}"`,
+          `"${m.c_i !== undefined ? m.c_i + '/40' : ''}"`,
+          m.g_i || ''
+        ];
+
+        rows.push([
+          rank,
+          `"${t.teamId}"`,
+          `"${isQual}"`,
+          t.finalScore,
+          t.rawScore,
+          t.effectiveCount,
+          t.multiplier,
+          t.outlierExcluded ? `"${t.excludedInfo?.name} (${t.excludedInfo?.c_i}/40)"` : 'No',
+          ...getMemFields(m1),
+          ...getMemFields(m2),
+          ...getMemFields(m3)
+        ]);
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + rows.map(e => e.join(',')).join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', 'GAAC_2026_Round1_Team_Rankings_Top32.csv');
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      showToast('Exported GAAC_2026_Round1_Team_Rankings_Top32.csv');
+    };
+
+    // Attach event listeners for team filter controls
+    document.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('teams-search-input')?.addEventListener('input', renderTeamLeaderboard);
+      document.getElementById('teams-filter-status')?.addEventListener('change', renderTeamLeaderboard);
+      document.getElementById('teams-chk-outlier')?.addEventListener('change', renderTeamLeaderboard);
+      document.getElementById('teams-chk-grade')?.addEventListener('change', renderTeamLeaderboard);
+    });
 
     // Step 6: Interactive Gallery (Lightbox) with Keyboard & Touch Navigation
     window.openSnapshots = async (teamId, memberUid, memberName, role) => {
@@ -1117,38 +2085,63 @@
       const titleEl = document.getElementById('lb-candidate-title');
 
       titleEl.textContent = `Snapshots: ${memberName} (${teamId})`;
-      thumbsBar.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:20px;">Scanning Storage for snapshots...</div>';
+      thumbsBar.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:20px;">Scanning Storage for candidate snapshots...</div>';
       modal.classList.remove('hidden');
 
       currentGalleryImages = [];
       currentGalleryIndex = 0;
 
       try {
-        const safeName = (memberName || 'unknown').replace(/[^a-zA-Z0-9]/g, '_');
-        const safeRole = (role || 'member').replace(/[^a-zA-Z0-9]/g, '_');
-        const folderName = `${safeName}_${safeRole}`;
+        const sub = allSubmissions.find(s => s.memberUid === memberUid) || {};
+        const memberRoleClean = (role || sub.memberRole || 'leader').toLowerCase().trim();
+        const normRole = memberRoleClean.replace(/[^a-z0-9]/g, '');
+        const normName = (memberName || sub.memberName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
+        const normEmailPrefix = (sub.memberEmail || '').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
 
-        // Discover candidate snapshots folder
+        // Discover candidate snapshots folder under snapshots/round1/{teamId}
         const listRef = storageRef(storage, `snapshots/round1/${teamId}`);
         const rootResult = await listAll(listRef);
 
         const foldersToScan = [];
         rootResult.prefixes.forEach(p => {
-          if (p.name === folderName || p.name === memberUid || p.name.includes(safeName)) {
+          const folderLower = p.name.toLowerCase();
+          const folderClean = folderLower.replace(/[^a-z0-9]/g, '');
+
+          // Check if folder belongs strictly to this member by role, name, or UID
+          let isMatch = false;
+
+          if (normRole === 'leader' && folderClean.includes('leader') && !folderClean.includes('member2') && !folderClean.includes('member3')) {
+            isMatch = true;
+          } else if (normRole === 'member2' && (folderClean.includes('member2') || folderClean.includes('member_2'))) {
+            isMatch = true;
+          } else if (normRole === 'member3' && (folderClean.includes('member3') || folderClean.includes('member_3'))) {
+            isMatch = true;
+          } else if (p.name === memberUid) {
+            isMatch = true;
+          } else if (normName && normName.length > 3 && folderClean.includes(normName)) {
+            // Ensure it doesn't match a different role
+            if (normRole && !folderClean.includes(normRole === 'leader' ? 'member' : 'leader')) {
+              isMatch = true;
+            }
+          }
+
+          if (isMatch) {
             foldersToScan.push(p);
           }
         });
-        if (foldersToScan.length === 0 && rootResult.prefixes.length > 0) {
-          foldersToScan.push(...rootResult.prefixes);
-        } else if (foldersToScan.length === 0) {
-          foldersToScan.push(listRef);
+
+        if (foldersToScan.length === 0) {
+          thumbsBar.innerHTML = `<div style="color:var(--muted);font-size:0.85rem;padding:26px;">No individual snapshots recorded for ${escapeHtml(memberName)} (${escapeHtml(role)}).</div>`;
+          document.getElementById('lb-main-img').src = '';
+          document.getElementById('lb-caption-bar').style.display = 'none';
+          document.getElementById('lb-index-counter').textContent = '0 images';
+          return;
         }
 
         const imageItems = [];
         for (const f of foldersToScan) {
           const res = await listAll(f);
           res.items.forEach(it => imageItems.push({ item: it, isAuto: false }));
-          // Check /auto/ subfolder
           const autoPrefix = res.prefixes.find(p => p.name.toLowerCase() === 'auto');
           if (autoPrefix) {
             const autoRes = await listAll(autoPrefix);
@@ -1157,7 +2150,7 @@
         }
 
         if (imageItems.length === 0) {
-          thumbsBar.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:20px;">No snapshots captured for this member.</div>';
+          thumbsBar.innerHTML = `<div style="color:var(--muted);font-size:0.85rem;padding:26px;">No snapshots captured for ${escapeHtml(memberName)} (${escapeHtml(role)}).</div>`;
           document.getElementById('lb-main-img').src = '';
           document.getElementById('lb-caption-bar').style.display = 'none';
           document.getElementById('lb-index-counter').textContent = '0 images';
@@ -1181,7 +2174,6 @@
           };
         }));
 
-        // Sort chronological
         parsedList.sort((a, b) => a.date - b.date);
         currentGalleryImages = parsedList;
         currentGalleryIndex = 0;
@@ -1230,33 +2222,110 @@
 
       if (cur.isAuto) {
         typeEl.className = 'cap-badge cap-auto';
-        typeEl.textContent = '📸 PERIODIC AUTO CAPTURE';
+        typeEl.textContent = 'PERIODIC AUTO CAPTURE';
         srcEl.textContent = '[Full Screen / Camera]';
       } else {
         typeEl.className = 'cap-badge cap-violation';
-        typeEl.textContent = `🚨 ${cur.violation}`;
-        srcEl.textContent = cur.violation.includes('FACE') || cur.violation.includes('CAMERA') ? '[📷 Camera]' : '[🖥️ Screen Share]';
+        typeEl.textContent = `EVENT: ${cur.violation}`;
+        srcEl.textContent = cur.violation.includes('FACE') || cur.violation.includes('CAMERA') ? '[Camera]' : '[Screen Share]';
       }
 
       timeEl.textContent = cur.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
 
-      // Update active thumbnail
       document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
       const activeThumb = document.getElementById(`thumb-item-${idx}`);
       if (activeThumb) {
         activeThumb.classList.add('active');
         activeThumb.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
       }
+      applyWebcamCrop();
     }
 
     // Gallery Controls
-    document.getElementById('lb-prev-btn').addEventListener('click', () => showGallerySlide(currentGalleryIndex - 1));
-    document.getElementById('lb-next-btn').addEventListener('click', () => showGallerySlide(currentGalleryIndex + 1));
+    document.getElementById('lb-prev-btn').addEventListener('click', () => { showGallerySlide(currentGalleryIndex - 1); });
+    document.getElementById('lb-next-btn').addEventListener('click', () => { showGallerySlide(currentGalleryIndex + 1); });
     document.getElementById('lb-close-btn').addEventListener('click', () => {
       document.getElementById('lightbox-modal').classList.add('hidden');
+      resetZoom();
+      if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
     });
 
-    // Keyboard Arrow Keys Navigation
+    // ---- Focus Webcam Inset (Bottom-Right Crop) ----
+    let isWebcamCropped = false;
+
+    function resetZoom() {
+      isWebcamCropped = false;
+      applyWebcamCrop();
+    }
+
+    function applyWebcamCrop() {
+      const img = document.getElementById('lb-main-img');
+      const cropBtn = document.getElementById('lb-webcam-crop-btn');
+      if (!img) return;
+      if (isWebcamCropped) {
+        img.style.transformOrigin = '90% 90%';
+        img.style.transform = 'scale(3.4)';
+        if (cropBtn) {
+          cropBtn.textContent = 'Full Screenshot';
+          cropBtn.style.background = 'rgba(46,213,115,0.2)';
+          cropBtn.style.borderColor = 'rgba(46,213,115,0.6)';
+          cropBtn.style.color = '#2ed573';
+        }
+      } else {
+        img.style.transformOrigin = 'center center';
+        img.style.transform = 'scale(1)';
+        if (cropBtn) {
+          cropBtn.textContent = 'Focus Webcam Inset';
+          cropBtn.style.background = 'rgba(0,210,255,0.15)';
+          cropBtn.style.borderColor = 'rgba(0,210,255,0.4)';
+          cropBtn.style.color = 'var(--cyan)';
+        }
+      }
+    }
+
+    const cropBtn = document.getElementById('lb-webcam-crop-btn');
+    if (cropBtn) {
+      cropBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        isWebcamCropped = !isWebcamCropped;
+        applyWebcamCrop();
+      });
+    }
+
+    const lbImgWrap = document.getElementById('lb-img-wrap');
+    if (lbImgWrap) {
+      lbImgWrap.style.cursor = 'pointer';
+      lbImgWrap.addEventListener('click', (e) => {
+        if (e.target.closest('#lb-caption-bar')) return;
+        isWebcamCropped = !isWebcamCropped;
+        applyWebcamCrop();
+      });
+    }
+
+    // Fullscreen button
+    const lbFullscreenBtn = document.getElementById('lb-fullscreen-btn');
+    lbFullscreenBtn.addEventListener('click', () => {
+      const lb = document.getElementById('lightbox-modal');
+      if (!document.fullscreenElement) {
+        lb.requestFullscreen().then(() => {
+          lbFullscreenBtn.textContent = 'Exit Fullscreen';
+          lbFullscreenBtn.style.color = '#2ed573';
+        }).catch(() => {});
+      } else {
+        document.exitFullscreen().then(() => {
+          lbFullscreenBtn.textContent = 'Fullscreen';
+          lbFullscreenBtn.style.color = '#94a3b8';
+        }).catch(() => {});
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) {
+        lbFullscreenBtn.textContent = 'Fullscreen';
+        lbFullscreenBtn.style.color = '#94a3b8';
+      }
+    });
+
+    // Keyboard Navigation
     window.addEventListener('keydown', (e) => {
       const lb = document.getElementById('lightbox-modal');
       if (lb && !lb.classList.contains('hidden')) {
@@ -1269,6 +2338,14 @@
         } else if (e.key === 'Escape') {
           e.preventDefault();
           lb.classList.add('hidden');
+          resetZoom();
+          if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+        } else if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          document.getElementById('lb-fullscreen-btn')?.click();
+        } else if (e.key === 'w' || e.key === 'W' || e.key === 'c' || e.key === 'C') {
+          e.preventDefault();
+          document.getElementById('lb-webcam-crop-btn')?.click();
         }
       }
       const dt = document.getElementById('detail-modal');
@@ -1277,47 +2354,142 @@
       }
     });
 
+    // Official Main Round 1 40-Question Answer Key (Sept 5, 2026)
+    const MAIN_R1_ANSWER_KEYS = [
+      "B", "A", "C", "C", "B", "D", "C", "B", "A", "C",
+      "C", "C", "B", "C", "B", "A", "B", "C", "A", "B",
+      "C", "A", "C", "B", "C", "C", "B", "B", "B", "C",
+      "B", "B", "C", "B", "A", "B", "B", "C", "B", "A"
+    ];
+
+    // Official Makeup Round 1 40-Question Answer Key (Sept 7, 2026)
+    const MAKEUP_R1_ANSWER_KEYS = [
+      "B", "C", "B", "B", "B", "B", "B", "B", "B", "A",
+      "D", "C", "A", "B", "B", "B", "B", "C", "A", "B",
+      "C", "D", "C", "A", "A", "C", "A", "B", "B", "B",
+      "B", "C", "B", "B", "A", "A", "A", "A", "C", "B"
+    ];
+
+    function getKeysForSubmission(sub) {
+      if (!sub) return MAIN_R1_ANSWER_KEYS;
+      const subMs = sub.submittedAt
+        ? (typeof sub.submittedAt === 'number' ? sub.submittedAt : (sub.submittedAt.seconds ? sub.submittedAt.seconds * 1000 : (sub.submittedAt.toDate ? sub.submittedAt.toDate().getTime() : new Date(sub.submittedAt).getTime())))
+        : (sub.startedAt ? (typeof sub.startedAt === 'number' ? sub.startedAt : (sub.startedAt.seconds ? sub.startedAt.seconds * 1000 : new Date(sub.startedAt).getTime())) : 0);
+      if (subMs >= 1788796800000) {
+        return MAKEUP_R1_ANSWER_KEYS;
+      }
+      return MAIN_R1_ANSWER_KEYS;
+    }
+
     // Step 7: Detailed Modal (Answers & Event Log)
     window.openDetails = async (memberUid) => {
       const sub = allSubmissions.find(s => s.memberUid === memberUid);
       if (!sub) return;
 
       const modal = document.getElementById('detail-modal');
-      const m = sub.memberData || {};
       const dev = sub.deviceInfo || {};
+      const candidateName = sub.memberName || formatEmailToName(sub.memberEmail);
 
-      document.getElementById('dt-name').textContent = `${m.name || 'Student'} (${sub.memberEmail || ''})`;
-      document.getElementById('dt-meta').textContent = `Team: ${sub.teamName} (${sub.teamId}) &bull; Score: ${sub.score}%`;
+      document.getElementById('dt-name').textContent = `${candidateName} (${sub.memberEmail || ''})`;
+      document.getElementById('dt-meta').textContent = `Team: ${sub.teamName} (${sub.teamId}) • Role: ${sub.memberRole || 'Member'} • Score: ${sub.score}%`;
 
-      // Device Analytics Box
+      // Device Box
       const devBox = document.getElementById('dt-device-box');
       devBox.innerHTML = `
-        <div class="info-tile"><div class="lbl">Device Type</div><div class="val">${dev.deviceType || 'Desktop'}</div></div>
+        <div class="info-tile"><div class="lbl">Device Type</div><div class="val">${dev.isDesktop ? '🖥️ Desktop' : (dev.isTablet ? '📱 Tablet' : '📱 Mobile')} (${dev.deviceType || 'Desktop'})</div></div>
         <div class="info-tile"><div class="lbl">Operating System</div><div class="val">${dev.os || 'Unknown'}</div></div>
         <div class="info-tile"><div class="lbl">Screen Share Required</div><div class="val">${dev.screenShareRequired ? 'Yes' : 'No (Mobile/Tablet)'}</div></div>
         <div class="info-tile"><div class="lbl">Fullscreen Enforced</div><div class="val">${dev.fullscreenRequired ? 'Yes' : 'No'}</div></div>
         <div class="info-tile" style="grid-column: 1 / -1;"><div class="lbl">User Agent</div><div class="val" style="font-size:0.75rem;font-family:monospace;">${escapeHtml(dev.userAgent || 'N/A')}</div></div>
       `;
 
-      // Answers Grid (40 Questions)
+      // Answers Grid (40 Questions with Official Answer Keys)
       const answersGrid = document.getElementById('dt-answers-grid');
       answersGrid.innerHTML = '';
       const ansObj = sub.answers || {};
       const flaggedObj = sub.flagged || {};
+
+      let correctCount = 0;
+      let incorrectCount = 0;
+      let unansweredCount = 0;
+
+      // Ensure summary strip exists
+      let summaryStrip = document.getElementById('dt-answers-summary');
+      if (!summaryStrip) {
+        summaryStrip = document.createElement('div');
+        summaryStrip.id = 'dt-answers-summary';
+        summaryStrip.className = 'ans-summary-strip';
+        answersGrid.parentNode.insertBefore(summaryStrip, answersGrid);
+      }
+
+      const activeKeys = getKeysForSubmission(sub);
+
       for (let i = 1; i <= 40; i++) {
+        const idx = i - 1;
         const qId = `q${i}`;
-        const chosen = ansObj[qId] || '—';
-        const isFlagged = !!flaggedObj[qId];
+        const official = activeKeys[idx] || 'N/A';
+
+        // Check all possible answer key formats in submitted document
+        let chosenRaw = (sub.details && sub.details[idx] && sub.details[idx].userAnswer) !== undefined
+          ? sub.details[idx].userAnswer
+          : ansObj[idx] !== undefined
+          ? ansObj[idx]
+          : ansObj[String(idx)] !== undefined
+          ? ansObj[String(idx)]
+          : ansObj[qId] !== undefined
+          ? ansObj[qId]
+          : ansObj[i] !== undefined
+          ? ansObj[i]
+          : ansObj[String(i)] !== undefined
+          ? ansObj[String(i)]
+          : null;
+
+        const isFlagged = !!flaggedObj[qId] || !!flaggedObj[idx] || !!flaggedObj[String(idx)];
         const div = document.createElement('div');
-        div.className = `ans-box ${isFlagged ? 'flagged' : ''}`;
-        div.innerHTML = `
-          <div class="ans-q">Q${i} ${isFlagged ? '🚩' : ''}</div>
-          <div class="ans-val">${chosen}</div>
-        `;
+
+        if (!chosenRaw || chosenRaw === '—' || String(chosenRaw).trim() === '') {
+          unansweredCount++;
+          div.className = `ans-box ans-unanswered ${isFlagged ? 'flagged' : ''}`;
+          div.innerHTML = `
+            <div class="ans-q">Q${i} ${isFlagged ? '<span style="color:var(--orange);font-weight:700;">[FLAG]</span>' : ''}</div>
+            <div class="ans-val empty-val">—</div>
+            <div class="ans-key">Key: <strong>${official}</strong></div>
+          `;
+        } else {
+          const chosen = String(chosenRaw).trim().toUpperCase();
+          const isCorrect = chosen === official.toUpperCase();
+          if (isCorrect) {
+            correctCount++;
+            div.className = `ans-box ans-correct ${isFlagged ? 'flagged' : ''}`;
+            div.innerHTML = `
+              <div class="ans-q">Q${i} ${isFlagged ? '<span style="color:var(--orange);font-weight:700;">[FLAG]</span>' : ''}</div>
+              <div class="ans-val correct-val">${chosen}</div>
+              <div class="ans-key" style="color:rgba(46,213,115,0.85);">Key: ${official}</div>
+            `;
+          } else {
+            incorrectCount++;
+            div.className = `ans-box ans-incorrect ${isFlagged ? 'flagged' : ''}`;
+            div.innerHTML = `
+              <div class="ans-q">Q${i} ${isFlagged ? '<span style="color:var(--orange);font-weight:700;">[FLAG]</span>' : ''}</div>
+              <div class="ans-val incorrect-val">${chosen}</div>
+              <div class="ans-key" style="color:#2ed573;font-weight:700;">Key: ${official}</div>
+            `;
+          }
+        }
         answersGrid.appendChild(div);
       }
 
-      // Events Log (fetch on-demand)
+      summaryStrip.innerHTML = `
+        <span class="ans-summary-item" style="color:#2ed573;">Correct: ${correctCount}</span>
+        <span>&bull;</span>
+        <span class="ans-summary-item" style="color:#ff4757;">Incorrect: ${incorrectCount}</span>
+        <span>&bull;</span>
+        <span class="ans-summary-item" style="color:var(--muted);">Unanswered: ${unansweredCount}</span>
+        <span>&bull;</span>
+        <span class="ans-summary-item" style="color:var(--cyan);font-family:Orbitron,monospace;margin-left:auto;">Score: ${Math.round((correctCount / 40) * 100)}%</span>
+      `;
+
+      // Events Log (on-demand)
       const evCont = document.getElementById('dt-events-container');
       evCont.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;">Loading events from Firestore...</div>';
       modal.classList.remove('hidden');
@@ -1359,6 +2531,131 @@
     document.getElementById('dt-close-btn').addEventListener('click', () => {
       document.getElementById('detail-modal').classList.add('hidden');
     });
+
+    // Step 8: Team Inspector (Lookup ANY team by ID on-demand)
+    document.getElementById('btn-inspect-team').addEventListener('click', async () => {
+      const teamId = document.getElementById('lookup-team-id').value.trim();
+      const resEl = document.getElementById('inspector-result');
+      if (!teamId) return;
+
+      resEl.innerHTML = '<div class="empty-placeholder">Loading team dossier...</div>';
+
+      try {
+        const [regSnap, teamSnap, examSnap, eventsSnap] = await Promise.all([
+          getDoc(doc(db, 'registrations', teamId)),
+          getDoc(doc(db, 'teams', teamId)),
+          getDocs(collection(db, 'teams', teamId, 'exam')),
+          getDocs(query(collection(db, 'teams', teamId, 'events'), orderBy('timestamp', 'desc')))
+        ]);
+
+        if (!regSnap.exists()) {
+          resEl.innerHTML = `<div class="empty-placeholder" style="color:var(--red);">No registration found for ID "${teamId}".</div>`;
+          return;
+        }
+
+        const reg = regSnap.data();
+        const team = teamSnap.exists() ? teamSnap.data() : {};
+        const members = [
+          { ...reg.leader, role: 'leader', label: 'Team Leader' },
+          reg.member2 ? { ...reg.member2, role: 'member2', label: 'Member 2' } : null,
+          reg.member3 ? { ...reg.member3, role: 'member3', label: 'Member 3' } : null
+        ].filter(Boolean);
+
+        const examDocs = [];
+        examSnap.forEach(d => examDocs.push({ uid: d.id, ...d.data() }));
+
+        let html = `
+          <div class="sub-card" style="margin-bottom:20px;">
+            <div class="card-top">
+              <div>
+                <h3 style="font-size:1.2rem;margin:0 0 4px;">${escapeHtml(reg.teamName)}</h3>
+                <div style="font-size:0.82rem;color:var(--cyan);font-family:Orbitron,monospace;">${teamId}</div>
+              </div>
+              <div class="score-display">
+                <div class="score-num">${team.examScore != null ? team.examScore + '%' : '—'}</div>
+                <div class="score-correct">${team.submittedCount || 0} of ${members.length} Submitted</div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px;">
+        `;
+
+        members.forEach(m => {
+          const mExam = examDocs.find(e => (e.memberEmail && e.memberEmail.toLowerCase() === (m.email || '').toLowerCase()) || e.memberRole === m.role);
+          const isSubmitted = mExam && mExam.status === 'submitted';
+          const isInProgress = mExam && mExam.status === 'in-progress';
+          const mScore = mExam?.score != null ? mExam.score + '%' : (mExam?.examScore != null ? mExam.examScore + '%' : '—');
+
+          html += `
+            <div class="info-tile" style="padding:14px;">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
+                <span class="role-badge role-${m.role}">${m.label}</span>
+                <span class="pill-badge" style="color:${isSubmitted ? 'var(--green)' : (isInProgress ? 'var(--cyan)' : 'var(--muted)')};">
+                  ${mExam?.status || 'Not Started'}
+                </span>
+              </div>
+              <div style="font-size:0.95rem;font-weight:700;color:#fff;">${escapeHtml(m.name || 'N/A')}</div>
+              <div style="font-size:0.78rem;color:var(--muted);">${escapeHtml(m.email || '')}</div>
+              <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">${escapeHtml(m.school || '')} &bull; ${escapeHtml(m.country || '')}</div>
+              <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.8rem;color:var(--muted);">Score: <strong style="color:var(--cyan);">${mScore}</strong></span>
+                ${mExam ? `
+                  <button class="btn-act btn-snap" style="padding:4px 10px;font-size:0.72rem;min-height:28px;" onclick="window.openSnapshots('${teamId}', '${mExam.memberUid || mExam.uid}', '${escapeHtml(m.name)}', '${m.role}')">
+                    📸 Photos
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+
+        resEl.innerHTML = html;
+      } catch (e) {
+        resEl.innerHTML = `<div class="empty-placeholder" style="color:var(--red);">Error inspecting team: ${e.message}</div>`;
+      }
+    });
+
+    // Step 9: Schedule Control
+    async function initScheduleControl() {
+      const functions = getFunctions(app);
+      const statusFn = httpsCallable(functions, 'getCompetitionStatus');
+      try {
+        const res = await statusFn();
+        const data = res.data || {};
+        if (data.round1OpenAt) document.getElementById('mock-start-at').value = toLocalInput(data.round1OpenAt);
+        if (data.round1CloseAt) document.getElementById('mock-close-at').value = toLocalInput(data.round1CloseAt);
+      } catch (e) {
+        console.warn('Failed to load schedule control:', e);
+      }
+
+      document.getElementById('btn-save-mock-schedule').addEventListener('click', async () => {
+        const statusEl = document.getElementById('mock-save-status');
+        statusEl.textContent = 'Saving...';
+        const updateFn = httpsCallable(functions, 'updateCompetitionControl');
+        try {
+          const payload = {
+            round1OpenAt: new Date(document.getElementById('mock-start-at').value).getTime(),
+            round1CloseAt: new Date(document.getElementById('mock-close-at').value).getTime()
+          };
+          await updateFn(payload);
+          statusEl.textContent = 'Saved successfully!';
+          setTimeout(() => { statusEl.textContent = ''; }, 3000);
+        } catch (e) {
+          statusEl.textContent = 'Error: ' + e.message;
+        }
+      });
+    }
+
+    const toLocalInput = (epoch) => {
+      const d = new Date(epoch);
+      const p = (n) => String(n).padStart(2, '0');
+      return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`;
+    };
 
     // Search and Filter Listeners
     document.getElementById('search-input').addEventListener('input', renderSubmissions);

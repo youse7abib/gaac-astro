@@ -54,6 +54,14 @@ service cloud.firestore {
     }
 
     // ================================================================
+    // 0) COLLECTION GROUP QUERIES (admin only)
+    //    Enables collectionGroup('exam') queries for the admin panel.
+    // ================================================================
+    match /{path=**}/exam/{examId} {
+      allow read: if isAdmin();
+    }
+
+    // ================================================================
     // 1) SETTINGS
     // ================================================================
     match /settings/counter {

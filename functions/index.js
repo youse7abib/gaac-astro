@@ -449,33 +449,27 @@ exports.getCompetitionStatus = onCall(async (request) => {
   return snap.data();
 });
 
-/**
- * Server-authoritative Round 1 status + server clock. The client uses this
- * (NOT its own Date.now()) to decide whether entry is open, so candidates with
- * a wrong device clock all see the same window. Returns the server timestamp
- * (ms) so the client can offset any client-side countdown drift.
- */
+const MAKEUP_ELIGIBLE_EMAILS = new Set(["abdelrahman.usf.4blue@gmail.com", "abdelrhman15sayed16@gmail.com", "abelwegayehu95@gmail.com", "abhijeetjha1190@gmail.com", "aboomrwalaa@gmail.com", "ac3691252@gmail.com", "ahmadkamran1829@gmail.com", "ahmedmedhatt40@gmail.com", "ahmedmohamed222333777@gmail.com", "am0376176@gmail.com", "amira.1825507@stemksheikh.moe.edu.eg", "amiragad712@gmail.com", "ammarahmedezzat9@gmail.com", "amr.2525017@stemelsadat.moe.edu.eg", "arsemamengistu@gmail.com", "arsemawitmulualem@gmail.com", "astronomyclub64@gmai.com", "astronomyclub64@gmail.com", "ayelemilkesa372@gmail.com", "ayumi1552009@gmail.com", "bezawitshiferaw12@gmail.com", "caltubona964@gmail.com", "chakir2roma@gmail.com", "chattaraj.chhanda1234@gmail.com", "christinapaulos67@gmail.com", "dezwag24@gmail.com", "efriabiy21@gmail.com", "essaihmariam1984@gmail.com", "f2farwaq@gmail.com", "firtuna72@gmail.com", "geniusastroboy1347@gmail.com", "giovanniemad94@gmail.com", "haidaraibrahim2010@gmail.com", "halaabdelrahim75@gmail.com", "hannaalemnew@gmail.com", "hibabouyi91@gmail.com", "hiwotmuluken634@gmail.com", "ibrahim.hamdi.rizk@gmail.com", "islamgharbi2412@gmail.com", "janaramy932009@gmail.com", "jaydennggg@gmail.com", "johnelvistaye@gmail.com", "jounir0tharwat@gmail.com", "keku.getachew.edu@gmail.com", "khensaniimbodii@gmail.com", "kofiopuni11@gmail.com", "koppongboat234@gmail.com", "letienxinhgai123@gmail.com", "linda.19.1.dh@gmail.com", "liyabaye83@gmail.com", "loginagaber45@gmail.com", "lunaabay20@gmail.com", "mahleteyasu6@gmail.com", "malakakrami24@gmail.com", "malakalaa1704@gmail.com", "mariamalix3@gmail.com", "mariamsalah90009@gmail.com", "maxynentiforo@gmail.com", "mekdelawit1128@gmail.com", "meklitsolomon322@gmail.com", "miiiitser@gmail.com", "muhand.1325010@stemdakahlia.moe.edu.eg", "natanim.gashaw12@gmail.com", "nattyzeray10@gmail.com", "niranjanbarhate64@gmail.com", "nsmhsd88@gmail.com", "oomarplayer123@gmail.com", "oubennayichraq@gmail.com", "pantheral101202@gmail.com", "pillewan2008@gmail.com", "rababch807@gmail.com", "radwa12k@gmail.com", "raghedrara81@gmail.com", "rayalaswapna1989@gmail.com", "redietgarkebo@gmail.com", "reginanketiaantwi@gmail.com", "retajelkazafy@gmail.com", "rihanamhmd12345@gmail.com", "sefankumela@gmail.com", "sndsahmd490@gmail.com", "surafelayanew1@gmail.com", "surafelayanew@gmail.com", "swayampratap061@gmail.com", "sweetnanola.6@gmail.com", "tadehilu4@gmail.com", "tajsobeh470@gmail.com", "tamoujantnour@gmail.com", "tamoujanttamoujant@gmail.com", "teslamichael22@gmail.com", "tewodrosmusse036@gmail.com", "the19238@gmail.com", "www.agyekumhenry999@gmail.com", "yafetameha1@gmaul.com", "yousrelghreeb277@gmail.com", "youssifahmed104@gmail.com", "zainabtaha938@gmail.com", "zemaryamgetu14@gmail.com"]);
+const MAKEUP_ELIGIBLE_TEAMS = new Set(["0371", "0570", "0683", "086", "2026-1897", "8uLWYfRcK$(ka", "Abystar", "Ado", "Astronova", "CAAC-2026-1848", "Cosmic outliers", "GAAC 2026", "GAAC-1881", "GAAC-2026-0033", "GAAC-2026-0045", "GAAC-2026-0053", "GAAC-2026-0088", "GAAC-2026-0095", "GAAC-2026-0133", "GAAC-2026-0174", "GAAC-2026-0271", "GAAC-2026-0278", "GAAC-2026-0319", "GAAC-2026-0339", "GAAC-2026-0397", "GAAC-2026-0409", "GAAC-2026-0421", "GAAC-2026-0455", "GAAC-2026-0466", "GAAC-2026-0479", "GAAC-2026-0538", "GAAC-2026-0542", "GAAC-2026-0549", "GAAC-2026-0554", "GAAC-2026-0607", "GAAC-2026-0618", "GAAC-2026-0694", "GAAC-2026-0711", "GAAC-2026-0762", "GAAC-2026-0768", "GAAC-2026-0780", "GAAC-2026-0793", "GAAC-2026-0801", "GAAC-2026-0819", "GAAC-2026-0864", "GAAC-2026-0901", "GAAC-2026-0912", "GAAC-2026-0919", "GAAC-2026-0955", "GAAC-2026-1004", "GAAC-2026-1017", "GAAC-2026-1024", "GAAC-2026-1033", "GAAC-2026-1048", "GAAC-2026-1066", "GAAC-2026-1142", "GAAC-2026-1190", "GAAC-2026-1257", "GAAC-2026-1314", "GAAC-2026-1351", "GAAC-2026-1580", "GAAC-2026-1681", "GAAC-2026-1689", "GAAC-2026-1731", "GAAC-2026-1748", "GAAC-2026-1776", "GAAC-2026-1778", "GAAC-2026-1796", "GAAC-2026-1826", "GAAC-2026-1856", "GAAC-2026-1860", "GAAC-2026-1917", "GAAC-2026-1924", "GAAC-2026-1928", "GAAC-2026-1947", "GAAC-2026-2001", "Hala", "I don't know what it is", "Layer Sater", "Nanolaa", "Orbitx", "Salvatores", "SkySecured", "THE BLACK COSMOS", "The Celestial Three", "The invincibles", "Yym1uHbfDQ0c0dhg", "thats the problem", "vV7jZ!HHaVZx@Xl", "\u0627\u062d\u0645\u062f \u0645\u062d\u0645\u062f \u062d\u0627\u0645\u062f"]);
+
 exports.getRound1Status = onCall(async (request) => {
   const snap = await db.collection('settings').doc('competition').get();
   const d = snap.exists ? snap.data() : {};
   return {
     now: Date.now(),
-    openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 5, 16, 0, 0),  // 7:00 PM GMT+3
-    closeAt: typeof d.round1CloseAt === 'number' ? d.round1CloseAt : Date.UTC(2026, 8, 5, 17, 0, 0), // 8:00 PM GMT+3
-    startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 5, 16, 0, 0), // 7:00 PM GMT+3
+    openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 7, 16, 0, 0),  // 7:00 PM GMT+3 (Sept 7)
+    closeAt: typeof d.round1CloseAt === 'number' ? d.round1CloseAt : Date.UTC(2026, 8, 7, 17, 0, 0), // 8:00 PM GMT+3 (Sept 7)
+    startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 7, 16, 0, 0), // 7:00 PM GMT+3 (Sept 7)
     round1Open: d.round1Open !== false
   };
 });
 
-/* Round 1 questions, served server-side from a private JSON file with an in-memory cache.
- * Questions are loaded ONCE into memory and reused for every student/request — zero per-student Firestore reads.
- * Answer keys are NEVER returned to clients; scoring trigger uses Firestore answerKeys (or memory fallback).
- */
 const round1QuestionsCache = { data: null };
 
 function getPrivateRound1Questions() {
   if (round1QuestionsCache.data) return round1QuestionsCache.data;
   try {
+    delete require.cache[require.resolve('./r1_questions.json')];
     const raw = require('./r1_questions.json');
     round1QuestionsCache.data = raw.map(q => ({
       id: q.id,
@@ -497,14 +491,36 @@ exports.getRound1Questions = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Must be logged in.');
   }
+  const email = (request.auth.token.email || '').toLowerCase().trim();
+  let isEligible = MAKEUP_ELIGIBLE_EMAILS.has(email);
+
+  if (!isEligible) {
+    try {
+      const tmSnap = await db.collection('teamMembers').doc(request.auth.uid).get();
+      if (tmSnap.exists) {
+        const tid = (tmSnap.data().teamId || '').trim();
+        if (MAKEUP_ELIGIBLE_TEAMS.has(tid)) isEligible = true;
+      }
+    } catch (e) { /* ignore */ }
+  }
+
+  if (!isEligible) {
+    try {
+      const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+      if (adminDoc.exists && adminDoc.data().isAdmin) isEligible = true;
+    } catch (e) { /* ignore */ }
+  }
+
+  if (!isEligible) {
+    throw new HttpsError('permission-denied', 'This special makeup exam is strictly reserved for candidates and teams who encountered verified technical issues and received official email approval.');
+  }
+
   const questions = getPrivateRound1Questions();
   return { questions, cached: true };
 });
 
 /**
- * Admin: sync Round 1 correct answers from private JSON into Firestore collection
- * (round1/round1/answerKeys) for scoring and auditing.
- */
+ * Admin: sync Round 1
 exports.syncRound1AnswerKeys = onCall(async (request) => {
   if (!request.auth) {
     throw new HttpsError('unauthenticated', 'Must be logged in.');

@@ -19,3 +19,10 @@ deploy-*.log
 # admin-only. These MUST never reach the public repo.
 js/r1_dummy_questions.json
 js/r1_dummy_answers.json
+js/r1_questions.json
+functions/r1_questions.json
+extracted_raw_questions.json
+scratch_*.json
+firebase-debug.log
+
+

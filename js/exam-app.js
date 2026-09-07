@@ -79,9 +79,9 @@ const getDeviceInfo = () => {
 let r1ServerOffset = 0;          // ms to add to Date.now() to approximate server time
 let r1Window = { openAt: 0, closeAt: 0, startAt: 0 };
 const R1_DEFAULT = {
-  openAt: Date.UTC(2026, 8, 5, 16, 0, 0),   // 7:00 PM GMT+3
-  closeAt: Date.UTC(2026, 8, 5, 17, 0, 0),  // 8:00 PM GMT+3
-  startAt: Date.UTC(2026, 8, 5, 16, 0, 0)   // 7:00 PM GMT+3
+  openAt: Date.UTC(2026, 8, 7, 16, 0, 0),   // 7:00 PM GMT+3 (Sept 7)
+  closeAt: Date.UTC(2026, 8, 7, 17, 0, 0),  // 8:00 PM GMT+3 (Sept 7)
+  startAt: Date.UTC(2026, 8, 7, 16, 0, 0)   // 7:00 PM GMT+3 (Sept 7)
 };
 let r1ServerReady = false;
 
@@ -200,11 +200,18 @@ const init = async () => {
 
     // Check if the team was reset or if no active in-progress exam doc exists in Firestore
     let isStaleAttempt = false;
+    const MAKEUP_WINDOW_START = Date.UTC(2026, 8, 7, 16, 0, 0);
+
     if (!hasExamDoc || examData.status !== 'in-progress' || teamData.status === 'registered' || teamData.examStatus === 'registered') {
       isStaleAttempt = true;
-    } else if (resetAt > 0 && examData.startedAt) {
+    } else if (examData.startedAt) {
       const examStartedMs = examData.startedAt.toMillis ? examData.startedAt.toMillis() : new Date(examData.startedAt).getTime();
-      if (examStartedMs < resetAt) {
+      if (examStartedMs < MAKEUP_WINDOW_START || (resetAt > 0 && examStartedMs < resetAt)) {
+        isStaleAttempt = true;
+      }
+    } else if (examData.endTime) {
+      const examEndMs = typeof examData.endTime === 'number' ? examData.endTime : new Date(examData.endTime).getTime();
+      if (examEndMs <= Date.now()) {
         isStaleAttempt = true;
       }
     }
@@ -593,6 +600,11 @@ const loadRoundQuestions = async () => {
         .filter(q => q.text && Array.isArray(q.options));
     }
   } catch (e) {
+    if (e.code === 'permission-denied' || (e.message && (e.message.includes('permission-denied') || e.message.includes('reserved')))) {
+      const msg = e.message || 'This special makeup exam is strictly reserved for candidates and teams who encountered verified technical issues and received official email approval.';
+      showMessage(msg);
+      throw new Error(msg);
+    }
     console.warn('[round1] Question function unavailable, falling back:', e.message || e);
   }
 
