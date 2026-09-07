@@ -311,8 +311,9 @@
 
 <div id="competitions-panel" class="competitions-panel">
             <div class="comp-head">
-              <h2><span class="text-blue">Round 1</span></h2>
-              <p class="sub">Round 1 takes place on <strong>5 September 2026 at <span id="r1-local-open-time">7:00 PM</span> in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong id="r1-local-close-time">8:00 PM</strong> in your local time.</p>
+              <h2><span class="text-blue">Round 1 Make-up</span></h2>
+              <p class="sub">Round 1 Make-up takes place on <strong>7 September 2026 at <span id="r1-local-open-time">7:00 PM</span> in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong id="r1-local-close-time">8:00 PM</strong> in your local time.</p>
+              <p class="sub" style="color:#ffb86b;">This make-up exam is available only to candidates who received an official email confirming that their Round 1 issue and excuse were accepted. Anyone whose request was not accepted, or who successfully completed Round 1 on 5 September 2026, will be disqualified (DQ) if they attempt this exam.</p>
             </div>
             <div id="mock-card" class="mock-card">
               <div class="mock-row">
@@ -334,8 +335,8 @@
                   <span class="mock-cell-value" id="mock-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="mock-schedule-note">Loading Round 1 schedule…</p>
-              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Round 1 Exam</button>
+              <p class="mock-sub" id="mock-schedule-note">Loading Round 1 Make-up schedule…</p>
+              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Round 1 Make-up</button>
             </div>
           </div>
         </div>
@@ -713,11 +714,17 @@ const app = initializeApp(firebaseConfig);
     }
 
 // ----- Round 1: schedule-driven entry (no portal login) -----
-    // Round 1 window (Cairo, GMT+3): entry opens 7:00 PM and closes 8:00 PM on
-    // Sept 5, 2026. The countdown is calibrated to the server clock so that
+    // Round 1 Make-up window (Cairo, GMT+3): entry opens 7:00 PM and closes 8:00 PM on
+    // Sept 7, 2026. The countdown is calibrated to the server clock so that
     // every device (whatever its wall clock) sees the exact same remaining time.
     const MAKEUP_ELIGIBLE_EMAILS = new Set(["abdelrahman.usf.4blue@gmail.com", "abdelrhman15sayed16@gmail.com", "abelwegayehu95@gmail.com", "abhijeetjha1190@gmail.com", "aboomrwalaa@gmail.com", "ac3691252@gmail.com", "ahmadkamran1829@gmail.com", "ahmedmedhatt40@gmail.com", "ahmedmohamed222333777@gmail.com", "am0376176@gmail.com", "amira.1825507@stemksheikh.moe.edu.eg", "amiragad712@gmail.com", "ammarahmedezzat9@gmail.com", "amr.2525017@stemelsadat.moe.edu.eg", "arsemamengistu@gmail.com", "arsemawitmulualem@gmail.com", "astronomyclub64@gmai.com", "astronomyclub64@gmail.com", "ayelemilkesa372@gmail.com", "ayumi1552009@gmail.com", "bezawitshiferaw12@gmail.com", "caltubona964@gmail.com", "chakir2roma@gmail.com", "chattaraj.chhanda1234@gmail.com", "christinapaulos67@gmail.com", "dezwag24@gmail.com", "efriabiy21@gmail.com", "essaihmariam1984@gmail.com", "f2farwaq@gmail.com", "firtuna72@gmail.com", "geniusastroboy1347@gmail.com", "giovanniemad94@gmail.com", "haidaraibrahim2010@gmail.com", "halaabdelrahim75@gmail.com", "hannaalemnew@gmail.com", "hibabouyi91@gmail.com", "hiwotmuluken634@gmail.com", "ibrahim.hamdi.rizk@gmail.com", "islamgharbi2412@gmail.com", "janaramy932009@gmail.com", "jaydennggg@gmail.com", "johnelvistaye@gmail.com", "jounir0tharwat@gmail.com", "keku.getachew.edu@gmail.com", "khensaniimbodii@gmail.com", "kofiopuni11@gmail.com", "koppongboat234@gmail.com", "letienxinhgai123@gmail.com", "linda.19.1.dh@gmail.com", "liyabaye83@gmail.com", "loginagaber45@gmail.com", "lunaabay20@gmail.com", "mahleteyasu6@gmail.com", "malakakrami24@gmail.com", "malakalaa1704@gmail.com", "mariamalix3@gmail.com", "mariamsalah90009@gmail.com", "maxynentiforo@gmail.com", "mekdelawit1128@gmail.com", "meklitsolomon322@gmail.com", "miiiitser@gmail.com", "muhand.1325010@stemdakahlia.moe.edu.eg", "natanim.gashaw12@gmail.com", "nattyzeray10@gmail.com", "niranjanbarhate64@gmail.com", "nsmhsd88@gmail.com", "oomarplayer123@gmail.com", "oubennayichraq@gmail.com", "pantheral101202@gmail.com", "pillewan2008@gmail.com", "rababch807@gmail.com", "radwa12k@gmail.com", "raghedrara81@gmail.com", "rayalaswapna1989@gmail.com", "redietgarkebo@gmail.com", "reginanketiaantwi@gmail.com", "retajelkazafy@gmail.com", "rihanamhmd12345@gmail.com", "sefankumela@gmail.com", "sndsahmd490@gmail.com", "surafelayanew1@gmail.com", "surafelayanew@gmail.com", "swayampratap061@gmail.com", "sweetnanola.6@gmail.com", "tadehilu4@gmail.com", "tajsobeh470@gmail.com", "tamoujantnour@gmail.com", "tamoujanttamoujant@gmail.com", "teslamichael22@gmail.com", "tewodrosmusse036@gmail.com", "the19238@gmail.com", "www.agyekumhenry999@gmail.com", "yafetameha1@gmaul.com", "yousrelghreeb277@gmail.com", "youssifahmed104@gmail.com", "zainabtaha938@gmail.com", "zemaryamgetu14@gmail.com"]);
     const MAKEUP_ELIGIBLE_TEAMS = new Set(["0371", "0570", "0683", "086", "2026-1897", "8uLWYfRcK$(ka", "Abystar", "Ado", "Astronova", "CAAC-2026-1848", "Cosmic outliers", "GAAC 2026", "GAAC-1881", "GAAC-2026-0033", "GAAC-2026-0045", "GAAC-2026-0053", "GAAC-2026-0088", "GAAC-2026-0095", "GAAC-2026-0133", "GAAC-2026-0174", "GAAC-2026-0271", "GAAC-2026-0278", "GAAC-2026-0319", "GAAC-2026-0339", "GAAC-2026-0397", "GAAC-2026-0409", "GAAC-2026-0421", "GAAC-2026-0455", "GAAC-2026-0466", "GAAC-2026-0479", "GAAC-2026-0538", "GAAC-2026-0542", "GAAC-2026-0549", "GAAC-2026-0554", "GAAC-2026-0607", "GAAC-2026-0618", "GAAC-2026-0694", "GAAC-2026-0711", "GAAC-2026-0762", "GAAC-2026-0768", "GAAC-2026-0780", "GAAC-2026-0793", "GAAC-2026-0801", "GAAC-2026-0819", "GAAC-2026-0864", "GAAC-2026-0901", "GAAC-2026-0912", "GAAC-2026-0919", "GAAC-2026-0955", "GAAC-2026-1004", "GAAC-2026-1017", "GAAC-2026-1024", "GAAC-2026-1033", "GAAC-2026-1048", "GAAC-2026-1066", "GAAC-2026-1142", "GAAC-2026-1190", "GAAC-2026-1257", "GAAC-2026-1314", "GAAC-2026-1351", "GAAC-2026-1580", "GAAC-2026-1681", "GAAC-2026-1689", "GAAC-2026-1731", "GAAC-2026-1748", "GAAC-2026-1776", "GAAC-2026-1778", "GAAC-2026-1796", "GAAC-2026-1826", "GAAC-2026-1856", "GAAC-2026-1860", "GAAC-2026-1917", "GAAC-2026-1924", "GAAC-2026-1928", "GAAC-2026-1947", "GAAC-2026-2001", "Hala", "I don't know what it is", "Layer Sater", "Nanolaa", "Orbitx", "Salvatores", "SkySecured", "THE BLACK COSMOS", "The Celestial Three", "The invincibles", "Yym1uHbfDQ0c0dhg", "thats the problem", "vV7jZ!HHaVZx@Xl", "\u0627\u062d\u0645\u062f \u0645\u062d\u0645\u062f \u062d\u0627\u0645\u062f"]);
+    const MAKEUP_APPROVED_EMAILS = new Set(["abdelrhman15sayed16@gmail.com", "abelwegayehu95@gmail.com", "abhijeetjha1190@gmail.com", "aboomrwalaa@gmail.com", "ac3691252@gmail.com", "ahmadkamran1829@gmail.com", "ahmedmedhatt40@gmail.com", "ahmedmohamed222333777@gmail.com", "amira.1825507@stemksheikh.moe.edu.eg", "amiragad712@gmail.com", "ammarahmedezzat9@gmail.com", "amr.2525017@stemelsadat.moe.edu.eg", "arsemawitmulualem@gmail.com", "ayelemilkesa372@gmail.com", "ayumi1552009@gmail.com", "bezawitshiferaw12@gmail.com", "caltubona964@gmail.com", "chakir2roma@gmail.com", "chattaraj.chhanda1234@gmail.com", "christinapaulos67@gmail.com", "dedam@gmail.com", "dezwag24@gmail.com", "efriabiy21@gmail.com", "essaihmariam1984@gmail.com", "f2farwaq@gmail.com", "firtuna72@gmail.com", "geniusastroboy1347@gmail.com", "haidaraibrahim2010@gmail.com", "halaabdelrahim75@gmail.com", "hannaalemnew@gmail.com", "hibabouyi91@gmail.com", "hiwotmuluken634@gmail.com", "ibrahim.hamdi.rizk@gmail.com", "islamgharbi2412@gmail.com", "janaramy932009@gmail.com", "jaydennggg@gmail.com", "johnelvistaye@gmail.com", "jounir0tharwat@gmail.com", "keku.getachew.edu@gmail.com", "khensaniimbodii@gmail.com", "kofiopuni11@gmail.com", "koppongboat234@gmail.com", "letienxinhgai123@gmail.com", "linda.19.1.dh@gmail.com", "liyabaye83@gmail.com", "loginagaber45@gmail.com", "mahleteyasu6@gmail.com", "malakakrami24@gmail.com", "malakstemer90@gmail.com", "mariamalix3@gmail.com", "mariamsalah90009@gmail.com", "maxynentiforo@gmail.com", "meklitsolomon322@gmail.com", "mnaguib30@manaraschool.org", "muhand.1325010@stemdakahlia.moe.edu.eg", "nattyzeray10@gmail.com", "niranjanbarhate64@gmail.com", "nsmhsd88@gmail.com", "oomarplayer123@gmail.com", "oubennayichraq@gmail.com", "pantheral101202@gmail.com", "pillewan2008@gmail.com", "rababch807@gmail.com", "radwa12k@gmail.com", "reginanketiaant@gmail.com", "retajelkazafy@gmail.com", "rihanamhmd12345@gmail.com", "sefankumela@gmail.com", "surafelayanew@gmail.com", "swayampratap061@gmail.com", "sweetnanola.6@gmail.com", "tadehilu4@gmail.com", "teslamichael22@gmail.com", "tewodrosmusse036@gmail.com", "the19238@gmail.com", "www.agyekumhenry999@gmail.com", "yafetameha1@gmaul.com", "yousrelghreeb277@gmail.com", "zemaryamgetu14@gmail.com"]);
+    const MAKEUP_ADMIN_EMAIL = 'astronomyclub64@gmail.com';
+    MAKEUP_APPROVED_EMAILS.delete('islamgharbi2412@gmail.com');
+    MAKEUP_APPROVED_EMAILS.delete('reginanketiaant@gmail.com');
+    MAKEUP_APPROVED_EMAILS.add('reginanketiaantwi@gmail.com');
+    ['giovanniemad94@gmail.com', 'lunaabay20@gmail.com', 'malakalaa1704@gmail.com', 'raghedrara81@gmail.com', 'youssifahmed104@gmail.com'].forEach(email => MAKEUP_APPROVED_EMAILS.add(email));
 
     const R1_DEFAULT = {
       r1OpenAt: Date.UTC(2026, 8, 7, 16, 0, 0),    // 7:00 PM Cairo (Sept 7)
@@ -763,6 +770,17 @@ const app = initializeApp(firebaseConfig);
       const noteEl = document.getElementById('mock-schedule-note');
       const btn = document.getElementById('btn-enter-mock');
       if (!statusEl || !noteEl || !pill) return;
+      const currentEmail = norm(auth.currentUser?.email || '');
+      const makeupAllowed = MAKEUP_APPROVED_EMAILS.has(currentEmail) || currentEmail === MAKEUP_ADMIN_EMAIL;
+      if (!makeupAllowed) {
+        pill.classList.remove('cc-open');
+        pill.classList.add('cc-closed');
+        statusEl.textContent = 'Restricted';
+        setMockCells('00', '00', '00');
+        noteEl.textContent = 'This Round 1 Make-up is restricted to candidates whose issue and excuse were officially accepted by email. Unauthorized entry attempts may result in DQ.';
+        if (btn) btn.style.display = 'none';
+        return;
+      }
       const now = Date.now() + r1ServerOffsetMs;
       const { r1OpenAt, r1CloseAt } = r1Schedule;
       if (now < r1OpenAt) {
@@ -770,7 +788,7 @@ const app = initializeApp(firebaseConfig);
         statusEl.textContent = 'Opens';
         const { h, m, s } = fmtCountdown(r1OpenAt - now);
         setMockCells(h, m, s);
-        noteEl.textContent = `Round 1 opens at ${cairoClock(r1OpenAt)} (Cairo, GMT+3). All devices count down in sync.`;
+        noteEl.textContent = `Round 1 Make-up opens at ${cairoClock(r1OpenAt)} (Cairo, GMT+3). All devices count down in sync.`;
         if (btn) btn.style.display = 'none';
       } else if (now < r1CloseAt) {
         pill.classList.add('cc-open');
@@ -778,14 +796,14 @@ const app = initializeApp(firebaseConfig);
         statusEl.textContent = 'Open \u00b7 Closes ' + cairoClock(r1CloseAt);
         const { h, m, s } = fmtCountdown(r1CloseAt - now);
         setMockCells(h, m, s);
-        noteEl.textContent = `Enter anytime until ${cairoClock(r1CloseAt)} (Cairo, GMT+3). Your 60-minute timer starts once you approve the requirements.`;
+        noteEl.textContent = `Enter Round 1 Make-up anytime until ${cairoClock(r1CloseAt)} (Cairo, GMT+3). Your 60-minute timer starts once you approve the requirements.`;
         if (btn) btn.style.display = 'inline-flex';
       } else {
         pill.classList.remove('cc-open');
         pill.classList.add('cc-closed');
         statusEl.textContent = 'Closed';
         setMockCells('00', '00', '00');
-        noteEl.textContent = 'The Round 1 entry window has closed.';
+        noteEl.textContent = 'The Round 1 Make-up entry window has closed.';
         if (btn) btn.style.display = 'none';
       }
     }
@@ -795,6 +813,8 @@ const app = initializeApp(firebaseConfig);
     const btnEnterMock = document.getElementById('btn-enter-mock');
     if (btnEnterMock) {
       btnEnterMock.addEventListener('click', () => {
+        const currentEmail = norm(auth.currentUser?.email || '');
+        if (!MAKEUP_APPROVED_EMAILS.has(currentEmail) && currentEmail !== MAKEUP_ADMIN_EMAIL) return;
         if (!currentTeamId) return;
         window.location.href = `exam.html?team=${encodeURIComponent(currentTeamId)}`;
       });

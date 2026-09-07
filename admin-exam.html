@@ -1057,8 +1057,8 @@
       <div id="view-schedule-control" class="hidden">
         <div style="max-width:860px;margin:28px auto 0;padding:0 20px 40px;">
           <div style="border:1px solid var(--panel-border);border-radius:14px;padding:22px 20px;background:rgba(13,20,36,0.8);">
-            <h2 style="margin:0 0 4px;font-size:1.1rem;">Round 1 <span style="color:var(--cyan);">Schedule Control</span></h2>
-            <p style="color:var(--muted);font-size:0.82rem;margin:0 0 18px;">Live countdown drives the Round 1 entry window (Cairo, GMT+3). Entry opens at <strong style="color:var(--cyan);">7:00 PM</strong> and closes at <strong style="color:var(--cyan);">8:00 PM</strong> on 5 September 2026.</p>
+            <h2 style="margin:0 0 4px;font-size:1.1rem;">Round 1 Make-up <span style="color:var(--cyan);">Schedule Control</span></h2>
+            <p style="color:var(--muted);font-size:0.82rem;margin:0 0 18px;">Live countdown drives the Round 1 Make-up entry window (Cairo, GMT+3). Entry opens at <strong style="color:var(--cyan);">7:00 PM</strong> and closes at <strong style="color:var(--cyan);">8:00 PM</strong> on 7 September 2026.</p>
             <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-bottom:14px;">
               <div>
                 <label style="font-size:0.75rem;display:block;margin-bottom:6px;color:var(--muted);">Entry window opens</label>
@@ -1070,7 +1070,7 @@
               </div>
             </div>
             <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;">
-              <button class="button primary" id="btn-save-mock-schedule" style="min-height:38px;font-size:0.8rem;">Save Round 1 Schedule</button>
+              <button class="button primary" id="btn-save-mock-schedule" style="min-height:38px;font-size:0.8rem;">Save Round 1 Make-up Schedule</button>
               <span id="mock-save-status" style="font-size:0.8rem;color:var(--muted);"></span>
             </div>
           </div>
@@ -1836,6 +1836,7 @@
             durStr: durStr,
             isFast: isFast,
             isReviewed: !!m.reviewed,
+            suspect: !!m.suspect,
             has_issue: isIssue,
             dq: !!m.dq
           };
@@ -1893,6 +1894,7 @@
           excludedInfo: excludedInfo,
           hasAnyIssue: hasAnyIssue,
           hasFastMember: parsedMembers.some(m => m.isFast),
+          hasSuspectMember: parsedMembers.some(m => m.suspect),
           hasDqMembers: hasDqMembers,
           dqMembersCount: dqMembersCount,
           allDq: allDq
@@ -1952,7 +1954,7 @@
         const multLabel = team.effectiveCount >= 3 ? '3 Members × 1.08' : (team.effectiveCount === 2 ? '2 Members × 1.05' : (team.effectiveCount === 1 ? '1 Member × 1.00' : 'None'));
 
         html += `
-          <div class="team-card ${isTop32 ? 'qualified' : ''} ${team.allDq ? 'all-dq' : ''}" id="team-card-${team.teamId}">
+          <div class="team-card ${isTop32 ? 'qualified' : ''} ${team.allDq ? 'all-dq' : ''} ${team.hasSuspectMember && !team.allDq ? 'is-suspect' : ''}" id="team-card-${team.teamId}">
             <div class="team-card-header">
               <div style="display:flex;align-items:center;gap:12px;">
                 <div class="rank-badge ${rankClass}">#${globalRank}</div>
@@ -1964,6 +1966,7 @@
                     ${team.hasDqMembers && !team.allDq ? `<span class="pill-badge ev-severe" style="font-size:0.68rem;background:rgba(255,71,87,0.15);">${team.dqMembersCount} Member DQ'ed</span>` : ''}
                     ${team.outlierExcluded ? '<span class="pill-badge ev-warn" style="font-size:0.68rem;">Outlier Adjusted</span>' : ''}
                     ${team.hasFastMember ? '<span class="pill-badge ev-severe" style="font-size:0.68rem;">Fast Submission</span>' : ''}
+                    ${team.hasSuspectMember && !team.allDq ? '<span class="pill-badge suspect-badge" style="font-size:0.68rem;">⚑ Suspect Member</span>' : ''}
                   </div>
                   <div style="color:var(--muted);font-size:0.78rem;margin-top:2px;">
                     <span>Active: <strong>${team.effectiveCount} Valid Member(s)</strong></span> &bull;
@@ -2033,6 +2036,7 @@
                       ${m.dq ? '<span style="color:var(--red);font-weight:800;background:rgba(255,71,87,0.2);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,71,87,0.5);">DISQUALIFIED</span>' : ''}
                       ${m.has_issue ? '<span style="color:var(--orange);">Issue reported</span>' : ''}
                       ${isExcluded ? '<span style="color:var(--red);font-weight:700;">Excluded Outlier</span>' : ''}
+                      ${m.suspect ? '<span style="color:#ffd600;font-weight:700;background:rgba(255,214,0,0.15);padding:1px 6px;border-radius:4px;border:1px solid rgba(255,214,0,0.45);">⚑ Suspect</span>' : ''}
                     </div>
 
                     <!-- Actions Bar per Member -->
@@ -2045,6 +2049,9 @@
                       </button>
                       <button class="btn-act ${m.isReviewed ? 'btn-reviewed' : 'btn-unreviewed'}" style="padding:3px 8px;font-size:0.68rem;min-height:24px;" onclick="window.toggleReviewStatus('${team.teamId}', '${m.uid}', ${m.isReviewed})">
                         ${m.isReviewed ? 'Reviewed' : 'Mark Reviewed'}
+                      </button>
+                      <button class="btn-act ${m.suspect ? 'btn-unsuspect' : 'btn-suspect'}" style="padding:3px 8px;font-size:0.68rem;min-height:24px;" onclick="window.toggleSuspectFlag('${team.teamId}', '${m.uid}', ${m.suspect})">
+                        ${m.suspect ? '⚑ Remove Flag' : '⚐ Flag Suspect'}
                       </button>
                       <button class="btn-act ${m.dq ? 'btn-reinit' : 'btn-dq'}" style="padding:3px 8px;font-size:0.68rem;min-height:24px;" onclick="window.toggleMemberDq('${team.teamId}', '${m.uid}', ${m.dq})">
                         ${m.dq ? 'Reinstate' : 'Disqualify'}
