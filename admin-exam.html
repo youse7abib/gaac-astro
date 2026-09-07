@@ -311,6 +311,7 @@
     .pill-badge.dq-badge { background: rgba(255, 71, 87, 0.25); color: var(--red); border: 1px solid var(--red); }
     .pill-badge.reviewed-badge { background: rgba(46, 213, 115, 0.18); color: var(--green); border: 1px solid rgba(46, 213, 115, 0.4); }
     .pill-badge.pending-badge { background: rgba(255, 255, 255, 0.05); color: var(--muted); border: 1px solid rgba(255, 255, 255, 0.1); }
+    .pill-badge.suspect-badge { background: rgba(255, 214, 0, 0.18); color: #ffd600; border: 1px solid rgba(255, 214, 0, 0.5); font-weight: 700; }
 
     .card-actions-bar {
       display: flex;
@@ -379,6 +380,28 @@
       background: rgba(46, 213, 115, 0.1);
       border: 1px solid rgba(46, 213, 115, 0.4);
       color: var(--green);
+    }
+    .btn-act.btn-suspect {
+      background: rgba(255, 214, 0, 0.1);
+      border: 1px solid rgba(255, 214, 0, 0.45);
+      color: #ffd600;
+    }
+    .btn-act.btn-suspect:hover {
+      background: rgba(255, 214, 0, 0.22);
+    }
+    .btn-act.btn-unsuspect {
+      background: rgba(255, 214, 0, 0.2);
+      border: 1px solid rgba(255, 214, 0, 0.6);
+      color: #ffd600;
+    }
+    .btn-act.btn-unsuspect:hover {
+      background: rgba(255, 214, 0, 0.08);
+      border-color: rgba(255, 255, 255, 0.15);
+      color: #94a3b8;
+    }
+    .sub-card.is-suspect {
+      border-color: rgba(255, 214, 0, 0.55) !important;
+      box-shadow: 0 0 0 1px rgba(255, 214, 0, 0.3), 0 4px 24px rgba(255, 214, 0, 0.07) !important;
     }
 
     /* Lightbox Modal */
@@ -1381,6 +1404,8 @@
             dq: !!(data.dq || data.disqualified),
             reviewed: !!(data.reviewed || data.isReviewed),
             reviewedAt: data.reviewedAt || null,
+            suspect: !!(data.suspect),
+            suspectUpdatedAt: data.suspectUpdatedAt || null,
             answers: data.answers || {},
             flagged: data.flagged || {}
           });
@@ -1491,7 +1516,7 @@
         const candidateName = sub.memberName || formatEmailToName(sub.memberEmail);
 
         html += `
-          <div class="sub-card ${sub.dq ? 'dq-active' : ''} ${severeCount > 0 ? 'has-severe' : ''} ${sub.reviewed ? 'is-reviewed' : ''}" id="sub-card-${sub.memberUid}">
+          <div class="sub-card ${sub.dq ? 'dq-active' : ''} ${severeCount > 0 ? 'has-severe' : ''} ${sub.reviewed ? 'is-reviewed' : ''} ${sub.suspect ? 'is-suspect' : ''}" id="sub-card-${sub.memberUid}">
             <div class="card-top">
               <div class="card-identity">
                 <div class="rank-badge ${rankClass}">#${rank}</div>
@@ -1539,6 +1564,7 @@
                   </span>
                   ${sub.dq ? '<span class="pill-badge dq-badge">DISQUALIFIED</span>' : '<span class="pill-badge" style="color:var(--green);">Valid</span>'}
                   ${sub.reviewed ? '<span class="pill-badge reviewed-badge">Reviewed</span>' : '<span class="pill-badge pending-badge">Pending Review</span>'}
+                  ${sub.suspect ? '<span class="pill-badge suspect-badge">⚑ Suspect</span>' : ''}
                 </div>
               </div>
             </div>
@@ -1552,6 +1578,9 @@
               </button>
               <button class="btn-act btn-log" onclick="window.openDetails('${sub.memberUid}')">
                 Log &amp; Answers
+              </button>
+              <button class="btn-act ${sub.suspect ? 'btn-unsuspect' : 'btn-suspect'}" onclick="window.toggleSuspectFlag('${sub.teamId}', '${sub.memberUid}', ${sub.suspect || false})">
+                ${sub.suspect ? '⚑ Remove Flag' : '⚐ Flag Suspect'}
               </button>
               <button class="btn-act ${sub.dq ? 'btn-reinit' : 'btn-dq'}" onclick="window.toggleMemberDq('${sub.teamId}', '${sub.memberUid}', ${sub.dq})">
                 ${sub.dq ? 'Reinstate Member' : 'DQ Member'}
@@ -1587,6 +1616,30 @@
         renderTeamLeaderboard();
       } catch (e) {
         alert('Failed to update review status: ' + e.message);
+      }
+    };
+
+    // Step 5b: Toggle Suspect Flag (Yellow Flag - "not sure yet")
+    window.toggleSuspectFlag = async (teamId, memberUid, currentSuspect) => {
+      const newSuspect = !currentSuspect;
+      const sub = allSubmissions.find(s => s.memberUid === memberUid);
+      const studentName = sub?.memberName || sub?.memberEmail || 'this student';
+
+      try {
+        await setDoc(doc(db, 'teams', teamId, 'exam', memberUid), {
+          suspect: newSuspect,
+          suspectUpdatedAt: new Date().toISOString()
+        }, { merge: true });
+
+        if (sub) {
+          sub.suspect = newSuspect;
+          setLocalCache(allSubmissions);
+        }
+        showToast(newSuspect ? `⚑ ${studentName} flagged as Suspect 🟡` : `⚐ Suspect flag removed from ${studentName}`);
+        renderSubmissions();
+        renderTeamLeaderboard();
+      } catch (e) {
+        alert('Failed to update suspect flag: ' + e.message);
       }
     };
 
