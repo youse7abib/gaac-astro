@@ -25,6 +25,7 @@ js/*questions*.json
 js/*answers*.json
 functions/*questions*.json
 functions/*answers*.json
+functions/makeup_allowlist.json
 *question*.json
 *answer*.json
 pdf/*Questions*.pdf
