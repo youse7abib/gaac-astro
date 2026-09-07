@@ -2252,6 +2252,9 @@
 
     // ---- Focus Webcam Inset (Bottom-Right Crop) ----
     let isWebcamCropped = false;
+    let webcamCropOriginX = 92;
+    let webcamCropOriginY = 90;
+    let webcamCropScale = 4.5;
 
     function resetZoom() {
       isWebcamCropped = false;
@@ -2263,8 +2266,8 @@
       const cropBtn = document.getElementById('lb-webcam-crop-btn');
       if (!img) return;
       if (isWebcamCropped) {
-        img.style.transformOrigin = '96% 96%';
-        img.style.transform = 'scale(3.6)';
+        img.style.transformOrigin = `${webcamCropOriginX}% ${webcamCropOriginY}%`;
+        img.style.transform = `scale(${webcamCropScale})`;
         if (cropBtn) {
           cropBtn.textContent = 'Full Screenshot';
           cropBtn.style.background = 'rgba(46,213,115,0.2)';

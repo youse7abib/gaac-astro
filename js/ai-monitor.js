@@ -49,8 +49,8 @@ export class AIMonitor {
   _createCameraUI() {
     const container = document.createElement('div');
     container.style.position = 'fixed';
-    container.style.bottom = '4px';
-    container.style.right = '4px';
+    container.style.bottom = '10px';
+    container.style.right = '10px';
     container.style.width = '144px';
     container.style.height = '108px';
     container.style.borderRadius = '12px';
