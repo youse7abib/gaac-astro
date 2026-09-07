@@ -1159,7 +1159,7 @@
     const storage = getStorage(app);
 
     const ADMIN_EMAIL = 'astronomyclub64@gmail.com';
-    const CACHE_KEY = 'gaac_admin_exam_subs_cache_v4';
+    const CACHE_KEY = 'gaac_admin_exam_subs_cache_v5';
 
     let allSubmissions = [];
     let round1Submissions = [];
@@ -1449,7 +1449,10 @@
             country: country,
             score: score,
             correctCount: data.correctCount != null ? data.correctCount : null,
+            incorrectCount: data.incorrectCount != null ? data.incorrectCount : null,
             answeredCount: answeredCount,
+            unansweredCount: data.unansweredCount != null ? data.unansweredCount : null,
+            totalQuestions: data.totalQuestions != null ? data.totalQuestions : 40,
             hasAnswers: hasAnswers,
             deviceInfo: data.deviceInfo || {},
             startedAt: data.startedAt || null,
@@ -1462,7 +1465,8 @@
             suspect: !!(data.suspect),
             suspectUpdatedAt: data.suspectUpdatedAt || null,
             answers: data.answers || {},
-            flagged: data.flagged || {}
+            flagged: data.flagged || {},
+            details: Array.isArray(data.details) ? data.details : []
           });
         });
 
@@ -1831,29 +1835,15 @@
         if (tid === 'unknown') return;
         if (!teamMap.has(tid)) teamMap.set(tid, []);
 
-        // Recalculate exact C_i correct count using active keys for this submission
-        let c_i = 0;
-        const ansObj = sub.answers || {};
-        const activeKeys = getKeysForSubmission(sub);
-        for (let idx = 0; idx < 40; idx++) {
-          const qId = `q${idx + 1}`;
-          let chosenRaw = (sub.details && sub.details[idx] && sub.details[idx].userAnswer) !== undefined
-            ? sub.details[idx].userAnswer
-            : ansObj[idx] !== undefined
-            ? ansObj[idx]
-            : ansObj[String(idx)] !== undefined
-            ? ansObj[String(idx)]
-            : ansObj[qId] !== undefined
-            ? ansObj[qId]
-            : ansObj[idx + 1] !== undefined
-            ? ansObj[idx + 1]
-            : null;
-          if (chosenRaw && String(chosenRaw).trim().toUpperCase() === activeKeys[idx]) {
-            c_i++;
-          }
-        }
+        // Scores are computed server-side against the private answer key.
+        // Do not re-grade in the browser: the make-up question set differs
+        // from Round 1 and client-side grading may drift from the audit record.
+        const c_i = Number.isFinite(sub.correctCount) ? sub.correctCount : 0;
+        const totalQuestions = Number.isFinite(sub.totalQuestions) && sub.totalQuestions > 0
+          ? sub.totalQuestions
+          : 40;
         sub.c_i = c_i;
-        sub.score_pct = Math.round((c_i / 40) * 100);
+        sub.score_pct = Math.round((c_i / totalQuestions) * 100);
         teamMap.get(tid).push(sub);
       });
 
@@ -2527,33 +2517,6 @@
       }
     });
 
-    // Official Main Round 1 40-Question Answer Key (Sept 5, 2026)
-    const MAIN_R1_ANSWER_KEYS = [
-      "B", "A", "C", "C", "B", "D", "C", "B", "A", "C",
-      "C", "C", "B", "C", "B", "A", "B", "C", "A", "B",
-      "C", "A", "C", "B", "C", "C", "B", "B", "B", "C",
-      "B", "B", "C", "B", "A", "B", "B", "C", "B", "A"
-    ];
-
-    // Official Makeup Round 1 40-Question Answer Key (Sept 7, 2026)
-    const MAKEUP_R1_ANSWER_KEYS = [
-      "B", "C", "B", "B", "B", "B", "B", "B", "B", "A",
-      "D", "C", "A", "B", "B", "B", "B", "C", "A", "B",
-      "C", "D", "C", "A", "A", "C", "A", "B", "B", "B",
-      "B", "C", "B", "B", "A", "A", "A", "A", "C", "B"
-    ];
-
-    function getKeysForSubmission(sub) {
-      if (!sub) return MAIN_R1_ANSWER_KEYS;
-      const subMs = sub.submittedAt
-        ? (typeof sub.submittedAt === 'number' ? sub.submittedAt : (sub.submittedAt.seconds ? sub.submittedAt.seconds * 1000 : (sub.submittedAt.toDate ? sub.submittedAt.toDate().getTime() : new Date(sub.submittedAt).getTime())))
-        : (sub.startedAt ? (typeof sub.startedAt === 'number' ? sub.startedAt : (sub.startedAt.seconds ? sub.startedAt.seconds * 1000 : new Date(sub.startedAt).getTime())) : 0);
-      if (subMs >= 1788796800000) {
-        return MAKEUP_R1_ANSWER_KEYS;
-      }
-      return MAIN_R1_ANSWER_KEYS;
-    }
-
     // Step 7: Detailed Modal (Answers & Event Log)
     window.openDetails = async (memberUid) => {
       const sub = allSubmissions.find(s => s.memberUid === memberUid);
@@ -2576,15 +2539,25 @@
         <div class="info-tile" style="grid-column: 1 / -1;"><div class="lbl">User Agent</div><div class="val" style="font-size:0.75rem;font-family:monospace;">${escapeHtml(dev.userAgent || 'N/A')}</div></div>
       `;
 
-      // Answers Grid (40 Questions with Official Answer Keys)
+      // Answers Grid. The scoring function stores the authoritative per-question
+      // audit record, so this view never recalculates with browser-held keys.
       const answersGrid = document.getElementById('dt-answers-grid');
       answersGrid.innerHTML = '';
       const ansObj = sub.answers || {};
       const flaggedObj = sub.flagged || {};
-
-      let correctCount = 0;
-      let incorrectCount = 0;
-      let unansweredCount = 0;
+      const details = Array.isArray(sub.details) ? sub.details : [];
+      const totalQuestions = Number.isFinite(sub.totalQuestions) && sub.totalQuestions > 0
+        ? sub.totalQuestions
+        : 40;
+      const correctCount = Number.isFinite(sub.correctCount)
+        ? sub.correctCount
+        : details.filter(detail => detail.result === 'correct').length;
+      const incorrectCount = Number.isFinite(sub.incorrectCount)
+        ? sub.incorrectCount
+        : details.filter(detail => detail.result === 'incorrect').length;
+      const unansweredCount = Number.isFinite(sub.unansweredCount)
+        ? sub.unansweredCount
+        : details.filter(detail => detail.result === 'unanswered').length;
 
       // Ensure summary strip exists
       let summaryStrip = document.getElementById('dt-answers-summary');
@@ -2595,16 +2568,16 @@
         answersGrid.parentNode.insertBefore(summaryStrip, answersGrid);
       }
 
-      const activeKeys = getKeysForSubmission(sub);
-
-      for (let i = 1; i <= 40; i++) {
+      for (let i = 1; i <= totalQuestions; i++) {
         const idx = i - 1;
         const qId = `q${i}`;
-        const official = activeKeys[idx] || 'N/A';
+        const audit = details.find(detail => detail.questionNumber === i || detail.questionId === qId) || null;
+        const official = audit?.correctAnswer || null;
 
-        // Check all possible answer key formats in submitted document
-        let chosenRaw = (sub.details && sub.details[idx] && sub.details[idx].userAnswer) !== undefined
-          ? sub.details[idx].userAnswer
+        // Prefer the exact answer the scoring function used, then support
+        // older documents that only stored the raw answers object.
+        let chosenRaw = audit && audit.userAnswer !== undefined
+          ? audit.userAnswer
           : ansObj[idx] !== undefined
           ? ansObj[idx]
           : ansObj[String(idx)] !== undefined
@@ -2620,32 +2593,35 @@
         const isFlagged = !!flaggedObj[qId] || !!flaggedObj[idx] || !!flaggedObj[String(idx)];
         const div = document.createElement('div');
 
-        if (!chosenRaw || chosenRaw === '—' || String(chosenRaw).trim() === '') {
-          unansweredCount++;
+        if (audit?.result === 'unanswered' || !chosenRaw || chosenRaw === '—' || String(chosenRaw).trim() === '') {
           div.className = `ans-box ans-unanswered ${isFlagged ? 'flagged' : ''}`;
           div.innerHTML = `
             <div class="ans-q">Q${i} ${isFlagged ? '<span style="color:var(--orange);font-weight:700;">[FLAG]</span>' : ''}</div>
             <div class="ans-val empty-val">—</div>
-            <div class="ans-key">Key: <strong>${official}</strong></div>
+            <div class="ans-key">${official ? `Key: <strong>${official}</strong>` : 'Not scored yet'}</div>
           `;
         } else {
           const chosen = String(chosenRaw).trim().toUpperCase();
-          const isCorrect = chosen === official.toUpperCase();
-          if (isCorrect) {
-            correctCount++;
+          if (audit?.result === 'correct') {
             div.className = `ans-box ans-correct ${isFlagged ? 'flagged' : ''}`;
             div.innerHTML = `
               <div class="ans-q">Q${i} ${isFlagged ? '<span style="color:var(--orange);font-weight:700;">[FLAG]</span>' : ''}</div>
               <div class="ans-val correct-val">${chosen}</div>
-              <div class="ans-key" style="color:rgba(46,213,115,0.85);">Key: ${official}</div>
+              <div class="ans-key" style="color:rgba(46,213,115,0.85);">Key: ${official || 'Verified'}</div>
             `;
-          } else {
-            incorrectCount++;
+          } else if (audit?.result === 'incorrect') {
             div.className = `ans-box ans-incorrect ${isFlagged ? 'flagged' : ''}`;
             div.innerHTML = `
               <div class="ans-q">Q${i} ${isFlagged ? '<span style="color:var(--orange);font-weight:700;">[FLAG]</span>' : ''}</div>
               <div class="ans-val incorrect-val">${chosen}</div>
-              <div class="ans-key" style="color:#2ed573;font-weight:700;">Key: ${official}</div>
+              <div class="ans-key" style="color:#2ed573;font-weight:700;">Key: ${official || 'Verified'}</div>
+            `;
+          } else {
+            div.className = `ans-box ${isFlagged ? 'flagged' : ''}`;
+            div.innerHTML = `
+              <div class="ans-q">Q${i} ${isFlagged ? '<span style="color:var(--orange);font-weight:700;">[FLAG]</span>' : ''}</div>
+              <div class="ans-val">${chosen}</div>
+              <div class="ans-key">Awaiting score record</div>
             `;
           }
         }
@@ -2659,7 +2635,7 @@
         <span>&bull;</span>
         <span class="ans-summary-item" style="color:var(--muted);">Unanswered: ${unansweredCount}</span>
         <span>&bull;</span>
-        <span class="ans-summary-item" style="color:var(--cyan);font-family:Orbitron,monospace;margin-left:auto;">Score: ${Math.round((correctCount / 40) * 100)}%</span>
+        <span class="ans-summary-item" style="color:var(--cyan);font-family:Orbitron,monospace;margin-left:auto;">Score: ${Math.round((correctCount / totalQuestions) * 100)}%</span>
       `;
 
       // Events Log (on-demand)
