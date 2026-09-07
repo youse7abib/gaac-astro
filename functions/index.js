@@ -125,6 +125,7 @@ exports.scoreExam = onDocumentWritten(
     const data = event.data.after.data();
     if (!data || data.status !== 'submitted') return;
     if (data.scored) return;
+    const isMakeupAttempt = data.examType === 'round1-makeup' || examId.endsWith('_makeup');
 
     const answers = data.answers || {};
 
@@ -213,6 +214,13 @@ exports.scoreExam = onDocumentWritten(
         scoredAt: FieldValue.serverTimestamp()
       });
 
+      // A make-up attempt is scored independently for admin review, but must
+      // never overwrite the original Round 1 team totals or leaderboard data.
+      if (isMakeupAttempt) {
+        console.log(`Make-up attempt ${teamId}/${examId} scored ${score}% (${correctCount}/${totalQuestions})`);
+        return;
+      }
+
       const submittedSnap = await db
         .collection('teams')
         .doc(teamId)
@@ -227,11 +235,20 @@ exports.scoreExam = onDocumentWritten(
       let teamEventCount = 0;
       let teamSevereEventCount = 0;
       let teamDisqualified = false;
+      let eligibleSubmittedCount = 0;
 
       submittedSnap.forEach((doc) => {
         const examData = doc.id === examId
           ? { ...doc.data(), scored: true, score, correctCount, totalQuestions, eventCount: data.eventCount || 0, severeEventCount: data.severeEventCount || 0, disqualified: data.disqualified || false }
           : doc.data();
+
+        const isMakeupDoc = examData.examType === 'round1-makeup' || doc.id.endsWith('_makeup');
+        const hasAnswers = Object.values(examData.answers || {}).some(answer =>
+          answer !== null && answer !== undefined && String(answer).trim() !== ''
+        );
+        if (isMakeupDoc || !hasAnswers) return;
+
+        eligibleSubmittedCount++;
 
         if (examData.scored && typeof examData.score === 'number') {
           scoredCount++;
@@ -244,14 +261,14 @@ exports.scoreExam = onDocumentWritten(
         teamDisqualified = teamDisqualified || examData.disqualified === true;
       });
 
-      const teamScore = scoredCount > 0 ? Math.round(scoreSum / scoredCount) : score;
+      const teamScore = scoredCount > 0 ? Math.round(scoreSum / scoredCount) : null;
       await db.collection('teams').doc(teamId).set({
         examScore: teamScore,
-        examPassed: teamScore >= 40,
-        examStatus: scoredCount === submittedSnap.size ? 'scored' : 'scoring',
-        submittedCount: submittedSnap.size,
-        correctCount: teamCorrectCount || correctCount,
-        totalQuestions: teamTotalQuestions || totalQuestions,
+        examPassed: teamScore !== null && teamScore >= 40,
+        examStatus: scoredCount === eligibleSubmittedCount ? 'scored' : 'scoring',
+        submittedCount: eligibleSubmittedCount,
+        correctCount: teamCorrectCount,
+        totalQuestions: teamTotalQuestions,
         eventCount: teamEventCount,
         severeEventCount: teamSevereEventCount,
         disqualified: teamDisqualified

@@ -910,7 +910,10 @@
       <!-- Top Navigation Tabs -->
       <div class="top-tabs">
         <button class="top-tab-btn active" id="tab-btn-all" onclick="window.switchTab('all')">
-          All Submissions (Individual)
+          Round 1 Submissions
+        </button>
+        <button class="top-tab-btn" id="tab-btn-makeup" onclick="window.switchTab('makeup')">
+          Round 1 Make-up
         </button>
         <button class="top-tab-btn" id="tab-btn-teams" onclick="window.switchTab('teams')">
           Team Leaderboard (Top 100 / Top 32)
@@ -1156,13 +1159,53 @@
     const storage = getStorage(app);
 
     const ADMIN_EMAIL = 'astronomyclub64@gmail.com';
-    const CACHE_KEY = 'gaac_admin_exam_subs_cache_v3';
+    const CACHE_KEY = 'gaac_admin_exam_subs_cache_v4';
 
     let allSubmissions = [];
+    let round1Submissions = [];
+    let makeupSubmissions = [];
+    let activeSubmissionView = 'round1';
     const registrationCache = new Map();
     let currentGalleryImages = [];
     let currentGalleryIndex = 0;
     let isSyncing = false;
+    let dashboardInitialized = false;
+    let evaluatedTeamRankings = [];
+
+    function isMakeupSubmission(submission) {
+      return submission?.examType === 'round1-makeup'
+        || String(submission?.memberUid || submission?.id || '').endsWith('_makeup');
+    }
+
+    function setSubmissionData(submissions) {
+      allSubmissions = Array.isArray(submissions) ? submissions : [];
+      round1Submissions = allSubmissions.filter(submission => !isMakeupSubmission(submission));
+      makeupSubmissions = allSubmissions.filter(isMakeupSubmission);
+    }
+
+    function getActiveSubmissions() {
+      const source = activeSubmissionView === 'makeup' ? makeupSubmissions : round1Submissions;
+      return source.filter(submission => submission.hasAnswers !== false);
+    }
+
+    function getRegisteredMembers(teamId) {
+      const registration = registrationCache.get(String(teamId).toLowerCase().trim());
+      if (!registration) return [];
+      return [
+        registration.leader ? { ...registration.leader, role: 'leader', label: 'Leader' } : null,
+        registration.member2 ? { ...registration.member2, role: 'member2', label: 'Member 2' } : null,
+        registration.member3 ? { ...registration.member3, role: 'member3', label: 'Member 3' } : null
+      ].filter(Boolean);
+    }
+
+    function refreshActiveSubmissionView() {
+      const submissions = getActiveSubmissions();
+      updateStats(submissions);
+      renderSubmissions();
+      if (!document.getElementById('view-team-leaderboard').classList.contains('hidden')) {
+        renderTeamLeaderboard();
+      }
+    }
 
     // Tab switching
     window.switchTab = (tabName) => {
@@ -1170,12 +1213,17 @@
       const btn = document.getElementById(`tab-btn-${tabName}`);
       if (btn) btn.classList.add('active');
 
-      document.getElementById('view-all-submissions').classList.toggle('hidden', tabName !== 'all');
+      const isSubmissionTab = tabName === 'all' || tabName === 'makeup';
+      if (isSubmissionTab) activeSubmissionView = tabName === 'makeup' ? 'makeup' : 'round1';
+
+      document.getElementById('view-all-submissions').classList.toggle('hidden', !isSubmissionTab);
       document.getElementById('view-team-leaderboard').classList.toggle('hidden', tabName !== 'teams');
       document.getElementById('view-team-inspector').classList.toggle('hidden', tabName !== 'lookup');
       document.getElementById('view-schedule-control').classList.toggle('hidden', tabName !== 'schedule');
 
-      if (tabName === 'teams') {
+      if (isSubmissionTab) {
+        refreshActiveSubmissionView();
+      } else if (tabName === 'teams') {
         renderTeamLeaderboard();
       }
     };
@@ -1314,16 +1362,18 @@
 
     // Step 1: Initial Dashboard Loader (Instant from Cache, 0 reads)
     async function initDashboard() {
+      if (dashboardInitialized) return;
+      dashboardInitialized = true;
       initScheduleControl();
       const cached = getLocalCache();
       if (cached && Array.isArray(cached.data) && cached.data.length > 0) {
-        allSubmissions = cached.data;
-        updateStats(allSubmissions);
-        renderSubmissions();
-        updateCacheBadge(cached.timestamp, cached.data.length, true);
-      } else {
-        syncSubmissionsFromFirestore();
+        setSubmissionData(cached.data);
+        refreshActiveSubmissionView();
+        updateCacheBadge(cached.timestamp, getActiveSubmissions().length, true);
       }
+      // Cache is only a fast first paint. Always refresh so the leaderboard
+      // includes current submissions and roster information.
+      syncSubmissionsFromFirestore();
     }
 
     // Step 2: High Performance Sync (Single collectionGroup query, zero extra calls)
@@ -1353,6 +1403,8 @@
         regSnap.forEach(d => {
           regMap.set(d.id.toLowerCase().trim(), d.data());
         });
+        registrationCache.clear();
+        regMap.forEach((registration, teamId) => registrationCache.set(teamId, registration));
 
         const list = [];
         snap.forEach(d => {
@@ -1362,6 +1414,7 @@
           const email = (data.memberEmail || '').toLowerCase().trim();
           const score = typeof data.score === 'number' ? data.score : (typeof data.examScore === 'number' ? data.examScore : 0);
           const answeredCount = data.answers ? Object.keys(data.answers).length : 0;
+          const hasAnswers = Object.values(data.answers || {}).some(answer => answer !== null && answer !== undefined && String(answer).trim() !== '');
           const role = (data.memberRole || 'member').toLowerCase().trim();
           const name = data.memberName || formatEmailToName(email);
 
@@ -1384,6 +1437,7 @@
           list.push({
             id: d.id,
             memberUid: d.id,
+            examType: data.examType || (d.id.endsWith('_makeup') ? 'round1-makeup' : 'round1'),
             teamId: teamId,
             teamName: regDoc.teamName || teamId,
             memberEmail: email,
@@ -1396,6 +1450,7 @@
             score: score,
             correctCount: data.correctCount != null ? data.correctCount : null,
             answeredCount: answeredCount,
+            hasAnswers: hasAnswers,
             deviceInfo: data.deviceInfo || {},
             startedAt: data.startedAt || null,
             submittedAt: data.submittedAt || null,
@@ -1411,12 +1466,11 @@
           });
         });
 
-        allSubmissions = list;
+        setSubmissionData(list);
         setLocalCache(allSubmissions);
-        updateStats(allSubmissions);
-        renderSubmissions();
-        updateCacheBadge(Date.now(), allSubmissions.length, false);
-        showToast(`Synced ${allSubmissions.length} submissions successfully!`);
+        refreshActiveSubmissionView();
+        updateCacheBadge(Date.now(), getActiveSubmissions().length, false);
+        showToast(`Synced ${round1Submissions.filter(s => s.hasAnswers !== false).length} Round 1 and ${makeupSubmissions.filter(s => s.hasAnswers !== false).length} make-up submissions.`);
       } catch (err) {
         console.error('Error syncing submissions:', err);
         if (allSubmissions.length === 0) {
@@ -1468,7 +1522,7 @@
       const statusFilter = document.getElementById('filter-status').value;
       const sortOrder = document.getElementById('sort-order').value;
 
-      let list = [...allSubmissions];
+      let list = [...getActiveSubmissions()];
 
       // Instant In-Memory Search Filter
       if (searchQuery) {
@@ -1611,9 +1665,7 @@
           setLocalCache(allSubmissions);
         }
         showToast(newReviewed ? `${studentName} marked as Reviewed ✅` : `${studentName} marked as Pending ⏳`);
-        updateStats(allSubmissions);
-        renderSubmissions();
-        renderTeamLeaderboard();
+        refreshActiveSubmissionView();
       } catch (e) {
         alert('Failed to update review status: ' + e.message);
       }
@@ -1636,8 +1688,7 @@
           setLocalCache(allSubmissions);
         }
         showToast(newSuspect ? `⚑ ${studentName} flagged as Suspect 🟡` : `⚐ Suspect flag removed from ${studentName}`);
-        renderSubmissions();
-        renderTeamLeaderboard();
+        refreshActiveSubmissionView();
       } catch (e) {
         alert('Failed to update suspect flag: ' + e.message);
       }
@@ -1664,9 +1715,7 @@
           setLocalCache(allSubmissions);
         }
         showToast(`${studentName} ${newDq ? 'disqualified' : 'reinstated'} successfully!`);
-        updateStats(allSubmissions);
-        renderSubmissions();
-        renderTeamLeaderboard();
+        refreshActiveSubmissionView();
       } catch (e) {
         alert('Failed to update DQ status: ' + e.message);
       }
@@ -1674,7 +1723,8 @@
 
     // Step 6b: Toggle WHOLE TEAM DQ
     window.toggleTeamDq = async (teamId, setDq) => {
-      const teamSubs = allSubmissions.filter(s => s.teamId === teamId);
+      // Team actions on the Round 1 leaderboard must never modify make-up attempts.
+      const teamSubs = round1Submissions.filter(s => s.teamId === teamId && s.hasAnswers !== false);
       if (teamSubs.length === 0) { showToast('No submissions found for this team.'); return; }
 
       const action = setDq ? 'DISQUALIFY ALL members of' : 'REINSTATE ALL members of';
@@ -1696,9 +1746,7 @@
         });
         setLocalCache(allSubmissions);
         showToast(`Team ${teamId} — all ${teamSubs.length} member(s) ${setDq ? 'DISQUALIFIED' : 'REINSTATED'}!`);
-        updateStats(allSubmissions);
-        renderSubmissions();
-        renderTeamLeaderboard();
+        refreshActiveSubmissionView();
       } catch (e) {
         alert('Failed to update team DQ status: ' + e.message);
       }
@@ -1769,14 +1817,16 @@
     function renderTeamLeaderboard() {
       const container = document.getElementById('teams-container');
       if (!container) return;
-      const searchQuery = (document.getElementById('teams-search-input')?.value || '').trim().toLowerCase();
-      const statusFilter = document.getElementById('teams-filter-status')?.value || 'top100';
-      const excludeOutliers = document.getElementById('teams-chk-outlier')?.checked ?? true;
-      const applyGradeFactor = document.getElementById('teams-chk-grade')?.checked ?? true;
+      try {
+        const searchQuery = (document.getElementById('teams-search-input')?.value || '').trim().toLowerCase();
+        const statusFilter = document.getElementById('teams-filter-status')?.value || 'top100';
+        const excludeOutliers = document.getElementById('teams-chk-outlier')?.checked ?? true;
+        const applyGradeFactor = document.getElementById('teams-chk-grade')?.checked ?? true;
 
-      // Group allSubmissions by teamId
+      // Round 1 standings intentionally exclude make-up attempts and blank
+      // auto-submissions. A candidate without answers is shown as not entered.
       const teamMap = new Map();
-      allSubmissions.forEach(sub => {
+      round1Submissions.filter(sub => sub.hasAnswers !== false).forEach(sub => {
         const tid = sub.teamId || 'unknown';
         if (tid === 'unknown') return;
         if (!teamMap.has(tid)) teamMap.set(tid, []);
@@ -1810,6 +1860,13 @@
       // Calculate each team's official score
       const teamList = [];
       teamMap.forEach((members, tid) => {
+        const roster = getRegisteredMembers(tid);
+        const absentMembers = roster.filter(rosterMember => !members.some(submission => {
+          const sameEmail = (submission.memberEmail || '').toLowerCase().trim()
+            === (rosterMember.email || '').toLowerCase().trim();
+          const sameRole = (submission.memberRole || '').toLowerCase().trim() === rosterMember.role;
+          return sameEmail || sameRole;
+        }));
         let hasAnyIssue = false;
         const parsedMembers = members.map(m => {
           const email = (m.memberEmail || '').toLowerCase().trim();
@@ -1911,6 +1968,8 @@
           teamId: tid,
           teamName: members[0]?.teamName || tid,
           submittedCount: members.length,
+          rosterCount: roster.length || members.length,
+          absentMembers: absentMembers,
           validCount: validMembers.length,
           effectiveCount: adjN,
           rawScore: Number(rawTeamScore.toFixed(2)),
@@ -1997,6 +2056,7 @@
                     ${team.hasSuspectMember && !team.allDq ? '<span class="pill-badge suspect-badge" style="font-size:0.68rem;">⚑ Suspect Member</span>' : ''}
                   </div>
                   <div style="color:var(--muted);font-size:0.78rem;margin-top:2px;">
+                    <span>Submitted: <strong>${team.submittedCount} of ${team.rosterCount}</strong></span> &bull;
                     <span>Active: <strong>${team.effectiveCount} Valid Member(s)</strong></span> &bull;
                     <span>Multiplier: <strong style="color:var(--cyan);">${multLabel}</strong></span>
                     ${team.hasDqMembers && !team.allDq ? `&bull; <span style="color:var(--red);font-weight:600;">(1 DQ excluded; evaluated on remaining 2 members)</span>` : ''}
@@ -2088,12 +2148,26 @@
                   </div>
                 `;
               }).join('')}
+              ${team.absentMembers.map(m => `
+                <div class="team-member-tile" style="border-style:dashed;border-color:rgba(148,163,184,0.45);opacity:0.78;">
+                  <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <span style="font-weight:700;font-size:0.85rem;color:#cbd5e1;">${escapeHtml(m.name || 'Unknown member')}</span>
+                    <span class="role-badge role-${m.role}" style="font-size:0.6rem;">${escapeHtml(m.label)}</span>
+                  </div>
+                  <div style="font-size:0.72rem;color:var(--muted);">${escapeHtml(m.email || '')}</div>
+                  <div style="margin-top:8px;font-size:0.75rem;color:var(--muted);">Not entered - not included in score</div>
+                </div>
+              `).join('')}
             </div>
           </div>
         `;
       });
 
-      container.innerHTML = html;
+        container.innerHTML = html;
+      } catch (error) {
+        console.error('Failed to render team leaderboard:', error);
+        container.innerHTML = `<div class="empty-placeholder" style="color:var(--red);">Could not calculate team rankings: ${escapeHtml(error.message)}</div>`;
+      }
     }
 
     // CSV Export for Top 32 Qualified Teams
@@ -2662,6 +2736,12 @@
 
         const examDocs = [];
         examSnap.forEach(d => examDocs.push({ uid: d.id, ...d.data() }));
+        const hasSubmittedAnswers = (exam) => Object.values(exam?.answers || {}).some(answer =>
+          answer !== null && answer !== undefined && String(answer).trim() !== ''
+        );
+        const isMakeupExam = (exam) => exam?.examType === 'round1-makeup' || String(exam?.uid || '').endsWith('_makeup');
+        const round1ExamDocs = examDocs.filter(exam => !isMakeupExam(exam));
+        const round1SubmittedCount = round1ExamDocs.filter(exam => exam.status === 'submitted' && hasSubmittedAnswers(exam)).length;
 
         let html = `
           <div class="sub-card" style="margin-bottom:20px;">
@@ -2671,8 +2751,8 @@
                 <div style="font-size:0.82rem;color:var(--cyan);font-family:Orbitron,monospace;">${teamId}</div>
               </div>
               <div class="score-display">
-                <div class="score-num">${team.examScore != null ? team.examScore + '%' : '—'}</div>
-                <div class="score-correct">${team.submittedCount || 0} of ${members.length} Submitted</div>
+                <div class="score-num">—</div>
+                <div class="score-correct">${round1SubmittedCount} of ${members.length} entered Round 1</div>
               </div>
             </div>
 
@@ -2680,17 +2760,20 @@
         `;
 
         members.forEach(m => {
-          const mExam = examDocs.find(e => (e.memberEmail && e.memberEmail.toLowerCase() === (m.email || '').toLowerCase()) || e.memberRole === m.role);
-          const isSubmitted = mExam && mExam.status === 'submitted';
+          const matchesMember = (exam) => (exam.memberEmail && exam.memberEmail.toLowerCase() === (m.email || '').toLowerCase()) || exam.memberRole === m.role;
+          const mExam = round1ExamDocs.find(matchesMember);
+          const makeupExam = examDocs.filter(isMakeupExam).find(matchesMember);
+          const snapshotExam = mExam || makeupExam;
+          const isSubmitted = mExam && mExam.status === 'submitted' && hasSubmittedAnswers(mExam);
           const isInProgress = mExam && mExam.status === 'in-progress';
-          const mScore = mExam?.score != null ? mExam.score + '%' : (mExam?.examScore != null ? mExam.examScore + '%' : '—');
+          const mScore = isSubmitted ? (mExam?.score != null ? mExam.score + '%' : (mExam?.examScore != null ? mExam.examScore + '%' : '—')) : '—';
 
           html += `
             <div class="info-tile" style="padding:14px;">
               <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;">
                 <span class="role-badge role-${m.role}">${m.label}</span>
                 <span class="pill-badge" style="color:${isSubmitted ? 'var(--green)' : (isInProgress ? 'var(--cyan)' : 'var(--muted)')};">
-                  ${mExam?.status || 'Not Started'}
+                  ${isSubmitted ? 'Submitted' : (isInProgress ? 'In progress' : 'Not entered')}
                 </span>
               </div>
               <div style="font-size:0.95rem;font-weight:700;color:#fff;">${escapeHtml(m.name || 'N/A')}</div>
@@ -2698,12 +2781,13 @@
               <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">${escapeHtml(m.school || '')} &bull; ${escapeHtml(m.country || '')}</div>
               <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
                 <span style="font-size:0.8rem;color:var(--muted);">Score: <strong style="color:var(--cyan);">${mScore}</strong></span>
-                ${mExam ? `
-                  <button class="btn-act btn-snap" style="padding:4px 10px;font-size:0.72rem;min-height:28px;" onclick="window.openSnapshots('${teamId}', '${mExam.memberUid || mExam.uid}', '${escapeHtml(m.name)}', '${m.role}')">
+                ${snapshotExam ? `
+                  <button class="btn-act btn-snap" style="padding:4px 10px;font-size:0.72rem;min-height:28px;" onclick="window.openSnapshots('${teamId}', '${snapshotExam.memberUid || snapshotExam.uid}', '${escapeHtml(m.name)}', '${m.role}')">
                     📸 Photos
                   </button>
                 ` : ''}
               </div>
+              <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Make-up: <strong style="color:${makeupExam?.status === 'submitted' && hasSubmittedAnswers(makeupExam) ? 'var(--green)' : 'var(--muted)'};">${makeupExam?.status === 'submitted' && hasSubmittedAnswers(makeupExam) ? 'Submitted' : 'Not entered'}</strong></div>
             </div>
           `;
         });
