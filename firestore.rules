@@ -274,13 +274,14 @@ service cloud.firestore {
       // (teams/{teamId}/exam/{uid}). Each member takes the exam on their
       // own; the team score is the average of the members who submitted.
       match /exam/{examId} {
-        allow read: if isAuthenticated() && (isAdmin() || (isTeamMember(teamId) && request.auth.uid == examId));
+        allow read: if isAuthenticated() && (isAdmin() || (isTeamMember(teamId) && (request.auth.uid == examId || examId == request.auth.uid + '_makeup')));
         // Create allowed for own member doc only; scoring fields are reserved
         // for the admin scoring pipeline.
         allow create: if isAuthenticated() && (
           isAdmin()
-          || (isTeamMember(teamId) && request.auth.uid == examId
+          || (isTeamMember(teamId) && (request.auth.uid == examId || examId == request.auth.uid + '_makeup')
               && request.resource.data.keys().hasOnly([
+                'examType',
                 'status', 'startedAt', 'endTime', 'absoluteDeadline',
                 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
@@ -298,8 +299,9 @@ service cloud.firestore {
         // scoring fields.
         allow update: if isAuthenticated() && (
           isAdmin()
-          || (isTeamMember(teamId) && request.auth.uid == examId
+          || (isTeamMember(teamId) && (request.auth.uid == examId || examId == request.auth.uid + '_makeup')
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                'examType',
                 'status', 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
                 'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo'

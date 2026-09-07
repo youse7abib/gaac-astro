@@ -182,7 +182,9 @@ const init = async () => {
       }
     } catch (e) { console.warn('Failed to resolve member info:', e); memberName = currentUser.email; memberRole = 'member'; }
 
-    examDocRef = doc(db, 'teams', teamId, 'exam', currentUser.uid);
+    // Keep the make-up attempt separate from the original Round 1 attempt.
+    // Otherwise an old submitted Round 1 document would lock the make-up exam.
+    examDocRef = doc(db, 'teams', teamId, 'exam', `${currentUser.uid}_makeup`);
 
     const teamSnap = await getDoc(doc(db, 'teams', teamId));
     const teamData = teamSnap.exists() ? teamSnap.data() : {};
@@ -539,6 +541,7 @@ const startExam = async () => {
   // Write status + endTime + absoluteDeadline to Firestore (server-authoritative timer)
   try {
       await setDoc(examDocRef, {
+        examType: 'round1-makeup',
         status: 'in-progress',
         memberUid: currentUser.uid,
         memberEmail: currentUser.email,
