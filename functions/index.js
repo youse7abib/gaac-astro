@@ -446,7 +446,14 @@ exports.getCompetitionStatus = onCall(async (request) => {
       round2Open: false
     };
   }
-  return snap.data();
+  const data = snap.data();
+  const makeupCloseFloor = Date.UTC(2026, 8, 7, 17, 20, 0);
+  return {
+    ...data,
+    round1CloseAt: typeof data.round1CloseAt === 'number'
+      ? Math.max(data.round1CloseAt, makeupCloseFloor)
+      : makeupCloseFloor
+  };
 });
 
 const MAKEUP_ALLOWLIST_PATH = './makeup_allowlist.json';
@@ -466,10 +473,11 @@ function getMakeupAllowlist() {
 exports.getRound1Status = onCall(async (request) => {
   const snap = await db.collection('settings').doc('competition').get();
   const d = snap.exists ? snap.data() : {};
+  const makeupCloseFloor = Date.UTC(2026, 8, 7, 17, 20, 0);
   return {
     now: Date.now(),
     openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 7, 16, 0, 0),  // 7:00 PM GMT+3 (Sept 7)
-    closeAt: typeof d.round1CloseAt === 'number' ? d.round1CloseAt : Date.UTC(2026, 8, 7, 17, 20, 0), // 8:20 PM GMT+3 (Sept 7)
+    closeAt: typeof d.round1CloseAt === 'number' ? Math.max(d.round1CloseAt, makeupCloseFloor) : makeupCloseFloor, // 8:20 PM GMT+3 (Sept 7)
     startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 7, 16, 0, 0), // 7:00 PM GMT+3 (Sept 7)
     round1Open: d.round1Open !== false
   };
