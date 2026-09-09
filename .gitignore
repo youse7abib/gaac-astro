@@ -28,8 +28,6 @@ functions/*answers*.json
 functions/makeup_allowlist.json
 *question*.json
 *answer*.json
-pdf/*Questions*.pdf
-pdf/*questions*.pdf
 *.pem
 *.key
 extracted_raw_questions.json
