@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" translate="no">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="google" content="notranslate" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Round 2 Knockout | GAAC</title>
+  <link rel="icon" href="images/GAAC Dark.jpg" type="image/jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+  <style>
+    .hidden { display: none !important; }
+    body { background: #00020a; overflow-x: hidden; cursor: auto !important; -webkit-user-select: none; user-select: none; }
+    a, button, input, select, textarea { cursor: pointer !important; }
+    @media print { body { display: none !important; } }
+    ::-webkit-media-controls { display: none !important; }
+
+    .exam-toast {
+      position: fixed; top: 70px; left: 50%; transform: translateX(-50%);
+      z-index: 99999; max-width: 500px; width: 90%;
+      padding: 14px 20px; border-radius: 12px;
+      background: rgba(10,14,23,0.95); border: 1px solid rgba(255,107,107,0.3);
+      backdrop-filter: blur(12px);
+      display: none; align-items: center; gap: 12px;
+      font-size: 0.85rem; color: #ff6b6b;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+    }
+    .exam-toast.show { display: flex; animation: r2ToastIn 0.3s ease; }
+    .exam-toast .toast-close {
+      margin-left: auto; background: none; border: none;
+      color: #ff6b6b; font-size: 1.2rem; cursor: pointer; padding: 0 4px;
+    }
+    @keyframes r2ToastIn { from { opacity: 0; transform: translateX(-50%) translateY(-20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+
+    .exam-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 10px 24px; background: rgba(0,2,10,0.95); border-bottom: 1px solid rgba(38,183,255,0.12);
+      backdrop-filter: blur(12px);
+    }
+    .exam-bar .logo-sm { height: 42px; }
+    .exam-bar .round-badge {
+      font-family: 'Orbitron', monospace; font-size: 0.7rem; font-weight: 700;
+      color: #0a0e17; background: var(--blue-light); padding: 4px 14px;
+      border-radius: 20px; letter-spacing: 0.06em; white-space: nowrap;
+    }
+    .exam-bar .timer { font-family: 'Orbitron', monospace; font-size: 1.4rem; font-weight: 700; color: var(--blue-light); letter-spacing: 0.06em; }
+    .exam-bar .timer.warning { color: #ff6b6b; animation: pulse 1s ease-in-out infinite; }
+    .exam-bar .progress-text { font-size: 0.82rem; color: var(--muted); }
+    .exam-bar .team-info { font-size: 0.78rem; color: var(--muted); }
+    @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+    .r2-layout {
+      display: flex; margin-top: 70px; min-height: calc(100vh - 70px);
+    }
+    .r2-pdf-panel {
+      flex: 1; min-width: 0; padding: 20px;
+      display: flex; flex-direction: column; align-items: center; gap: 12px;
+      overflow-y: auto; max-height: calc(100vh - 70px);
+      border-right: 1px solid rgba(38,183,255,0.10);
+    }
+    .r2-pdf-panel::-webkit-scrollbar { width: 6px; }
+    .r2-pdf-panel::-webkit-scrollbar-thumb { background: rgba(38,183,255,0.25); border-radius: 4px; }
+    .r2-pdf-page { margin-bottom: 12px; }
+    .r2-pdf-page canvas { display: block; border: 1px solid rgba(38,183,255,0.10); border-radius: 8px; max-width: 100%; height: auto; }
+    .r2-pdf-page-number {
+      font-family: 'Orbitron', monospace; font-size: 0.6rem; color: var(--muted);
+      text-align: center; margin-top: 4px; letter-spacing: 0.05em;
+    }
+
+    .r2-questions-panel {
+      width: 420px; flex-shrink: 0;
+      padding: 20px 24px; overflow-y: auto; max-height: calc(100vh - 70px);
+      display: flex; flex-direction: column; gap: 12px;
+    }
+    .r2-questions-panel::-webkit-scrollbar { width: 6px; }
+    .r2-questions-panel::-webkit-scrollbar-thumb { background: rgba(38,183,255,0.25); border-radius: 4px; }
+    .r2-questions-title {
+      font-family: 'Orbitron', monospace; font-size: 0.72rem; font-weight: 800;
+      color: var(--blue-light); letter-spacing: 0.08em; text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+    .r2-q-card {
+      background: rgba(10,14,23,0.6); border: 1px solid rgba(38,183,255,0.1);
+      border-radius: 14px; padding: 18px; transition: border-color 300ms;
+    }
+    .r2-q-card:focus-within { border-color: var(--blue-light); }
+    .r2-q-card.locked { border-color: rgba(34,197,94,0.30); background: rgba(34,197,94,0.04); opacity: 0.85; }
+    .r2-q-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .r2-q-number { font-family: 'Orbitron', monospace; font-size: 0.72rem; color: var(--blue-light); font-weight: 700; letter-spacing: 0.04em; }
+    .r2-q-badges { display: flex; gap: 6px; flex-wrap: wrap; }
+    .r2-q-badge {
+      font-size: 0.65rem; font-weight: 700; padding: 2px 8px;
+      border-radius: 10px; white-space: nowrap;
+    }
+    .r2-q-badge.unit { background: rgba(38,183,255,0.12); color: var(--blue-light); border: 1px solid rgba(38,183,255,0.20); }
+    .r2-q-badge.tol { background: rgba(255,183,77,0.12); color: #ffb74d; border: 1px solid rgba(255,183,77,0.20); }
+    .r2-q-note { font-size: 0.78rem; color: var(--muted); margin-bottom: 10px; line-height: 1.5; }
+    .r2-q-input-row { display: flex; gap: 8px; align-items: center; }
+    .r2-q-input {
+      flex: 1; padding: 10px 14px; border-radius: 10px;
+      border: 1px solid rgba(255,255,255,0.08); background: rgba(255,255,255,0.03);
+      color: var(--text); font-size: 0.88rem; font-family: monospace;
+      outline: none; transition: border-color 200ms;
+    }
+    .r2-q-input:focus { border-color: var(--blue-light); }
+    .r2-q-input:disabled { opacity: 0.6; cursor: default; }
+    .r2-q-submit {
+      padding: 10px 16px; border-radius: 10px; border: none;
+      background: var(--blue-light); color: #0a0e17; font-weight: 700; font-size: 0.8rem;
+      white-space: nowrap; transition: opacity 200ms;
+    }
+    .r2-q-submit:hover { opacity: 0.85; }
+    .r2-q-submit:disabled { opacity: 0.4; cursor: default; }
+    .r2-q-locked-info {
+      font-size: 0.75rem; color: #22c55e; margin-top: 8px;
+      font-weight: 600; display: flex; align-items: center; gap: 6px;
+    }
+    .r2-q-locked-info .lock-icon { font-size: 0.85rem; }
+
+    .r2-footer {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 1000;
+      display: flex; justify-content: center; padding: 10px 24px;
+      background: rgba(0,2,10,0.95); border-top: 1px solid rgba(38,183,255,0.12);
+      backdrop-filter: blur(12px);
+    }
+
+    .lang-toggle {
+      padding: 4px 14px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.15);
+      background: rgba(255,255,255,0.05); color: var(--muted); font-size: 0.75rem;
+      font-weight: 700; letter-spacing: 0.04em; cursor: pointer; transition: all 200ms;
+      min-height: 30px; line-height: 1; flex-shrink: 0;
+    }
+    .lang-toggle.active { background: rgba(38,183,255,0.15); border-color: var(--blue-light); color: var(--blue-light); }
+    .lang-toggle:hover { border-color: var(--blue-light); }
+
+    .r2-gate {
+      display: flex; align-items: center; justify-content: center; min-height: 100vh;
+      text-align: center; padding: 40px; flex-direction: column; gap: 16px;
+    }
+    .r2-gate h1 { margin-bottom: 4px; }
+    .r2-gate p { color: var(--muted); font-size: 0.95rem; }
+    .r2-gate .gate-timer {
+      font-family: 'Orbitron', monospace; font-size: 1.8rem; font-weight: 700;
+      color: var(--blue-light); letter-spacing: 0.06em;
+    }
+
+    .r2-pdf-lock-overlay {
+      position: absolute; inset: 0; z-index: 10;
+      background: transparent; cursor: default;
+    }
+
+    .r2-loading { display: flex; align-items: center; justify-content: center; min-height: 60vh; color: var(--muted); }
+
+    @media (max-width: 1024px) {
+      .r2-layout { flex-direction: column; }
+      .r2-pdf-panel { max-height: 50vh; border-right: none; border-bottom: 1px solid rgba(38,183,255,0.10); }
+      .r2-questions-panel { width: 100%; max-height: 50vh; }
+    }
+    @media (max-width: 768px) {
+      .exam-bar { height: 56px; padding: 6px 12px; gap: 8px; box-sizing: border-box; }
+      .exam-bar .logo-sm { height: 32px; }
+      .exam-bar .timer { font-size: 1rem; }
+      .exam-bar .progress-text { font-size: 0.7rem; }
+      .r2-q-input-row { flex-direction: column; }
+      .r2-q-submit { width: 100%; }
+    }
+  </style>
+</head>
+<body>
+  <!-- Top Bar -->
+  <div class="exam-bar">
+    <img class="logo-sm" src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" />
+    <span class="round-badge" id="round-badge">...</span>
+    <button class="lang-toggle" id="btn-lang-toggle" title="Toggle Arabic / English">EN</button>
+    <div style="flex:1;text-align:center;">
+      <div class="timer" id="timer-display">--:--</div>
+      <div class="progress-text"><span id="answered-count">0</span> / <span id="total-count">0</span> locked</div>
+    </div>
+    <span class="team-info" id="team-info"></span>
+  </div>
+
+  <!-- Main layout -->
+  <div class="r2-layout">
+    <div class="r2-pdf-panel" id="pdf-panel">
+      <div class="r2-loading" id="pdf-loading">Loading question paper...</div>
+    </div>
+    <div class="r2-questions-panel" id="questions-panel">
+      <div class="r2-questions-title">Answers</div>
+      <div id="questions-container"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Bar -->
+  <div class="r2-footer">
+    <span style="color:var(--muted);font-size:0.78rem;">GAAC Round 2 : Knockout</span>
+  </div>
+
+  <!-- Gate (round not open / not scheduled) -->
+  <div id="gate-screen" class="r2-gate hidden">
+    <h1 id="gate-title">Round Not <span class="text-blue">Available</span></h1>
+    <p id="gate-msg">The current round has not started yet.</p>
+    <div class="gate-timer" id="gate-timer"></div>
+    <p id="gate-sub"></p>
+  </div>
+
+  <!-- Toast -->
+  <div class="exam-toast" id="toast">
+    <span id="toast-msg"></span>
+    <button class="toast-close" onclick="document.getElementById('toast').classList.remove('show')">&times;</button>
+  </div>
+
+  <!-- Confirm modal -->
+  <div id="confirm-modal" class="modal-overlay hidden">
+    <div class="modal-box" style="max-width:400px;">
+      <h2>Lock Answer?</h2>
+      <p id="confirm-text">Once submitted, this answer cannot be changed.</p>
+      <div class="modal-actions">
+        <button class="button secondary" onclick="document.getElementById('confirm-modal').classList.add('hidden')">Cancel</button>
+        <button class="button primary" id="btn-confirm-yes">Confirm &amp; Lock</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="js/round2-app.js"></script>
+</body>
+</html>
