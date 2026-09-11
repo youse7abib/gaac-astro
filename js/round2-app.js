@@ -62,12 +62,11 @@ const showToast = (msg, severity = 'warning') => {
   const msgEl = document.getElementById('toast-msg');
   if (!toast || !msgEl) return;
   msgEl.textContent = msg;
-  toast.style.borderColor = severity === 'severe' ? 'rgba(255,107,107,0.5)' : 'rgba(255,183,77,0.4)';
-  toast.style.color = severity === 'severe' ? '#ff6b6b' : '#ffb74d';
-  toast.classList.remove('show');
+  toast.classList.remove('show', 'success');
   void toast.offsetWidth;
+  if (severity === 'success') toast.classList.add('success');
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show'), 5000);
+  setTimeout(() => toast.classList.remove('show', 'success'), 5000);
 };
 
 const ensureTeamMembership = async () => {
@@ -118,8 +117,8 @@ const init = async () => {
       if (pdfLoading) pdfLoading.classList.add('hidden');
       if (pdfPanel) {
         const placeholder = document.createElement('div');
-        placeholder.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:300px;color:#8b9bb4;font-size:1rem;text-align:center;padding:40px;border:1px dashed rgba(255,255,255,0.1);border-radius:12px;';
-        placeholder.innerHTML = '<div><div style="font-size:2rem;margin-bottom:12px;">📄</div><div>Demo Mode — No PDF loaded.<br>In the real exam, the question paper will appear here.</div></div>';
+        placeholder.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:300px;color:#475569;font-size:0.85rem;text-align:center;padding:40px;border:1px dashed rgba(255,255,255,0.08);border-radius:12px;';
+        placeholder.innerHTML = '<div><div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;color:#334155;text-transform:uppercase;margin-bottom:8px;">Demo Mode</div><div>No question paper loaded.<br>In the real exam, the PDF will appear here.</div></div>';
         pdfPanel.appendChild(placeholder);
       }
       return;
@@ -288,46 +287,91 @@ const startTimer = () => {
   timerInterval = setInterval(tick, 1000);
 };
 
+let activeQid = null;
+const selectDefaultQuestion = () => {
+  if (activeQid && r2Questions.some((qq) => qq.id === activeQid)) return;
+  const firstOpen = r2Questions.find((qq) => !answersMap[qq.id]);
+  activeQid = (firstOpen || r2Questions[0])?.id || null;
+};
+
+const updateProgressFill = () => {
+  const total = r2Questions.length;
+  const done = Object.keys(answersMap).length;
+  const fill = document.getElementById('progress-fill');
+  if (fill && total > 0) fill.style.width = `${Math.round((done / total) * 100)}%`;
+};
+
 const renderQuestions = () => {
   const container = document.getElementById('questions-container');
+  const tabBar = document.getElementById('tabs-header');
   if (!container) return;
-  container.innerHTML = '';
-  r2Questions.forEach((q) => {
-    const existing = answersMap[q.id];
-    const isLocked = !!existing;
-    const card = document.createElement('div');
-    card.className = 'r2-q-card' + (isLocked ? ' locked' : '');
-    card.id = `qcard-${q.id}`;
+  selectDefaultQuestion();
+  updateProgressFill();
 
-    const noteHtml = q.note ? `<div class="r2-q-note">${escapeHtml(q.note)}</div>` : '';
-
-    card.innerHTML = `
-      <div class="r2-q-header">
-        <span class="r2-q-number">Q${q.order}</span>
-        <div class="r2-q-badges">
-          ${q.unit ? `<span class="r2-q-badge unit">${escapeHtml(q.unit)}</span>` : ''}
-          ${q.tolerancePct ? `<span class="r2-q-badge tol">&plusmn;${q.tolerancePct}%</span>` : ''}
-        </div>
-      </div>
-      ${noteHtml}
-      <div class="r2-q-input-row">
-        <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="e.g. 2.333e-9" ${isLocked ? 'disabled' : ''} autocomplete="off" inputmode="decimal" spellcheck="false" />
-        <button class="r2-q-submit" id="submit-${q.id}" ${isLocked ? 'disabled' : ''}>${isLocked ? (currentLang === 'ar' ? 'مقفول' : 'Locked') : (currentLang === 'ar' ? 'إرسال' : 'Submit')}</button>
-      </div>
-      ${isLocked ? `<div class="r2-q-locked-info"><span class="lock-icon">&#128274;</span>${currentLang === 'ar' ? 'أجاب:' : 'Answered by:'} ${escapeHtml(existing.memberName || existing.memberEmail || 'Member')} &mdash; <code>${escapeHtml(existing.value)}</code></div>` : ''}
-    `;
-
-    if (!isLocked) {
-      const submitBtn = card.querySelector(`#submit-${q.id}`);
-      const inputEl = card.querySelector(`#input-${q.id}`);
-      submitBtn.addEventListener('click', () => submitAnswer(q.id, q, inputEl));
-      inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') submitAnswer(q.id, q, inputEl);
+  if (tabBar) {
+    tabBar.innerHTML = '';
+    r2Questions.forEach((q) => {
+      const isDone = !!answersMap[q.id];
+      const tab = document.createElement('button');
+      tab.type = 'button';
+      tab.className = 'r2-tab-btn' + (isDone ? ' tab-done' : '') + (q.id === activeQid ? ' active' : '');
+      tab.id = `tab-${q.id}`;
+      tab.innerHTML = `<span class="tab-dot"></span>Q${q.order}`;
+      tab.addEventListener('click', () => {
+        if (activeQid === q.id) return;
+        activeQid = q.id;
+        renderQuestions();
       });
-    }
+      tabBar.appendChild(tab);
+    });
+  }
 
-    container.appendChild(card);
-  });
+  container.innerHTML = '';
+  const q = r2Questions.find((qq) => qq.id === activeQid);
+  if (!q) return;
+  const existing = answersMap[q.id];
+  const isLocked = !!existing;
+
+  const card = document.createElement('div');
+  card.className = 'r2-q-card active';
+  card.id = `qcard-${q.id}`;
+
+  const noteHtml = q.note ? `<div class="r2-q-note">${escapeHtml(q.note)}</div>` : '';
+
+  card.innerHTML = `
+    <div class="r2-q-header">
+      <span class="r2-q-number">Q${q.order}</span>
+      <div class="r2-q-badges">
+        ${q.unit ? `<span class="r2-q-badge unit">${escapeHtml(q.unit)}</span>` : ''}
+        ${q.tolerancePct ? `<span class="r2-q-badge tol">&plusmn;${q.tolerancePct}%</span>` : ''}
+      </div>
+    </div>
+    ${noteHtml}
+    ${isLocked
+      ? `<div class="r2-q-locked">
+           <div class="r2-q-locked-label">Submitted &amp; Locked</div>
+           <div class="r2-q-locked-value">${escapeHtml(existing.value)}</div>
+           <div class="r2-q-locked-by">by ${escapeHtml(existing.memberName || existing.memberEmail || 'Member')}</div>
+         </div>`
+      : `<div class="r2-q-input-row">
+           <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="e.g. 2.333e-9" autocomplete="off" inputmode="decimal" spellcheck="false" />
+           <button class="r2-q-submit" id="submit-${q.id}">${currentLang === 'ar' ? 'إرسال' : 'Submit'}</button>
+         </div>`
+    }
+  `;
+
+  if (!isLocked) {
+    const submitBtn = card.querySelector(`#submit-${q.id}`);
+    const inputEl = card.querySelector(`#input-${q.id}`);
+    submitBtn.addEventListener('click', () => submitAnswer(q.id, q, inputEl));
+    inputEl.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') submitAnswer(q.id, q, inputEl);
+    });
+    // Auto-focus input
+    requestAnimationFrame(() => inputEl.focus());
+  }
+
+  container.appendChild(card);
 };
 
 const submitAnswer = async (qid, q, inputEl) => {
@@ -340,27 +384,19 @@ const submitAnswer = async (qid, q, inputEl) => {
   if (!confirmed) return;
 
   if (isDemo) {
-    // Demo mode: store locally, skip Firestore
     answersMap[qid] = {
-      questionId: qid,
-      value: raw,
-      numericValue,
-      unit: q.unit || '',
-      memberUid: 'demo-uid',
-      memberName: 'Demo Tester',
-      memberEmail: 'demo@gaac.local',
-      submittedAt: new Date().toISOString(),
-      locked: true
+      questionId: qid, value: raw, numericValue, unit: q.unit || '',
+      memberUid: 'demo-uid', memberName: 'Demo Tester', memberEmail: 'demo@gaac.local',
+      submittedAt: new Date().toISOString(), locked: true
     };
-    const count = Object.keys(answersMap).length;
-    document.getElementById('answered-count').textContent = count;
+    // Auto-advance to next unlocked question
+    const nextOpen = r2Questions.find((qq) => !answersMap[qq.id]);
+    if (nextOpen) activeQid = nextOpen.id;
+    document.getElementById('answered-count').textContent = Object.keys(answersMap).length;
     renderQuestions();
-    showToast('Demo: Submitted & Locked (local only)', 'success');
+    showToast('Submitted & Locked', 'success');
     return;
   }
-
-  const inputElRef = inputEl;
-  const submitBtnRef = document.getElementById(`submit-${qid}`);
 
   try {
     await setDoc(doc(db, 'teams', teamId, 'round2', currentRound, 'answers', qid), {
@@ -387,20 +423,36 @@ const submitAnswer = async (qid, q, inputEl) => {
   }
 };
 
+const closeConfirm = () => {
+  const modal = document.getElementById('confirm-modal');
+  modal.classList.remove('open');
+};
+
 const showConfirm = (qid, raw, numVal, q) => {
   return new Promise((resolve) => {
     confirmResolve = resolve;
-    const modal = document.getElementById('confirm-modal');
-    const text = document.getElementById('confirm-text');
-    const btn = document.getElementById('btn-confirm-yes');
-    const isAr = currentLang === 'ar';
+    const modal    = document.getElementById('confirm-modal');
+    const qnumEl   = document.getElementById('confirm-qnum');
+    const valueEl  = document.getElementById('confirm-value');
+    const unitEl   = document.getElementById('confirm-unit');
+    const yesBtn   = document.getElementById('btn-confirm-yes');
+    const noBtn    = document.getElementById('btn-confirm-no');
 
-    text.innerHTML = isAr
-      ? `تأكيد إرسال إجابة السؤال Q${q.order}: <code style="color:var(--blue-light)">${escapeHtml(raw)}</code> (${q.unit || ''}). لا يمكن التغيير بعد الإرسال.`
-      : `Submit answer for Q${q.order}: <code style="color:var(--blue-light)">${escapeHtml(raw)}</code> (${q.unit || ''}). This cannot be changed after submission.`;
+    if (qnumEl) qnumEl.textContent = `Q${q.order}`;
+    if (valueEl) valueEl.textContent = raw;
+    if (unitEl)  unitEl.textContent  = q.unit ? `Unit: ${q.unit}` : '';
 
-    btn.onclick = () => { modal.classList.add('hidden'); confirmResolve(true); };
-    modal.classList.remove('hidden');
+    // Clone buttons to remove old listeners
+    const newYes = yesBtn.cloneNode(true);
+    const newNo  = noBtn.cloneNode(true);
+    yesBtn.replaceWith(newYes);
+    noBtn.replaceWith(newNo);
+
+    newYes.addEventListener('click', () => { closeConfirm(); confirmResolve(true); });
+    newNo.addEventListener('click',  () => { closeConfirm(); confirmResolve(false); });
+
+    // Smooth open
+    modal.classList.add('open');
   });
 };
 
