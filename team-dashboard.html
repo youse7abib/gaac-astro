@@ -311,9 +311,9 @@
 
 <div id="competitions-panel" class="competitions-panel">
             <div class="comp-head">
-              <h2><span class="text-blue">Round 1 Make-up</span></h2>
-              <p class="sub">Round 1 Make-up takes place on <strong>7 September 2026 at <span id="r1-local-open-time">7:00 PM</span> in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone. Entry closes at <strong id="r1-local-close-time">8:20 PM</strong> in your local time.</p>
-              <p class="sub" style="color:#ffb86b;">This make-up exam is available only to candidates who received an official email confirming that their Round 1 issue and excuse were accepted. Anyone whose request was not accepted, or who successfully completed Round 1 on 5 September 2026, will be disqualified (DQ) if they attempt this exam.</p>
+              <h2><span class="text-blue">Round of 16 Qualifier</span></h2>
+              <p class="sub">Round of 16 takes place on <strong>Saturday, 12 September 2026 at <span id="r1-local-open-time">7:00 PM</span> (Cairo, GMT+3) <span id="r1-local-start">(your region)</span></strong>. 20 challenging questions with a <strong>30-minute</strong> duration.</p>
+              <p class="sub" style="color:#26b7ff;">This stage is reserved strictly for the 16 qualified teams (26 participants) from Round 1. Only qualified team members can enter.</p>
             </div>
             <div id="mock-card" class="mock-card">
               <div class="mock-row">
@@ -335,8 +335,8 @@
                   <span class="mock-cell-value" id="mock-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="mock-schedule-note">Loading Round 1 Make-up schedule…</p>
-              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Round 1 Make-up</button>
+              <p class="mock-sub" id="mock-schedule-note">Loading Round of 16 schedule…</p>
+              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Round of 16</button>
             </div>
           </div>
         </div>
@@ -739,8 +739,8 @@ const app = initializeApp(firebaseConfig);
     };
 
     const R1_DEFAULT = {
-      r1OpenAt: Date.UTC(2026, 8, 7, 16, 0, 0),    // 7:00 PM Cairo (Sept 7)
-      r1CloseAt: Date.UTC(2026, 8, 7, 17, 20, 0)    // 8:20 PM Cairo (Sept 7)
+      r1OpenAt: Date.UTC(2026, 8, 12, 16, 0, 0),   // 7:00 PM Cairo (Sept 12)
+      r1CloseAt: Date.UTC(2026, 8, 12, 16, 40, 0)   // 7:40 PM Cairo (Sept 12)
     };
     let r1Schedule = { ...R1_DEFAULT };
     let r1ServerOffsetMs = 0;   // calibrate the running countdown to the server clock

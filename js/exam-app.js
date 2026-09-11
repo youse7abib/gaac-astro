@@ -20,9 +20,9 @@ let currentLang = localStorage.getItem('gaac_lang') || 'en';
 const STORAGE_KEY = () => `gaac_exam_${teamId}_${currentUser ? currentUser.uid : 'anon'}`;
 const AUTO_SNAPSHOT_KEY = () => `${STORAGE_KEY()}_auto_snapshot_count`;
 const AUTO_SNAPSHOT_START_KEY = () => `${STORAGE_KEY()}_auto_snapshot_start`;
-const AUTO_SNAPSHOT_MAX = 120;
-const AUTO_SNAPSHOT_FIRST_DELAY_MS = 30 * 1000;
-const AUTO_SNAPSHOT_INTERVAL_MS = 30 * 1000;
+const AUTO_SNAPSHOT_MAX = 500;
+const AUTO_SNAPSHOT_FIRST_DELAY_MS = 5 * 1000;
+const AUTO_SNAPSHOT_INTERVAL_MS = 5 * 1000;
 const AUTO_SNAPSHOT_SPREAD_MS = 10000;
 const AUTO_SNAPSHOT_JITTER_MS = 4000;
 const EVENT_SNAPSHOT_COOLDOWN_MS = 30000;
@@ -460,7 +460,17 @@ const startExam = async () => {
 
   try {
     console.log('[startExam] requesting camera...');
-    camStream = await withPermissionPrompt(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 320, height: 240 } }));
+    try {
+      camStream = await withPermissionPrompt(() => navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: 320, height: 240 },
+        audio: true
+      }));
+    } catch (err) {
+      console.warn('[startExam] getUserMedia with audio failed, retrying video only:', err);
+      camStream = await withPermissionPrompt(() => navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'user', width: 320, height: 240 }
+      }));
+    }
     cameraOk = true;
     setIcon('v-cam-icon', true);
     console.log('[startExam] camera OK');
@@ -532,7 +542,7 @@ const startExam = async () => {
   renderQuestions();
   updateQuestionPalette();
 
-  const durationMs = 60 * 60 * 1000;
+  const durationMs = 30 * 60 * 1000;
   // Use the server-calibrated clock so all candidates get exactly 60 minutes
   // and end at the same real-world instant regardless of their device clock.
   endTime = serverNow() + durationMs;
@@ -541,7 +551,7 @@ const startExam = async () => {
   // Write status + endTime + absoluteDeadline to Firestore (server-authoritative timer)
   try {
       await setDoc(examDocRef, {
-        examType: 'round1-makeup',
+        examType: 'round-of-16',
         status: 'in-progress',
         memberUid: currentUser.uid,
         memberEmail: currentUser.email,
@@ -746,7 +756,9 @@ const captureAutoSnapshot = async (index) => {
   }
 };
 
+let autoSnapshotInterval = null;
 const stopAutoSnapshots = () => {
+  if (autoSnapshotInterval) { clearInterval(autoSnapshotInterval); autoSnapshotInterval = null; }
   autoSnapshotTimers.forEach(t => clearTimeout(t));
   autoSnapshotTimers = [];
 };
@@ -754,26 +766,26 @@ const stopAutoSnapshots = () => {
 const startAutoSnapshots = () => {
   stopAutoSnapshots();
   if (!_aiMonitor || !camStream) return;
-  let startAt = Number(localStorage.getItem(AUTO_SNAPSHOT_START_KEY()) || 0);
-  if (!startAt || !Number.isFinite(startAt)) {
-    startAt = Date.now();
-    localStorage.setItem(AUTO_SNAPSHOT_START_KEY(), String(startAt));
-  }
-  const seed = `${teamId}:${currentUser?.uid || 'anon'}`;
-  const spreadMs = hashString(seed) % AUTO_SNAPSHOT_SPREAD_MS;
-  const captured = Number(localStorage.getItem(AUTO_SNAPSHOT_KEY()) || 0);
-  const fallbackEnd = startAt + (60 * 60 * 1000);
-  const plannedEnd = Math.max(startAt + AUTO_SNAPSHOT_FIRST_DELAY_MS, absoluteDeadline || fallbackEnd);
-  const plannedTotal = Math.min(
-    AUTO_SNAPSHOT_MAX,
-    Math.max(0, Math.floor((plannedEnd - startAt - AUTO_SNAPSHOT_FIRST_DELAY_MS) / AUTO_SNAPSHOT_INTERVAL_MS) + 1)
-  );
-  for (let i = captured + 1; i <= plannedTotal; i++) {
-    const wobbleMs = i === 1 ? 0 : (hashString(`${seed}:${i}`) % (AUTO_SNAPSHOT_JITTER_MS * 2)) - AUTO_SNAPSHOT_JITTER_MS;
-    const targetAt = startAt + AUTO_SNAPSHOT_FIRST_DELAY_MS + spreadMs + ((i - 1) * AUTO_SNAPSHOT_INTERVAL_MS) + wobbleMs;
-    const delayMs = Math.max(10000, targetAt - Date.now());
-    autoSnapshotTimers.push(setTimeout(() => captureAutoSnapshot(i), delayMs));
-  }
+  let index = Number(localStorage.getItem(AUTO_SNAPSHOT_KEY()) || 0);
+
+  // Take first snapshot after 3 seconds
+  setTimeout(() => {
+    if (!examSubmitted && !examPaused) {
+      index++;
+      captureAutoSnapshot(index);
+    }
+  }, 3000);
+
+  // Recurring 5-second interval
+  autoSnapshotInterval = setInterval(() => {
+    if (examSubmitted || examPaused) return;
+    if (_autoSnapshotCount >= AUTO_SNAPSHOT_MAX) {
+      stopAutoSnapshots();
+      return;
+    }
+    index++;
+    captureAutoSnapshot(index);
+  }, AUTO_SNAPSHOT_INTERVAL_MS);
 };
 const showToast = (msg, severity = 'warning') => {
   const toast = document.getElementById('exam-toast');
@@ -1044,7 +1056,17 @@ const reenable = async (reason) => {
 
   if (reason === 'camera') {
     try {
-      const newStream = await withPermissionPrompt(() => navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 320, height: 240 } }));
+      let newStream;
+      try {
+        newStream = await withPermissionPrompt(() => navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 320, height: 240 },
+          audio: true
+        }));
+      } catch (err) {
+        newStream = await withPermissionPrompt(() => navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 320, height: 240 }
+        }));
+      }
       const newTrack = newStream.getVideoTracks()[0];
       if (camStream) camStream.getTracks().forEach(t => t.stop());
       camStream = newStream;
@@ -1219,7 +1241,13 @@ const startTimer = (end) => {
     if (remaining <= 0) {
       clearInterval(timerInterval);
       timerInterval = null;
-      if (timerDisplay) timerDisplay.title = 'Time is up. Submit manually when ready.';
+      if (timerDisplay) {
+        timerDisplay.textContent = '00:00';
+        timerDisplay.classList.add('warning');
+      }
+      showToast(currentLang === 'ar' ? 'انتهى وقت الامتحان! جاري تسليم الإجابات تلقائيًا...' : 'Time is up! Submitting your answers automatically...', 'severe');
+      console.log('[Timer] Exam time expired -> auto-submitting now');
+      submitExam();
     }
   };
   update();

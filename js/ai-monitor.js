@@ -155,57 +155,55 @@ export class AIMonitor {
 
   captureWebcamFrame() {
     if (!this.video || !this.video.videoWidth) {
-      return this._lastGoodCamCanvas;
+      return null;
     }
     try {
+      if (this.video.paused) this.video.play().catch(() => {});
       const c = document.createElement('canvas');
-      c.width = this.video.videoWidth;
-      c.height = this.video.videoHeight;
+      c.width = this.video.videoWidth || 320;
+      c.height = this.video.videoHeight || 240;
       const ctx = c.getContext('2d');
-      ctx.drawImage(this.video, 0, 0);
-      const data = ctx.getImageData(0, 0, Math.min(c.width, 64), Math.min(c.height, 48)).data;
-      let sum = 0;
-      for (let i = 0; i < data.length; i += 16) sum += data[i] + data[i+1] + data[i+2];
-      const avg = sum / (data.length / 16 * 3);
-      if (avg > 8) {
-        this._lastGoodCamCanvas = c;
-        return c;
-      }
-      return this._lastGoodCamCanvas;
+      ctx.drawImage(this.video, 0, 0, c.width, c.height);
+      this._lastGoodCamCanvas = c;
+      return c;
     } catch (e) {
       console.warn('[AIMonitor] captureWebcamFrame failed:', e);
-      return this._lastGoodCamCanvas;
+      return this._lastGoodCamCanvas || null;
     }
   }
 
   captureScreenFrame() {
     if (!this._screenVideoEl || !this._screenVideoEl.videoWidth) {
-      return this._lastGoodScreenCanvas;
+      return null;
     }
     try {
+      if (this._screenVideoEl.paused) this._screenVideoEl.play().catch(() => {});
       const c = document.createElement('canvas');
       c.width = this._screenVideoEl.videoWidth;
       c.height = this._screenVideoEl.videoHeight;
       const ctx = c.getContext('2d');
-      ctx.drawImage(this._screenVideoEl, 0, 0);
-      const data = ctx.getImageData(0, 0, Math.min(c.width, 64), Math.min(c.height, 48)).data;
-      let sum = 0;
-      for (let i = 0; i < data.length; i += 16) sum += data[i] + data[i+1] + data[i+2];
-      const avg = sum / (data.length / 16 * 3);
-      if (avg > 8) {
-        this._lastGoodScreenCanvas = c;
-        return c;
-      }
-      return this._lastGoodScreenCanvas;
+      ctx.drawImage(this._screenVideoEl, 0, 0, c.width, c.height);
+      this._lastGoodScreenCanvas = c;
+      return c;
     } catch (e) {
       console.warn('[AIMonitor] captureScreenFrame failed:', e);
-      return this._lastGoodScreenCanvas;
+      return this._lastGoodScreenCanvas || null;
     }
   }
 
   async _initCamera() {
     try {
-      this.stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: 320, height: 240 } });
+      try {
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 320, height: 240 },
+          audio: true
+        });
+      } catch (err) {
+        console.warn('[AIMonitor] getUserMedia with audio failed, retrying video only:', err);
+        this.stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'user', width: 320, height: 240 }
+        });
+      }
       this.video = this._createCameraUI();
       document.body.appendChild(this.camContainer);
       this.video.srcObject = this.stream;

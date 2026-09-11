@@ -490,12 +490,12 @@ function getMakeupAllowlist() {
 exports.getRound1Status = onCall(async (request) => {
   const snap = await db.collection('settings').doc('competition').get();
   const d = snap.exists ? snap.data() : {};
-  const makeupCloseFloor = Date.UTC(2026, 8, 7, 17, 20, 0);
+  const r16CloseFloor = Date.UTC(2026, 8, 12, 16, 40, 0);
   return {
     now: Date.now(),
-    openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 7, 16, 0, 0),  // 7:00 PM GMT+3 (Sept 7)
-    closeAt: typeof d.round1CloseAt === 'number' ? Math.max(d.round1CloseAt, makeupCloseFloor) : makeupCloseFloor, // 8:20 PM GMT+3 (Sept 7)
-    startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 7, 16, 0, 0), // 7:00 PM GMT+3 (Sept 7)
+    openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 12, 16, 0, 0),  // 7:00 PM GMT+3 (Sept 12)
+    closeAt: typeof d.round1CloseAt === 'number' ? Math.max(d.round1CloseAt, r16CloseFloor) : r16CloseFloor, // 7:40 PM GMT+3 (Sept 12)
+    startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 12, 16, 0, 0), // 7:00 PM GMT+3 (Sept 12)
     round1Open: d.round1Open !== false
   };
 });
@@ -540,11 +540,173 @@ exports.getRound1Questions = onCall(async (request) => {
   const isEligible = getMakeupAllowlist().has(email) || email === MAKEUP_ADMIN_EMAIL;
 
   if (!isEligible) {
-    throw new HttpsError('permission-denied', 'This special makeup exam is strictly reserved for candidates and teams who encountered verified technical issues and received official email approval.');
+    throw new HttpsError('permission-denied', 'This examination is strictly reserved for the official Round of 16 qualified teams and candidates.');
   }
 
   const questions = getPrivateRound1Questions();
   return { questions, cached: true };
+});
+
+/**
+ * Round 2 knockout status. Public-ish (any signed-in user): returns the
+ * per-round windows (qf/sf/fin), which round is current, and whether the
+ * knockout is open. No answer data of any kind.
+ */
+exports.getRound2Status = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
+  }
+  const snap = await db.collection('round2').doc('round2').get();
+  const d = snap.exists ? snap.data() : {};
+  const rounds = d.rounds || {};
+
+  const toMillis = (v) => {
+    if (!v) return null;
+    if (typeof v === 'number') return v;
+    if (typeof v.toMillis === 'function') return v.toMillis();
+    if (v._seconds) return v._seconds * 1000;
+    return null;
+  };
+
+  const series = {};
+  for (const key of ['qf', 'sf', 'fin']) {
+    const r = rounds[key] || {};
+    series[key] = {
+      name: r.name || key.toUpperCase(),
+      name_ar: r.name_ar || '',
+      openAt: toMillis(r.openAt),
+      closeAt: toMillis(r.closeAt)
+    };
+  }
+
+  return {
+    now: Date.now(),
+    round2Open: d.round2Open !== false,
+    currentRound: d.currentRound || null,
+    rounds: series
+  };
+});
+
+/**
+ * Round 2 exam data for the ACTIVE round: question metadata ONLY (id, order,
+ * unit, accepted error %, note) — the accepted numeric values live in the
+ * admin-only answerKeys subcollection and are never sent to the client.
+ */
+exports.getRound2Exam = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
+  }
+
+  const cfgSnap = await db.collection('round2').doc('round2').get();
+  const cfg = cfgSnap.exists ? cfgSnap.data() : {};
+  const activeRound = cfg.currentRound || null;
+
+  if (!activeRound) {
+    return { round2Open: cfg.round2Open !== false, currentRound: null, questions: [] };
+  }
+
+  const qSnap = await db
+    .collection('round2')
+    .doc('round2')
+    .collection('questions')
+    .where('round', '==', activeRound)
+    .orderBy('order')
+    .get();
+
+  const questions = [];
+  qSnap.forEach((q) => {
+    const data = q.data();
+    questions.push({
+      id: q.id,
+      order: data.order,
+      unit: data.unit || '',
+      tolerancePct: data.tolerancePct != null ? data.tolerancePct : 0,
+      note: data.note || ''
+    });
+  });
+
+  return {
+    round2Open: cfg.round2Open !== false,
+    currentRound: activeRound,
+    questions
+  };
+});
+
+/**
+ * Admin: sync Round 2 knockout config + question metadata + answer keys into
+ * Firestore from ./r2_questions.json (gitignored — the accepted values must
+ * NEVER enter the repo). Question docs carry metadata only; the accepted
+ * numeric values go to round2/round2/answerKeys (admin-only read).
+ */
+exports.syncRound2Config = onCall(async (request) => {
+  if (!request.auth) {
+    throw new HttpsError('unauthenticated', 'Must be logged in.');
+  }
+  const adminDoc = await db.collection('admins').doc(request.auth.uid).get();
+  if (!adminDoc.exists || !adminDoc.data().isAdmin) {
+    throw new HttpsError('permission-denied', 'Admin only.');
+  }
+
+  let raw;
+  try {
+    delete require.cache[require.resolve('./r2_questions.json')];
+    raw = require('./r2_questions.json');
+  } catch (e) {
+    throw new HttpsError('failed-precondition', `r2_questions.json not found: ${e.message}`);
+  }
+
+  const rounds = {
+    qf: {
+      name: 'Quarter-Final',
+      name_ar: 'ربع النهائي',
+      openAt: new Date(raw.rounds.qf.openAt),
+      closeAt: new Date(raw.rounds.qf.closeAt)
+    },
+    sf: {
+      name: 'Semi-Final',
+      name_ar: 'نصف النهائي',
+      openAt: new Date(raw.rounds.sf.openAt),
+      closeAt: new Date(raw.rounds.sf.closeAt)
+    },
+    fin: {
+      name: 'Final',
+      name_ar: 'النهائي',
+      openAt: new Date(raw.rounds.fin.openAt),
+      closeAt: new Date(raw.rounds.fin.closeAt)
+    }
+  };
+
+  const batch = db.batch();
+  const cfgRef = db.collection('round2').doc('round2');
+  batch.set(cfgRef, {
+    round2Open: raw.round2Open !== false,
+    currentRound: raw.currentRound || 'qf',
+    rounds,
+    updatedAt: FieldValue.serverTimestamp()
+  }, { merge: true });
+
+  (raw.questions || []).forEach((q) => {
+    const qRef = cfgRef.collection('questions').doc(q.id);
+    batch.set(qRef, {
+      round: q.round,
+      order: q.order,
+      unit: q.unit || '',
+      tolerancePct: q.tolerancePct != null ? q.tolerancePct : 0,
+      note: q.note || ''
+    }, { merge: true });
+
+    const aRef = cfgRef.collection('answerKeys').doc(q.id);
+    batch.set(aRef, {
+      round: q.round,
+      order: q.order,
+      acceptedValue: q.acceptedValue,
+      tolerancePct: q.tolerancePct != null ? q.tolerancePct : 0
+    }, { merge: true });
+  });
+
+  await batch.commit();
+  console.log(`Synced Round 2 config + ${(raw.questions || []).length} questions`);
+  return { success: true, questionCount: (raw.questions || []).length };
 });
 
 /**
