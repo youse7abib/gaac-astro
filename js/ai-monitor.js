@@ -418,30 +418,6 @@ export class AIMonitor {
   _initScreenMonitoring() {
     this.screenInterval = setInterval(() => {
       if (!this.running) return;
-      const hash = this._captureScreenHash();
-      const delta = this.lastScreenHash ? Math.abs(hash - this.lastScreenHash) : 0;
-      const relativeDiff = this.lastScreenHash ? (delta / this.lastScreenHash) : 0;
-      // Require at least 8% relative difference across the 40x30 frame to register as an
-      // application/window change, preventing timer ticks, cursors, and mouse moves from locking it.
-      const isSignificantChange = this.lastScreenHash && relativeDiff > 0.08;
-
-      if (isSignificantChange) {
-        this.screenStableChecks = 0;
-        if (!this.screenActive) {
-          this.screenActive = true;
-          this.security.setActive('screen-change', 'warning');
-        }
-      } else {
-        if (this.screenActive) {
-          this.screenStableChecks++;
-          if (this.screenStableChecks >= 2) {
-            this.screenActive = false;
-            this.screenStableChecks = 0;
-            this.security.setInactive('screen-change');
-          }
-        }
-      }
-      this.lastScreenHash = hash;
       this.captureScreenFrame();
     }, 5000);
   }
