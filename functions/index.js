@@ -490,11 +490,11 @@ function getMakeupAllowlist() {
 exports.getRound1Status = onCall(async (request) => {
   const snap = await db.collection('settings').doc('competition').get();
   const d = snap.exists ? snap.data() : {};
-  const r16CloseFloor = Date.UTC(2026, 8, 12, 16, 40, 0);
+  const r16CloseFloor = Date.UTC(2026, 8, 12, 16, 30, 0);
   return {
     now: Date.now(),
     openAt: typeof d.round1OpenAt === 'number' ? d.round1OpenAt : Date.UTC(2026, 8, 12, 16, 0, 0),  // 7:00 PM GMT+3 (Sept 12)
-    closeAt: typeof d.round1CloseAt === 'number' ? Math.max(d.round1CloseAt, r16CloseFloor) : r16CloseFloor, // 7:40 PM GMT+3 (Sept 12)
+    closeAt: typeof d.round1CloseAt === 'number' ? Math.max(d.round1CloseAt, r16CloseFloor) : r16CloseFloor, // 7:30 PM GMT+3 (Sept 12)
     startAt: typeof d.round1StartAt === 'number' ? d.round1StartAt : Date.UTC(2026, 8, 12, 16, 0, 0), // 7:00 PM GMT+3 (Sept 12)
     round1Open: d.round1Open !== false
   };
