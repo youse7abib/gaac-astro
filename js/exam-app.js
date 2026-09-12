@@ -202,7 +202,7 @@ const init = async () => {
 
     // Check if the team was reset or if no active in-progress exam doc exists in Firestore
     let isStaleAttempt = false;
-    const MAKEUP_WINDOW_START = Date.UTC(2026, 8, 7, 16, 0, 0);
+    const MAKEUP_WINDOW_START = Date.UTC(2026, 8, 12, 16, 0, 0);
 
     if (!hasExamDoc || examData.status !== 'in-progress' || teamData.status === 'registered' || teamData.examStatus === 'registered') {
       isStaleAttempt = true;
@@ -614,7 +614,7 @@ const loadRoundQuestions = async () => {
     }
   } catch (e) {
     if (e.code === 'permission-denied' || (e.message && (e.message.includes('permission-denied') || e.message.includes('reserved')))) {
-      const msg = e.message || 'This special makeup exam is strictly reserved for candidates and teams who encountered verified technical issues and received official email approval.';
+      const msg = e.message || 'This examination is strictly reserved for the official Round of 16 qualified candidates and teams.';
       showMessage(msg);
       throw new Error(msg);
     }

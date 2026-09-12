@@ -13,8 +13,22 @@ service firebase.storage {
       allow delete: if request.auth != null;
     }
 
+    // Round 2 knockout — each round's question PDF (round2/{qf|sf|fin}/questions.pdf).
+    // Read: signed-in teams only (never public). Write/delete: admins only
+    // (extend this list with any additional admin emails).
+    match /round2/{roundKey}/questions.pdf {
+      allow read: if request.auth != null;
+      allow write, delete: if request.auth != null
+        && request.auth.token.email in [
+          'astronomyclub64@gmail.com'
+        ];
+    }
+
+    // Publicly readable objects (logos, galleries, etc.) — but NEVER round2
+    // question PDFs (those are matched above and must not leak publicly).
     match /{allPaths=**} {
-      allow read: if true;
+      allow read: if true
+        && !resource.name.matches('round2/.*');
     }
   }
 }

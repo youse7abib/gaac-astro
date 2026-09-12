@@ -53,11 +53,25 @@ service cloud.firestore {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
+    // Round 2 knockout: true when the given roundKey (qf/sf/fin) is the
+    // currently active round AND we are inside its open/close window
+    // (server clock enforced). Used to gate answer creation timing.
+    function round2IsOpen(roundKey) {
+      return exists(/databases/$(database)/documents/round2/round2)
+        && get(/databases/$(database)/documents/round2/round2).data.round2Open == true
+        && get(/databases/$(database)/documents/round2/round2).data.currentRound == roundKey;
+    }
+
     // ================================================================
     // 0) COLLECTION GROUP QUERIES (admin only)
     //    Enables collectionGroup('exam') queries for the admin panel.
     // ================================================================
     match /{path=**}/exam/{examId} {
+      allow read: if isAdmin();
+    }
+
+    // Collection-group reads for the admin monitor (Round 2 workout answers).
+    match /{path=**}/round2/{roundKey} {
       allow read: if isAdmin();
     }
 
@@ -216,6 +230,33 @@ service cloud.firestore {
     }
 
     // ================================================================
+    // ROUND 2 — KNOCKOUT (Quarter-final / Semi-final / Final)
+    //    round2/round2 holds the config (round2Open, currentRound, per-round
+    //    windows). Questions carry metadata ONLY (unit, accepted error %,
+    //    points) — NEVER the accepted values (those live under answerKeys,
+    //    admin-only). Teams submit numeric answers to
+    //    teams/{teamId}/round2/{roundKey}/answers/{questionId}; the rule
+    //    allows CREATE only, so the first submission by ANY member locks that
+    //    question for the whole team forever.
+    // ================================================================
+    match /round2/round2 {
+      allow read: if isRealUser();
+      allow write: if isAdmin();
+    }
+
+    match /round2/round2/questions/{questionId} {
+      allow read: if isRealUser();
+      allow write: if isAdmin();
+      allow create, update: if isAdmin()
+        && !request.resource.data.keys().hasAny(['correctAnswer', 'acceptedValue']);
+    }
+
+    match /round2/round2/answerKeys/{questionId} {
+      allow read: if isAdmin();
+      allow write: if isAdmin();
+    }
+
+    // ================================================================
     // MOCK EXAM ANSWER KEYS — admin-only. The mock test reads only its
     // questions from the static file; the correct answers live here so
     // clients never see them. The server-side mock scoring trigger reads
@@ -365,9 +406,29 @@ service cloud.firestore {
                   || request.resource.data.memberUid == request.auth.uid)
               && resource.data.status != 'submitted')
         );
-        allow delete: if isAdmin();
+allow delete: if isAdmin();
       }
+
+      // Round 2 knockout answers — one doc per question, keyed by questionId.
+    // CREATE-ONLY: the first submission from ANY team member locks the answer
+    // for the whole team (no update/delete by members). Also gated by the
+    // round window via the round2IsOpen helper. Admin may read/repair.
+    match /round2/{roundKey}/answers/{questionId} {
+      allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
+      allow create: if isAuthenticated() && isTeamMember(teamId)
+        && round2IsOpen(roundKey)
+        && request.resource.data.keys().hasOnly([
+          'memberUid', 'memberName', 'memberEmail',
+          'value', 'numericValue', 'unit', 'tolerancePct',
+          'lockKey', 'submittedAt', 'questionId', 'locked'
+        ])
+        && request.resource.data.memberUid == request.auth.uid
+        && request.resource.data.questionId == questionId
+        && request.resource.data.locked == true;
+      allow update: if isAdmin();
+      allow delete: if isAdmin();
     }
+  }
 
     // ================================================================
     // 8) ADMINS — self-check or admin only
