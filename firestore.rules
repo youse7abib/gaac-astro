@@ -320,13 +320,14 @@ service cloud.firestore {
         // for the admin scoring pipeline.
         allow create: if isAuthenticated() && (
           isAdmin()
-          || (isTeamMember(teamId) && (request.auth.uid == examId || examId == request.auth.uid + '_makeup')
+          || (isTeamMember(teamId) && (request.auth.uid == examId || examId == request.auth.uid + '_makeup' || examId == request.auth.uid + '_round2')
               && request.resource.data.keys().hasOnly([
                 'examType',
                 'status', 'startedAt', 'endTime', 'absoluteDeadline',
                 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
-                'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo'
+                'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo',
+                'answersCount', 'lastSubmittedAt', 'stage'
               ])
               && (!request.resource.data.keys().hasAny(['memberUid'])
                   || request.resource.data.memberUid == request.auth.uid)
@@ -340,12 +341,13 @@ service cloud.firestore {
         // scoring fields.
         allow update: if isAuthenticated() && (
           isAdmin()
-          || (isTeamMember(teamId) && (request.auth.uid == examId || examId == request.auth.uid + '_makeup')
+          || (isTeamMember(teamId) && (request.auth.uid == examId || examId == request.auth.uid + '_makeup' || examId == request.auth.uid + '_round2')
               && request.resource.data.diff(resource.data).affectedKeys().hasOnly([
                 'examType',
                 'status', 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
-                'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo'
+                'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo',
+                'answersCount', 'lastSubmittedAt', 'stage'
               ])
               && (!request.resource.data.keys().hasAny(['memberUid'])
                   || request.resource.data.memberUid == request.auth.uid)
@@ -358,10 +360,12 @@ service cloud.firestore {
                         request.resource.data.eventCount - resource.data.get('eventCount', 0)))
               && (resource.data.status != 'submitted'
                   || (examId == request.auth.uid + '_makeup'
+                      && request.resource.data.status == 'in-progress')
+                  || (examId == request.auth.uid + '_round2'
                       && request.resource.data.status == 'in-progress')))
         );
         allow delete: if isAdmin()
-          || (isAuthenticated() && isTeamMember(teamId) && examId == request.auth.uid + '_makeup');
+          || (isAuthenticated() && isTeamMember(teamId) && (examId == request.auth.uid + '_makeup' || examId == request.auth.uid + '_round2'));
       }
 
       // Events subcollection
@@ -416,11 +420,11 @@ allow delete: if isAdmin();
     match /round2/{roundKey}/answers/{questionId} {
       allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
       allow create: if isAuthenticated() && isTeamMember(teamId)
-        && round2IsOpen(roundKey)
         && request.resource.data.keys().hasOnly([
           'memberUid', 'memberName', 'memberEmail',
           'value', 'numericValue', 'unit', 'tolerancePct',
-          'lockKey', 'submittedAt', 'questionId', 'locked'
+          'lockKey', 'submittedAt', 'questionId', 'locked',
+          'teamId', 'order', 'title'
         ])
         && request.resource.data.memberUid == request.auth.uid
         && request.resource.data.questionId == questionId

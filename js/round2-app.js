@@ -1,61 +1,131 @@
 import { auth, db, storage } from './exam-shared.js';
 import {
   doc, getDoc, setDoc, serverTimestamp,
-  collection, query, orderBy as orderByFS, onSnapshot,
-  where, limit as fsLimit
+  collection, query, orderBy as orderByFS, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref as storageRef, getBytes } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
-import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-functions.js";
 
 let teamId = null;
 let currentUser = null;
 let memberName = '';
 let memberEmail = '';
-let currentRound = null;
-let r2Questions = [];
 let answersMap = {};
-let r2ServerOffset = 0;
-let r2CloseAt = 0;
-let r2OpenAt = 0;
-let currentLang = localStorage.getItem('gaac_lang') || 'en';
 let timerInterval = null;
 let confirmResolve = null;
+let examDurationSec = 60 * 60; // 1 Hour (60 minutes)
+let examEndTime = 0;
 
-const functions = getFunctions();
-const getRound2Status = httpsCallable(functions, 'getRound2Status');
-const getRound2Exam = httpsCallable(functions, 'getRound2Exam');
+const ROUND8_EMAILS = new Set([
+  'jinenustegegn0@gmail.com',
+  'basaksayan55@gmail.com',
+  'shadenzanati1@gmail.com',
+  'nagutavictoria@gmail.com',
+  'adityarajsamantray446@gmail.com',
+  'rofaydatarek13@gmail.com'
+].map(e => e.toLowerCase().trim()));
 
-const R2_DEFAULTS = {
-  qf: { openAt: Date.UTC(2026, 8, 13, 10, 0, 0), closeAt: Date.UTC(2026, 8, 13, 11, 0, 0) },
-  sf: { openAt: Date.UTC(2026, 8, 13, 11, 30, 0), closeAt: Date.UTC(2026, 8, 13, 12, 30, 0) },
-  fin: { openAt: Date.UTC(2026, 8, 13, 13, 0, 0), closeAt: Date.UTC(2026, 8, 13, 14, 0, 0) }
-};
+const ADMIN_EMAILS = new Set([
+  'astronomyclub64@gmail.com'
+]);
 
-
-
-const DEMO_QUESTIONS = [
-  { id: 'demo1', round: 'qf', order: 1, unit: 'kg', tolerancePct: 1, note: 'Demo Q1 — Mass of the Sun in kilograms.' },
-  { id: 'demo2', round: 'qf', order: 2, unit: 'm/s', tolerancePct: 2, note: 'Demo Q2 — Speed of light in vacuum.' },
-  { id: 'demo3', round: 'qf', order: 3, unit: 'K', tolerancePct: 5, note: 'Demo Q3 — Surface temperature of Sirius A.' },
-  { id: 'demo4', round: 'qf', order: 4, unit: 'years', tolerancePct: 0.1, note: 'Demo Q4 — Age of the universe in years.' },
-  { id: 'demo5', round: 'qf', order: 5, unit: 'pc', tolerancePct: 3, note: 'Demo Q5 — Distance to Andromeda in parsecs.' },
-  { id: 'demo6', round: 'qf', order: 6, unit: 'AU', tolerancePct: 2, note: 'Demo Q6 — Semi-major axis of Mars orbit.' },
-  { id: 'demo7', round: 'qf', order: 7, unit: 'W', tolerancePct: 5, note: 'Demo Q7 — Luminosity of the Sun in watts.' },
-  { id: 'demo8', round: 'qf', order: 8, unit: 'km', tolerancePct: 1, note: 'Demo Q8 — Radius of Earth in kilometers.' },
-  { id: 'demo9', round: 'qf', order: 9, unit: 'm', tolerancePct: 2, note: 'Demo Q9 — Schwarzschild radius of a 10 solar mass BH.' },
-  { id: 'demo10', round: 'qf', order: 10, unit: 'Hz', tolerancePct: 3, note: 'Demo Q10 — Hydrogen 21-cm line frequency.' }
+const R8_QUESTIONS = [
+  {
+    id: "r8_q1",
+    order: 1,
+    title: "Question 1: The North That Moved",
+    topic: "Observational Astronomy",
+    unit: "degrees (°)",
+    note: "Find the new maximum altitude of the simulated Polaris above the northern horizon in degrees.",
+    placeholder: "e.g. 33.8"
+  },
+  {
+    id: "r8_q2",
+    order: 2,
+    title: "Question 2: The Silent Eclipse",
+    topic: "Observational Astronomy",
+    unit: "Earth radii (R_Earth)",
+    note: "Work out the radius of the transiting object in Earth radii (R⊕).",
+    placeholder: "e.g. 11.77"
+  },
+  {
+    id: "r8_q3",
+    order: 3,
+    title: "Question 3: The Courier at Periapsis",
+    topic: "Orbital Mechanics",
+    unit: "km/s",
+    note: "Deduce the courier's orbital speed at periapsis in km s⁻¹.",
+    placeholder: "e.g. 36.5"
+  },
+  {
+    id: "r8_q4",
+    order: 4,
+    title: "Question 4: The Star Behind the Glass",
+    topic: "Astrophysics",
+    unit: "ratio (R2 / R1)",
+    note: "What is the ratio of the new radius to the original radius (dimensionless)?",
+    placeholder: "e.g. 1.60"
+  },
+  {
+    id: "r8_q5",
+    order: 5,
+    title: "Question 5: The World That Fell Through",
+    topic: "Planetology",
+    unit: "m/s²",
+    note: "Uncover the surface gravitational acceleration of the Fallen World in m s⁻².",
+    placeholder: "e.g. 9.66"
+  },
+  {
+    id: "r8_q6",
+    order: 6,
+    title: "Question 6: The Red Thread",
+    topic: "Observational Astronomy",
+    unit: "km/s",
+    note: "Read off the source's radial recession speed in km s⁻¹.",
+    placeholder: "e.g. 398"
+  },
+  {
+    id: "r8_q7",
+    order: 7,
+    title: "Question 7: The Ledger of Two Suns",
+    topic: "Astrophysics",
+    unit: "Solar masses (M_Sun)",
+    note: "Recover the total mass of the binary system in solar masses (M☉).",
+    placeholder: "e.g. 5.69"
+  },
+  {
+    id: "r8_q8",
+    order: 8,
+    title: "Question 8: The Radius of the Invisible Furnace",
+    topic: "Astrophysics",
+    unit: "Solar masses (M_Sun)",
+    note: "Reconstruct the mass of the black hole in solar masses (M☉).",
+    placeholder: "e.g. 10.1"
+  },
+  {
+    id: "r8_q9",
+    order: 9,
+    title: "Question 9: The Age Written in Red",
+    topic: "Cosmology",
+    unit: "billion years (Gyr)",
+    note: "How old was the universe, in billions of years (Gyr), when the light began its journey?",
+    placeholder: "e.g. 3.49"
+  },
+  {
+    id: "r8_q10",
+    order: 10,
+    title: "Question 10: The Clock with Two Histories",
+    topic: "Cosmology",
+    unit: "billion years (Gyr)",
+    note: "Pin down the cosmic age, in billions of years (Gyr), at which the signal was emitted.",
+    placeholder: "e.g. 0.510"
+  }
 ];
 
+let r2Questions = R8_QUESTIONS;
+let activeQid = 'r8_q1';
+
 const isDemo = new URLSearchParams(window.location.search).get('demo') === '1';
-
-const R2_LABELS = {
-  qf: { en: 'QUARTER-FINAL', ar: 'ربع النهائي' },
-  sf: { en: 'SEMI-FINAL', ar: 'نصف النهائي' },
-  fin: { en: 'FINAL', ar: 'النهائي' }
-};
-
-const serverNow = () => Date.now() + r2ServerOffset;
 
 const showToast = (msg, severity = 'warning') => {
   const toast = document.getElementById('toast');
@@ -77,7 +147,7 @@ const ensureTeamMembership = async () => {
       await setDoc(ref, { teamId, email: currentUser.email });
     }
   } catch (e) {
-    console.warn('[round2] Failed to create team membership doc:', e);
+    console.warn('[round2] Team membership doc creation note:', e);
   }
 };
 
@@ -94,43 +164,38 @@ const init = async () => {
   try {
     const params = new URLSearchParams(window.location.search);
     teamId = params.get('team');
+
     if (isDemo) {
-      teamId = teamId || 'demo-team';
-      currentUser = { uid: 'demo-uid', email: 'demo@gaac.local', displayName: 'Demo' };
-      memberName = 'Demo Tester';
+      teamId = teamId || 'GAAC-2026-DEMO';
+      currentUser = { uid: 'demo-uid', email: 'demo@gaac.local' };
+      memberName = 'Demo Participant';
       memberEmail = 'demo@gaac.local';
-      document.getElementById('team-info').textContent = teamId;
-      document.getElementById('round-badge').textContent = 'QUARTER-FINAL (DEMO)';
-      blockInteractions();
-      bindLang();
-      currentRound = 'qf';
-      r2OpenAt = 0;
-      r2CloseAt = Date.now() + 60 * 60 * 1000;
-      r2Questions = DEMO_QUESTIONS.map((q) => ({ ...q, id: q.id }));
-      document.getElementById('total-count').textContent = r2Questions.length;
-      startTimer();
-      renderQuestions();
-      // Demo mode: no Firestore listener, no PDF load — show placeholder
-      document.getElementById('answered-count').textContent = '0';
-      const pdfPanel = document.getElementById('pdf-panel');
-      const pdfLoading = document.getElementById('pdf-loading');
-      if (pdfLoading) pdfLoading.classList.add('hidden');
-      if (pdfPanel) {
-        const placeholder = document.createElement('div');
-        placeholder.style.cssText = 'display:flex;align-items:center;justify-content:center;min-height:300px;color:#475569;font-size:0.85rem;text-align:center;padding:40px;border:1px dashed rgba(255,255,255,0.08);border-radius:12px;';
-        placeholder.innerHTML = '<div><div style="font-size:0.7rem;font-weight:700;letter-spacing:0.1em;color:#334155;text-transform:uppercase;margin-bottom:8px;">Demo Mode</div><div>No question paper loaded.<br>In the real exam, the PDF will appear here.</div></div>';
-        pdfPanel.appendChild(placeholder);
-      }
+      setupExamEnvironment();
       return;
     }
 
-    if (!teamId) { window.location.href = 'team-dashboard.html'; return; }
+    if (!teamId) {
+      window.location.href = 'team-dashboard.html';
+      return;
+    }
 
     const user = await new Promise((resolve) => {
       const unsub = onAuthStateChanged(auth, (u) => { unsub(); resolve(u); });
     });
-    if (!user) { window.location.href = 'team-dashboard.html'; return; }
+
+    if (!user) {
+      window.location.href = 'team-dashboard.html';
+      return;
+    }
     currentUser = user;
+
+    const emailClean = (currentUser.email || '').toLowerCase().trim();
+    const isAllowed = ROUND8_EMAILS.has(emailClean) || ADMIN_EMAILS.has(emailClean);
+
+    if (!isAllowed) {
+      showGate('unauthorized');
+      return;
+    }
 
     await ensureTeamMembership();
 
@@ -143,155 +208,149 @@ const init = async () => {
           reg.member2 ? { ...reg.member2, role: 'member2' } : null,
           reg.member3 ? { ...reg.member3, role: 'member3' } : null
         ].filter(Boolean);
-        const me = members.find(m => m.email === currentUser.email || m.uid === currentUser.uid);
-        if (me) { memberName = me.name || me.email || 'Unknown'; memberEmail = me.email || currentUser.email; }
-        else { memberName = currentUser.email; memberEmail = currentUser.email; }
+        const me = members.find(m => m.email?.toLowerCase().trim() === emailClean || m.uid === currentUser.uid);
+        if (me) {
+          memberName = me.name || me.email || 'Participant';
+          memberEmail = me.email || currentUser.email;
+        } else {
+          memberName = currentUser.email;
+          memberEmail = currentUser.email;
+        }
       }
-    } catch (e) { memberName = currentUser.email; memberEmail = currentUser.email; }
+    } catch (e) {
+      memberName = currentUser.email;
+      memberEmail = currentUser.email;
+    }
 
-    document.getElementById('team-info').textContent = teamId;
-
-    blockInteractions();
-    bindLang();
-    await loadRound();
+    setupExamEnvironment();
   } catch (e) {
-    console.error('[round2] init failed:', e);
-    document.body.innerHTML = `<div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#ff6b6b;font-size:1.2rem;text-align:center;padding:40px;flex-direction:column;gap:12px;">
-      <div style="font-weight:700;">Failed to load Round 2</div>
-      <div style="font-size:0.85rem;color:#8b9bb4;">${e.message || e}</div>
-    </div>`;
+    console.error('[round2] Init error:', e);
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;min-height:100vh;color:#ff6b6b;font-size:1.2rem;text-align:center;padding:40px;flex-direction:column;gap:12px;">
+        <div style="font-weight:700;">Failed to load Round 2</div>
+        <div style="font-size:0.85rem;color:#8b9bb4;">${e.message || e}</div>
+        <a href="team-dashboard.html" style="color:#26b7ff;text-decoration:none;margin-top:10px;">Back to Dashboard</a>
+      </div>`;
   }
 };
 
-const loadRound = async () => {
-  let statusData = {};
-  try {
-    const res = await getRound2Status();
-    statusData = res.data || {};
-  } catch (e) {
-    console.warn('[round2] getRound2Status failed:', e.message);
-  }
-
-  if (typeof statusData.now === 'number') r2ServerOffset = statusData.now - Date.now();
-
-  const rounds = statusData.rounds || {};
-  const active = statusData.currentRound;
-  const isOpen = statusData.round2Open !== false;
-
-  if (!active || !isOpen || !rounds[active]) {
-    showGate('not-scheduled');
-    return;
-  }
-
-  currentRound = active;
-  const rd = rounds[active];
-  r2OpenAt = rd.openAt || R2_DEFAULTS[active]?.openAt || 0;
-  r2CloseAt = rd.closeAt || R2_DEFAULTS[active]?.closeAt || 0;
-
-  const now = serverNow();
-  if (now < r2OpenAt) {
-    showGate('waiting', r2OpenAt);
-    return;
-  }
-  if (r2CloseAt && now > r2CloseAt) {
-    showGate('closed');
-    return;
-  }
-
-  const badge = document.getElementById('round-badge');
-  const langLabel = currentLang === 'ar' ? (R2_LABELS[active]?.ar || active) : (R2_LABELS[active]?.en || active);
-  badge.textContent = langLabel;
-
-  try {
-    const res = await getRound2Exam();
-    const examData = res.data || {};
-    r2Questions = (examData.questions || []).sort((a, b) => (a.order || 0) - (b.order || 0));
-  } catch (e) {
-    console.warn('[round2] getRound2Exam failed:', e.message);
-    r2Questions = [];
-  }
-
+const setupExamEnvironment = () => {
+  document.getElementById('team-info').textContent = `${teamId} · ${memberName}`;
+  document.getElementById('round-badge').textContent = 'ROUND OF 8 (5th–8th)';
   document.getElementById('total-count').textContent = r2Questions.length;
 
-  renderQuestions();
-  startTimer();
-  loadAnswersRealtime();
-  loadPdf();
+  blockInteractions();
+  showRulesGate();
 };
 
-const showGate = (reason, waitUntil = 0) => {
-  const gate = document.getElementById('gate-screen');
-  gate.classList.remove('hidden');
-  document.querySelector('.r2-layout')?.classList.add('hidden');
-  document.querySelector('.r2-footer')?.classList.add('hidden');
-  document.querySelector('.exam-bar').classList.add('hidden');
+const showRulesGate = () => {
+  const rulesGate = document.getElementById('rules-gate');
+  const gateScreen = document.getElementById('gate-screen');
+  const examLayout = document.querySelector('.r2-layout');
+  const examBar = document.querySelector('.exam-bar');
 
-  const isAr = currentLang === 'ar';
-  const title = document.getElementById('gate-title');
-  const msg = document.getElementById('gate-msg');
-  const timer = document.getElementById('gate-timer');
-  const sub = document.getElementById('gate-sub');
+  if (gateScreen) gateScreen.classList.add('hidden');
+  if (examLayout) examLayout.classList.add('hidden');
+  if (examBar) examBar.classList.add('hidden');
+  if (rulesGate) rulesGate.classList.remove('hidden');
 
-  if (reason === 'waiting') {
-    title.innerHTML = isAr ? 'الجولة لم <span class="text-blue">تبدأ بعد</span>' : 'Round Not <span class="text-blue">Started</span>';
-    msg.textContent = isAr ? 'انتظر فتح الجولة...' : 'Waiting for the round to open...';
-    if (waitUntil) updateGateTimer(waitUntil);
-  } else if (reason === 'closed') {
-    title.innerHTML = isAr ? 'انتهت <span class="text-blue">الجولة</span>' : 'Round <span class="text-blue">Ended</span>';
-    msg.textContent = isAr ? 'انتهت هذه الجولة.' : 'This round has ended.';
-    timer.textContent = '';
-    sub.textContent = '';
-  } else {
-    title.innerHTML = isAr ? 'الجولة غير <span class="text-blue">متاحة</span>' : 'Round Not <span class="text-blue">Available</span>';
-    msg.textContent = isAr ? 'الجولة الحالية لم تُفعّل بعد.' : 'The current round has not been activated yet.';
-    timer.textContent = '';
-    sub.textContent = '';
+  const cb = document.getElementById('rules-agree-cb');
+  const startBtn = document.getElementById('btn-start-exam');
+
+  if (cb && startBtn) {
+    cb.checked = false;
+    startBtn.disabled = true;
+    startBtn.style.opacity = '0.4';
+    startBtn.style.cursor = 'not-allowed';
+
+    cb.addEventListener('change', () => {
+      startBtn.disabled = !cb.checked;
+      startBtn.style.opacity = cb.checked ? '1' : '0.4';
+      startBtn.style.cursor = cb.checked ? 'pointer' : 'not-allowed';
+    });
+
+    startBtn.addEventListener('click', () => {
+      if (!cb.checked) return;
+      rulesGate.classList.add('hidden');
+      startExam();
+    });
   }
 };
 
-const updateGateTimer = (targetAt) => {
-  const timerEl = document.getElementById('gate-timer');
-  if (!timerEl) return;
-  const tick = () => {
-    const diff = targetAt - serverNow();
-    if (diff <= 0) { timerEl.textContent = currentLang === 'ar' ? 'جاري التحديث...' : 'Refreshing...'; setTimeout(() => location.reload(), 3000); return; }
-    const h = Math.floor(diff / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    timerEl.textContent = h > 0 ? `${h}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}` : `${m}:${String(s).padStart(2,'0')}`;
-  };
-  tick();
-  setInterval(tick, 1000);
+const startExam = () => {
+  const examLayout = document.querySelector('.r2-layout');
+  const examBar = document.querySelector('.exam-bar');
+
+  if (examLayout) examLayout.classList.remove('hidden');
+  if (examBar) examBar.classList.remove('hidden');
+
+  // Check stored start time or set fresh 60-min timer
+  const storageKey = `gaac_r8_start_${teamId}`;
+  let storedStart = localStorage.getItem(storageKey);
+  let startMs = storedStart ? Number(storedStart) : Date.now();
+  if (!storedStart) {
+    localStorage.setItem(storageKey, String(startMs));
+  }
+
+  examEndTime = startMs + (examDurationSec * 1000);
+
+  startTimer();
+  renderQuestions();
+  loadPdf();
+  if (!isDemo) {
+    loadAnswersRealtime();
+  }
+};
+
+const showGate = (reason) => {
+  const gate = document.getElementById('gate-screen');
+  const rulesGate = document.getElementById('rules-gate');
+  const examLayout = document.querySelector('.r2-layout');
+  const examBar = document.querySelector('.exam-bar');
+
+  if (rulesGate) rulesGate.classList.add('hidden');
+  if (examLayout) examLayout.classList.add('hidden');
+  if (examBar) examBar.classList.add('hidden');
+  if (gate) gate.classList.remove('hidden');
+
+  const title = document.getElementById('gate-title');
+  const msg = document.getElementById('gate-msg');
+  const sub = document.getElementById('gate-sub');
+
+  if (reason === 'unauthorized') {
+    title.innerHTML = 'Access <span class="text-blue">Denied</span>';
+    msg.textContent = 'This exam stage is reserved strictly for qualified Round of 8 teams.';
+    sub.textContent = 'Please return to your team dashboard.';
+  } else {
+    title.innerHTML = 'Round Not <span class="text-blue">Available</span>';
+    msg.textContent = 'The competition stage is currently inactive.';
+    sub.textContent = '';
+  }
 };
 
 const startTimer = () => {
   if (timerInterval) clearInterval(timerInterval);
   const display = document.getElementById('timer-display');
+
   const tick = () => {
-    const diff = r2CloseAt - serverNow();
+    const diff = examEndTime - Date.now();
     if (diff <= 0) {
-      display.textContent = '0:00';
+      display.textContent = '00:00';
       display.classList.add('warning');
       document.querySelectorAll('.r2-q-input').forEach(i => i.disabled = true);
       document.querySelectorAll('.r2-q-submit').forEach(b => b.disabled = true);
       clearInterval(timerInterval);
-      showToast(currentLang === 'ar' ? 'انتهت الجولة' : 'Round ended', 'severe');
+      showToast('Exam time has ended. Answers are locked.', 'warning');
       return;
     }
     const m = Math.floor(diff / 60000);
     const s = Math.floor((diff % 60000) / 1000);
-    display.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
     if (diff < 300000) display.classList.add('warning');
   };
+
   tick();
   timerInterval = setInterval(tick, 1000);
-};
-
-let activeQid = null;
-const selectDefaultQuestion = () => {
-  if (activeQid && r2Questions.some((qq) => qq.id === activeQid)) return;
-  const firstOpen = r2Questions.find((qq) => !answersMap[qq.id]);
-  activeQid = (firstOpen || r2Questions[0])?.id || null;
 };
 
 const updateProgressFill = () => {
@@ -299,13 +358,15 @@ const updateProgressFill = () => {
   const done = Object.keys(answersMap).length;
   const fill = document.getElementById('progress-fill');
   if (fill && total > 0) fill.style.width = `${Math.round((done / total) * 100)}%`;
+  const answeredEl = document.getElementById('answered-count');
+  if (answeredEl) answeredEl.textContent = done;
 };
 
 const renderQuestions = () => {
   const container = document.getElementById('questions-container');
   const tabBar = document.getElementById('tabs-header');
   if (!container) return;
-  selectDefaultQuestion();
+
   updateProgressFill();
 
   if (tabBar) {
@@ -340,22 +401,25 @@ const renderQuestions = () => {
 
   card.innerHTML = `
     <div class="r2-q-header">
-      <span class="r2-q-number">Q${q.order}</span>
+      <span class="r2-q-number">Q${q.order} · ${escapeHtml(q.title)}</span>
       <div class="r2-q-badges">
-        ${q.unit ? `<span class="r2-q-badge unit">${escapeHtml(q.unit)}</span>` : ''}
-        ${q.tolerancePct ? `<span class="r2-q-badge tol">&plusmn;${q.tolerancePct}%</span>` : ''}
+        ${q.topic ? `<span class="r2-q-badge tol">${escapeHtml(q.topic)}</span>` : ''}
+        ${q.unit ? `<span class="r2-q-badge unit">Unit: ${escapeHtml(q.unit)}</span>` : ''}
       </div>
     </div>
     ${noteHtml}
     ${isLocked
       ? `<div class="r2-q-locked">
            <div class="r2-q-locked-label">Submitted &amp; Locked</div>
-           <div class="r2-q-locked-value">${escapeHtml(existing.value)}</div>
-           <div class="r2-q-locked-by">by ${escapeHtml(existing.memberName || existing.memberEmail || 'Member')}</div>
+           <div class="r2-q-locked-value">${escapeHtml(existing.value)} <span style="font-size:0.8rem;color:#26b7ff;font-weight:600;">${escapeHtml(existing.unit || q.unit || '')}</span></div>
+           <div class="r2-q-locked-by">Locked by ${escapeHtml(existing.memberName || existing.memberEmail || 'Team Member')}</div>
          </div>`
-      : `<div class="r2-q-input-row">
-           <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="e.g. 2.333e-9" autocomplete="off" inputmode="decimal" spellcheck="false" />
-           <button class="r2-q-submit" id="submit-${q.id}">${currentLang === 'ar' ? 'إرسال' : 'Submit'}</button>
+      : `<div style="display:flex;flex-direction:column;gap:8px;">
+           <div style="font-size:0.75rem;color:#94a3b8;">Required submission unit: <strong style="color:#26b7ff;">${escapeHtml(q.unit || 'Standard')}</strong></div>
+           <div class="r2-q-input-row">
+             <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="${escapeHtml(q.placeholder || 'e.g. 1.25')}" autocomplete="off" inputmode="decimal" spellcheck="false" />
+             <button class="r2-q-submit" id="submit-${q.id}">Lock Answer</button>
+           </div>
          </div>`
     }
   `;
@@ -363,12 +427,13 @@ const renderQuestions = () => {
   if (!isLocked) {
     const submitBtn = card.querySelector(`#submit-${q.id}`);
     const inputEl = card.querySelector(`#input-${q.id}`);
-    submitBtn.addEventListener('click', () => submitAnswer(q.id, q, inputEl));
-    inputEl.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter') submitAnswer(q.id, q, inputEl);
-    });
-    // Auto-focus input
-    requestAnimationFrame(() => inputEl.focus());
+    if (submitBtn && inputEl) {
+      submitBtn.addEventListener('click', () => submitAnswer(q.id, q, inputEl));
+      inputEl.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submitAnswer(q.id, q, inputEl);
+      });
+      requestAnimationFrame(() => inputEl.focus());
+    }
   }
 
   container.appendChild(card);
@@ -376,103 +441,141 @@ const renderQuestions = () => {
 
 const submitAnswer = async (qid, q, inputEl) => {
   const raw = inputEl.value.trim();
-  if (!raw) { showToast(currentLang === 'ar' ? 'أدخل قيمة أولاً' : 'Enter a value first.', 'warning'); return; }
+  if (!raw) {
+    showToast('Please enter a numerical value first.', 'warning');
+    return;
+  }
   const numericValue = parseValue(raw);
-  if (numericValue === null) { showToast(currentLang === 'ar' ? 'قيمة غير صالحة (استخدم صيغة علمية)' : 'Invalid value (use scientific notation if needed).', 'warning'); return; }
+  if (numericValue === null) {
+    showToast('Invalid numerical value. Use standard decimal or scientific notation (e.g. 3.65e4).', 'warning');
+    return;
+  }
 
   const confirmed = await showConfirm(qid, raw, numericValue, q);
   if (!confirmed) return;
 
   if (isDemo) {
     answersMap[qid] = {
-      questionId: qid, value: raw, numericValue, unit: q.unit || '',
-      memberUid: 'demo-uid', memberName: 'Demo Tester', memberEmail: 'demo@gaac.local',
-      submittedAt: new Date().toISOString(), locked: true
+      questionId: qid,
+      order: q.order,
+      title: q.title,
+      value: raw,
+      numericValue,
+      unit: q.unit || '',
+      memberUid: 'demo-uid',
+      memberName: 'Demo Participant',
+      memberEmail: 'demo@gaac.local',
+      submittedAt: new Date().toISOString(),
+      locked: true
     };
-    // Auto-advance to next unlocked question
-    const nextOpen = r2Questions.find((qq) => !answersMap[qq.id]);
-    if (nextOpen) activeQid = nextOpen.id;
-    document.getElementById('answered-count').textContent = Object.keys(answersMap).length;
+    advanceToNextQuestion();
     renderQuestions();
-    showToast('Submitted & Locked', 'success');
+    showToast('Answer locked successfully', 'success');
     return;
   }
 
   try {
-    await setDoc(doc(db, 'teams', teamId, 'round2', currentRound, 'answers', qid), {
+    const answerData = {
       questionId: qid,
-      lockKey: `${teamId}|${currentRound}|${qid}`,
+      order: q.order,
+      title: q.title,
       value: raw,
-      numericValue,
+      numericValue: numericValue,
       unit: q.unit || '',
-      tolerancePct: q.tolerancePct || 0,
+      tolerancePct: 0,
+      lockKey: `${teamId}|r8|${qid}`,
       memberUid: currentUser.uid,
-      memberName,
-      memberEmail,
+      memberName: memberName,
+      memberEmail: memberEmail,
+      teamId: teamId,
       submittedAt: serverTimestamp(),
       locked: true
-    });
-    showToast(currentLang === 'ar' ? 'تم الإرسال والقفل' : 'Submitted & Locked', 'success');
+    };
+
+    // 1. Save question doc in subcollection
+    await setDoc(doc(db, 'teams', teamId, 'round2', 'r8', 'answers', qid), answerData);
+
+    // 2. Also record in user exam doc for tracking
+    await setDoc(doc(db, 'registrations', teamId, 'exam', `${currentUser.uid}_round2`), {
+      examType: 'round2_r8',
+      stage: 'r8',
+      memberUid: currentUser.uid,
+      memberEmail: memberEmail,
+      memberName: memberName,
+      status: (Object.keys(answersMap).length + 1 >= r2Questions.length) ? 'submitted' : 'in-progress',
+      answersCount: Object.keys(answersMap).length + 1,
+      lastSubmittedAt: serverTimestamp()
+    }, { merge: true });
+
+    answersMap[qid] = answerData;
+    advanceToNextQuestion();
+    renderQuestions();
+    showToast('Answer submitted and permanently locked.', 'success');
   } catch (e) {
-    console.error('[round2] submit failed:', e);
-    if (e.code === 'permission-denied' || (e.message && e.message.includes('permission-denied'))) {
-      showToast(currentLang === 'ar' ? 'هذا السؤال مقفول بالفعل' : 'This question is already locked.', 'severe');
-    } else {
-      showToast(currentLang === 'ar' ? 'خطأ في الإرسال' : 'Submission failed. Try again.', 'severe');
-    }
+    console.error('[round2] Submit error:', e);
+    showToast('Submission error. Please check your network and retry.', 'warning');
+  }
+};
+
+const advanceToNextQuestion = () => {
+  const nextOpen = r2Questions.find((qq) => !answersMap[qq.id]);
+  if (nextOpen) {
+    activeQid = nextOpen.id;
   }
 };
 
 const closeConfirm = () => {
   const modal = document.getElementById('confirm-modal');
-  modal.classList.remove('open');
+  if (modal) modal.classList.remove('open');
 };
 
 const showConfirm = (qid, raw, numVal, q) => {
   return new Promise((resolve) => {
     confirmResolve = resolve;
-    const modal    = document.getElementById('confirm-modal');
-    const qnumEl   = document.getElementById('confirm-qnum');
-    const valueEl  = document.getElementById('confirm-value');
-    const unitEl   = document.getElementById('confirm-unit');
-    const yesBtn   = document.getElementById('btn-confirm-yes');
-    const noBtn    = document.getElementById('btn-confirm-no');
+    const modal = document.getElementById('confirm-modal');
+    const qnumEl = document.getElementById('confirm-qnum');
+    const valueEl = document.getElementById('confirm-value');
+    const unitEl = document.getElementById('confirm-unit');
+    const yesBtn = document.getElementById('btn-confirm-yes');
+    const noBtn = document.getElementById('btn-confirm-no');
 
-    if (qnumEl) qnumEl.textContent = `Q${q.order}`;
+    if (qnumEl) qnumEl.textContent = `Q${q.order}: ${q.title}`;
     if (valueEl) valueEl.textContent = raw;
-    if (unitEl)  unitEl.textContent  = q.unit ? `Unit: ${q.unit}` : '';
+    if (unitEl) unitEl.innerHTML = `Required Unit: <strong style="color:#26b7ff;">${escapeHtml(q.unit || 'Standard')}</strong>`;
 
-    // Clone buttons to remove old listeners
     const newYes = yesBtn.cloneNode(true);
-    const newNo  = noBtn.cloneNode(true);
+    const newNo = noBtn.cloneNode(true);
     yesBtn.replaceWith(newYes);
     noBtn.replaceWith(newNo);
 
     newYes.addEventListener('click', () => { closeConfirm(); confirmResolve(true); });
-    newNo.addEventListener('click',  () => { closeConfirm(); confirmResolve(false); });
+    newNo.addEventListener('click', () => { closeConfirm(); confirmResolve(false); });
 
-    // Smooth open
     modal.classList.add('open');
   });
 };
 
 const loadAnswersRealtime = () => {
-  if (!currentRound || !teamId) return;
-  const q = query(
-    collection(db, 'teams', teamId, 'round2', currentRound, 'answers')
-  );
-  onSnapshot(q, (snap) => {
-    let count = 0;
-    snap.forEach((d) => {
-      const data = d.data();
-      answersMap[d.id] = data;
-      count++;
+  if (!teamId) return;
+  try {
+    const q = query(
+      collection(db, 'teams', teamId, 'round2', 'r8', 'answers')
+    );
+    onSnapshot(q, (snap) => {
+      let count = 0;
+      snap.forEach((d) => {
+        const data = d.data();
+        answersMap[d.id] = data;
+        count++;
+      });
+      updateProgressFill();
+      renderQuestions();
+    }, (err) => {
+      console.warn('[round2] Realtime listener notice:', err);
     });
-    document.getElementById('answered-count').textContent = count;
-    renderQuestions();
-  }, (err) => {
-    console.warn('[round2] answers onSnapshot error:', err);
-  });
+  } catch (e) {
+    console.warn('[round2] Realtime setup error:', e);
+  }
 };
 
 const loadPdf = async () => {
@@ -480,26 +583,48 @@ const loadPdf = async () => {
   const loading = document.getElementById('pdf-loading');
 
   try {
-    const pdfPath = `round2/${currentRound}/questions.pdf`;
-    const pdfRef = storageRef(storage, pdfPath);
-    const arrayBuffer = await getBytes(pdfRef);
-
     if (typeof pdfjsLib === 'undefined') {
-      loading.textContent = 'PDF viewer library failed to load.';
+      if (loading) loading.textContent = 'PDF viewer library failed to load.';
       return;
     }
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-    loading.classList.add('hidden');
+    let pdfData = null;
+
+    // Load from project PDF path
+    try {
+      const resp = await fetch('pdf/Round2_Stage1_Best5th_8th.pdf');
+      if (resp.ok) {
+        pdfData = await resp.arrayBuffer();
+      }
+    } catch (_) {}
+
+    // Fallback to storage if needed
+    if (!pdfData) {
+      try {
+        const pdfRef = storageRef(storage, 'round2/r8/questions.pdf');
+        pdfData = await getBytes(pdfRef);
+      } catch (_) {}
+    }
+
+    if (!pdfData) {
+      if (loading) loading.textContent = 'Question paper could not be fetched.';
+      return;
+    }
+
+    const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
+    if (loading) loading.classList.add('hidden');
+
+    panel.innerHTML = '';
 
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const scale = 1.3;
+      const scale = 1.35;
       const viewport = page.getViewport({ scale });
 
       const pageDiv = document.createElement('div');
       pageDiv.className = 'r2-pdf-page';
+      pageDiv.style.position = 'relative';
 
       const canvas = document.createElement('canvas');
       const ctx = canvas.getContext('2d');
@@ -509,14 +634,15 @@ const loadPdf = async () => {
 
       const overlay = document.createElement('div');
       overlay.className = 'r2-pdf-lock-overlay';
+      overlay.style.cssText = 'position:absolute;inset:0;z-index:10;background:transparent;user-select:none;pointer-events:none;';
 
       pageDiv.appendChild(canvas);
       pageDiv.appendChild(overlay);
       panel.appendChild(pageDiv);
     }
   } catch (e) {
-    console.error('[round2] PDF load failed:', e);
-    loading.textContent = currentLang === 'ar' ? 'تعذر تحميل ملف الأسئلة' : 'Failed to load question paper.';
+    console.error('[round2] PDF rendering error:', e);
+    if (loading) loading.textContent = 'Failed to load question paper.';
   }
 };
 
@@ -524,7 +650,9 @@ const blockInteractions = () => {
   document.addEventListener('contextmenu', (e) => e.preventDefault());
   document.addEventListener('copy', (e) => e.preventDefault());
   document.addEventListener('cut', (e) => e.preventDefault());
-  document.addEventListener('paste', (e) => e.preventDefault());
+  document.addEventListener('paste', (e) => {
+    if (!e.target.closest('.r2-q-input')) e.preventDefault();
+  });
   document.addEventListener('selectstart', (e) => {
     if (e.target.closest('.r2-q-input')) return;
     e.preventDefault();
@@ -545,26 +673,10 @@ const blockInteractions = () => {
   window.addEventListener('beforeprint', (e) => e.preventDefault());
 };
 
-const bindLang = () => {
-  const btn = document.getElementById('btn-lang-toggle');
-  if (!btn) return;
-  const update = () => { btn.textContent = currentLang === 'ar' ? 'عربي' : 'EN'; };
-  update();
-  btn.addEventListener('click', () => {
-    currentLang = currentLang === 'en' ? 'ar' : 'en';
-    localStorage.setItem('gaac_lang', currentLang);
-    update();
-    if (currentRound) {
-      const badge = document.getElementById('round-badge');
-      badge.textContent = currentLang === 'ar' ? (R2_LABELS[currentRound]?.ar || currentRound) : (R2_LABELS[currentRound]?.en || currentRound);
-    }
-    renderQuestions();
-  });
-};
-
 const escapeHtml = (str) => {
   if (!str) return '';
   return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 };
 
 init();
+

@@ -909,14 +909,14 @@
     <div id="admin-dashboard" class="hidden">
       <!-- Top Navigation Tabs -->
       <div class="top-tabs">
-        <button class="top-tab-btn active" id="tab-btn-all" onclick="window.switchTab('all')">
-          Round 1 Submissions
+        <button class="top-tab-btn active" id="tab-btn-r16" onclick="window.switchTab('r16')">
+          Round of 16 Teams
         </button>
-        <button class="top-tab-btn" id="tab-btn-makeup" onclick="window.switchTab('makeup')">
-          Round 1 Make-up
+        <button class="top-tab-btn" id="tab-btn-all" onclick="window.switchTab('all')">
+          Round 1 Submissions (All)
         </button>
         <button class="top-tab-btn" id="tab-btn-teams" onclick="window.switchTab('teams')">
-          Team Leaderboard (Top 100 / Top 32)
+          Round 1 Team Leaderboard
         </button>
         <button class="top-tab-btn" id="tab-btn-lookup" onclick="window.switchTab('lookup')">
           Team Inspector
@@ -926,8 +926,49 @@
         </button>
       </div>
 
-      <!-- TAB 1: ALL SUBMISSIONS -->
-      <div id="view-all-submissions">
+      <!-- TAB: ROUND OF 16 TEAMS -->
+      <div id="view-round16-teams">
+        <!-- R16 Stats summary -->
+        <div class="stats-bar" id="r16-stats-bar">
+          <div class="stat-box">
+            <div class="num" id="r16-stat-teams">16</div>
+            <div class="label">Qualified Teams</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="r16-stat-submitted" style="color:var(--green);">0 / 26</div>
+            <div class="label">Members Submitted</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="r16-stat-progress" style="color:var(--cyan);">0</div>
+            <div class="label">In Progress</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="r16-stat-avg-score">--</div>
+            <div class="label">Average Score</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="r16-stat-high-score" style="color:var(--silver-bright);">--</div>
+            <div class="label">Highest Score</div>
+          </div>
+        </div>
+
+        <!-- Search Bar for R16 Teams -->
+        <div class="controls-bar" style="margin-bottom:20px;">
+          <div class="search-box">
+            <input type="text" id="r16-search-input" placeholder="Search Round of 16 teams, member names, emails, or countries..." />
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn-cache-sync" onclick="window.syncData()">Sync Submissions</button>
+          </div>
+        </div>
+
+        <div id="round16-teams-container">
+          <div class="empty-placeholder">Loading Round of 16 teams...</div>
+        </div>
+      </div>
+
+      <!-- TAB 2: ALL SUBMISSIONS (ROUND 1) -->
+      <div id="view-all-submissions" class="hidden">
         <!-- Stats summary -->
         <div class="stats-bar" id="stats-bar">
           <div class="stat-box">
@@ -1090,6 +1131,10 @@
         <span class="lightbox-meta" id="lb-index-counter">Image 1 of 10</span>
       </div>
       <div style="display:flex;align-items:center;gap:8px;">
+        <div style="display:flex;align-items:center;gap:4px;background:rgba(0,0,0,0.4);padding:3px;border-radius:8px;border:1px solid rgba(255,255,255,0.1);">
+          <button id="lb-filter-today-btn" style="background:rgba(46,213,115,0.25);border:1px solid rgba(46,213,115,0.6);color:#2ed573;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:0.72rem;font-weight:700;">🌟 Today (Sept 12)</button>
+          <button id="lb-filter-all-btn" style="background:transparent;border:none;color:#94a3b8;border-radius:6px;padding:4px 10px;cursor:pointer;font-size:0.72rem;">All Dates</button>
+        </div>
         <button id="lb-webcam-crop-btn" title="Crop/Zoom on bottom-right webcam image (W)" style="background:rgba(0,210,255,0.15);border:1px solid rgba(0,210,255,0.4);color:var(--cyan);border-radius:6px;padding:5px 12px;cursor:pointer;font-size:0.75rem;font-weight:600;">Focus Webcam Inset</button>
         <button id="lb-fullscreen-btn" title="Fullscreen (F)" style="background:rgba(255,255,255,0.07);border:1px solid rgba(255,255,255,0.12);color:#94a3b8;border-radius:6px;padding:5px 12px;cursor:pointer;font-size:0.75rem;">Fullscreen</button>
         <button class="lightbox-close-btn" id="lb-close-btn" title="Close (Esc)">&times;</button>
@@ -1164,7 +1209,7 @@
     let allSubmissions = [];
     let round1Submissions = [];
     let makeupSubmissions = [];
-    let activeSubmissionView = 'round1';
+    let activeSubmissionView = 'makeup';
     const registrationCache = new Map();
     let currentGalleryImages = [];
     let currentGalleryIndex = 0;
@@ -1173,7 +1218,8 @@
     let evaluatedTeamRankings = [];
 
     function isMakeupSubmission(submission) {
-      return submission?.examType === 'round1-makeup'
+      return submission?.examType === 'round-of-16'
+        || submission?.examType === 'round1-makeup'
         || String(submission?.memberUid || submission?.id || '').endsWith('_makeup');
     }
 
@@ -1202,26 +1248,295 @@
       const submissions = getActiveSubmissions();
       updateStats(submissions);
       renderSubmissions();
+      renderRound16Teams();
       if (!document.getElementById('view-team-leaderboard').classList.contains('hidden')) {
         renderTeamLeaderboard();
       }
     }
 
     // Tab switching
+    
+    const QUALIFIED_ALLOWLIST = new Set([
+      "2311prt@gmail.com",
+      "adityarajsamantray446@gmail.com",
+      "african.young.leader.haile@gmail.com",
+      "astronomyclub64@gmail.com",
+      "badr.e.h.edu@gmail.com",
+      "basaksayan55@gmail.com",
+      "bouarfaamira2010@gmail.com",
+      "doedeladem99@gmail.com",
+      "emmanueldogbe13@gmail.com",
+      "frederickadjavorsowalo@gmail.com",
+      "gbelayhassbs@gmail.com",
+      "hhna65127@gmail.com",
+      "jinenustegegn0@gmail.com",
+      "matei.butnaru@yahoo.com",
+      "mihai.tesileanu2@gmail.com",
+      "mitchgeem@gmail.com",
+      "mralbakk@gmail.com",
+      "nagutavictoria@gmail.com",
+      "ramyramadan0120@gmail.com",
+      "riteshkumarmohapatra11902@gmail.com",
+      "rofaydatarek13@gmail.com",
+      "sanhany573@gmail.com",
+      "sarthakgupta1324@gmail.com",
+      "sh9190144@gmail.com",
+      "shadenzanati1@gmail.com",
+      "vlad.toncu224@gmail.com",
+      "wawzed90@gmail.com"
+    ]);
+
+    function isQualifiedEmail(email) {
+      if (!email) return false;
+      return QUALIFIED_ALLOWLIST.has(email.toLowerCase().trim());
+    }
+
+    function renderRound16Teams() {
+      const container = document.getElementById('round16-teams-container');
+      if (!container) return;
+      const searchQuery = (document.getElementById('r16-search-input')?.value || '').trim().toLowerCase();
+
+      // Discover all teams containing at least one member from QUALIFIED_ALLOWLIST
+      const r16TeamsMap = new Map();
+      registrationCache.forEach((reg, teamId) => {
+        const members = [
+          reg.leader ? { ...reg.leader, role: 'leader', label: 'Team Leader' } : null,
+          reg.member2 ? { ...reg.member2, role: 'member2', label: 'Member 2' } : null,
+          reg.member3 ? { ...reg.member3, role: 'member3', label: 'Member 3' } : null
+        ].filter(Boolean);
+
+        const hasQualifiedMember = members.some(m => isQualifiedEmail(m.email));
+        if (hasQualifiedMember) {
+          r16TeamsMap.set(teamId, { teamId, reg, members });
+        }
+      });
+
+      let r16TeamsList = Array.from(r16TeamsMap.values());
+
+      // Precalculate team score and stats for each team
+      r16TeamsList.forEach(t => {
+        let teamSubmittedCount = 0;
+        let teamMemberScores = [];
+        let teamInProgressCount = 0;
+
+        t.members.forEach(m => {
+          const sub = makeupSubmissions.find(s => 
+            s.teamId.toLowerCase() === t.teamId.toLowerCase() &&
+            ((s.memberEmail && s.memberEmail.toLowerCase() === (m.email || '').toLowerCase()) || s.memberRole === m.role)
+          );
+          if (sub && sub.status === 'submitted' && sub.hasAnswers !== false) {
+            teamSubmittedCount++;
+            if (typeof sub.score === 'number') teamMemberScores.push(sub.score);
+          } else if (sub && sub.status === 'in-progress') {
+            teamInProgressCount++;
+          }
+        });
+
+        t.teamSubmittedCount = teamSubmittedCount;
+        t.teamInProgressCount = teamInProgressCount;
+        t.teamAvgScore = teamMemberScores.length > 0
+          ? Math.round(teamMemberScores.reduce((a, b) => a + b, 0) / teamMemberScores.length)
+          : null;
+      });
+
+      // SORT TEAMS: Highest Score First, then In-Progress, then Team ID
+      r16TeamsList.sort((a, b) => {
+        const aScore = a.teamAvgScore != null ? a.teamAvgScore : -1;
+        const bScore = b.teamAvgScore != null ? b.teamAvgScore : -1;
+        if (bScore !== aScore) return bScore - aScore; // High score first
+        if (b.teamSubmittedCount !== a.teamSubmittedCount) return b.teamSubmittedCount - a.teamSubmittedCount;
+        if (b.teamInProgressCount !== a.teamInProgressCount) return b.teamInProgressCount - a.teamInProgressCount;
+        return a.teamId.localeCompare(b.teamId);
+      });
+
+      if (searchQuery) {
+        r16TeamsList = r16TeamsList.filter(t => {
+          const tName = (t.reg.teamName || '').toLowerCase();
+          const tId = (t.teamId || '').toLowerCase();
+          const memMatch = t.members.some(m => 
+            (m.name || '').toLowerCase().includes(searchQuery) ||
+            (m.email || '').toLowerCase().includes(searchQuery) ||
+            (m.country || '').toLowerCase().includes(searchQuery)
+          );
+          return tName.includes(searchQuery) || tId.includes(searchQuery) || memMatch;
+        });
+      }
+
+      // Global Stats
+      let totalSubmitted = 0;
+      let totalInProgress = 0;
+      let scoresList = [];
+
+      r16TeamsList.forEach(t => {
+        totalSubmitted += t.teamSubmittedCount;
+        totalInProgress += t.teamInProgressCount;
+        t.members.forEach(m => {
+          const sub = makeupSubmissions.find(s => 
+            s.teamId.toLowerCase() === t.teamId.toLowerCase() &&
+            ((s.memberEmail && s.memberEmail.toLowerCase() === (m.email || '').toLowerCase()) || s.memberRole === m.role)
+          );
+          if (sub && sub.status === 'submitted' && sub.hasAnswers !== false && typeof sub.score === 'number') {
+            scoresList.push(sub.score);
+          }
+        });
+      });
+
+      const statTeams = document.getElementById('r16-stat-teams');
+      const statSub = document.getElementById('r16-stat-submitted');
+      const statProg = document.getElementById('r16-stat-progress');
+      const statAvg = document.getElementById('r16-stat-avg-score');
+      const statHigh = document.getElementById('r16-stat-high-score');
+
+      if (statTeams) statTeams.textContent = r16TeamsList.length;
+      if (statSub) statSub.textContent = `${totalSubmitted} / 26`;
+      if (statProg) statProg.textContent = totalInProgress;
+      if (statAvg) statAvg.textContent = scoresList.length > 0 ? `${Math.round(scoresList.reduce((a, b) => a + b, 0) / scoresList.length)}%` : '--';
+      if (statHigh) statHigh.textContent = scoresList.length > 0 ? `${Math.max(...scoresList)}%` : '--';
+
+      if (r16TeamsList.length === 0) {
+        if (registrationCache.size === 0) {
+          container.innerHTML = '<div class="empty-placeholder">Loading Round of 16 teams...</div>';
+        } else {
+          container.innerHTML = '<div class="empty-placeholder">No Round of 16 qualified teams found.</div>';
+        }
+        return;
+      }
+
+      let html = '';
+      r16TeamsList.forEach((t, idx) => {
+        const reg = t.reg;
+        const teamSubmittedCount = t.teamSubmittedCount;
+        const teamAvgScore = t.teamAvgScore;
+        const rank = idx + 1;
+        const rankBadgeClass = rank === 1 ? 'rank-1' : (rank === 2 ? 'rank-2' : (rank === 3 ? 'rank-3' : ''));
+
+        html += `
+          <div class="sub-card" style="margin-bottom:20px;border:1px solid rgba(38,183,255,0.22);background:rgba(2,8,22,0.85);" id="r16-card-${t.teamId}">
+            <div class="card-top">
+              <div class="card-identity">
+                <div class="rank-badge ${rankBadgeClass}">#${rank}</div>
+                <div>
+                  <h3 class="candidate-name" style="font-size:1.15rem;color:#fff;">${escapeHtml(reg.teamName || t.teamId)}</h3>
+                  <div class="candidate-sub">
+                    <strong style="color:var(--cyan);font-family:Orbitron,monospace;">${escapeHtml(t.teamId)}</strong>
+                    <span>&bull;</span>
+                    <span>${escapeHtml(reg.leader?.country || 'Global')}</span>
+                    <span>&bull;</span>
+                    <span style="color:var(--green);font-weight:600;">${teamSubmittedCount} of ${t.members.length} Submitted</span>
+                  </div>
+                </div>
+              </div>
+              <div class="score-display">
+                <div class="score-num" style="color:${teamAvgScore != null ? 'var(--cyan)' : 'var(--muted)'};">${teamAvgScore != null ? teamAvgScore + '%' : '—'}</div>
+                <div class="score-correct">${teamSubmittedCount > 0 ? 'Team Average Score' : 'Awaiting Submissions'}</div>
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:14px;margin-top:14px;">
+        `;
+
+        t.members.forEach(m => {
+          const mEmail = (m.email || '').toLowerCase().trim();
+          const isValid = isQualifiedEmail(mEmail);
+          const sub = makeupSubmissions.find(s => 
+            s.teamId.toLowerCase() === t.teamId.toLowerCase() &&
+            ((s.memberEmail && s.memberEmail.toLowerCase() === mEmail) || s.memberRole === m.role)
+          );
+
+          const isSubmitted = sub && sub.status === 'submitted' && sub.hasAnswers !== false;
+          const isInProgress = sub && sub.status === 'in-progress';
+          const mScore = isSubmitted ? (sub.score != null ? sub.score + '%' : (sub.correctCount != null ? Math.round(sub.correctCount * 5) + '%' : '—')) : '—';
+          const severeCount = sub?.severeEventCount || 0;
+          const totalEvents = sub?.eventCount || 0;
+
+          html += `
+            <div class="info-tile" style="padding:14px;border:1px solid ${isValid ? 'rgba(38,183,255,0.18)' : 'rgba(255,71,87,0.3)'};background:${isValid ? 'rgba(255,255,255,0.02)' : 'rgba(255,71,87,0.05)'};">
+              <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px;gap:6px;flex-wrap:wrap;">
+                <span class="role-badge role-${m.role}">${m.label}</span>
+                <span class="pill-badge" style="font-size:0.68rem;${isValid ? 'color:var(--green);border-color:rgba(46,213,115,0.4);' : 'color:var(--red);border-color:rgba(255,71,87,0.4);'}">
+                  ${isValid ? '✓ Valid Qualifier' : '⚠️ Unauthorized'}
+                </span>
+                <span class="pill-badge" style="color:${isSubmitted ? 'var(--green)' : (isInProgress ? 'var(--cyan)' : 'var(--muted)')};">
+                  ${isSubmitted ? 'Submitted' : (isInProgress ? 'In Progress' : 'Not Entered')}
+                </span>
+              </div>
+
+              <div style="font-size:0.95rem;font-weight:700;color:#fff;">${escapeHtml(m.name || formatEmailToName(m.email))}</div>
+              <div style="font-size:0.78rem;color:var(--muted);word-break:break-all;">${escapeHtml(m.email || '')}</div>
+              <div style="font-size:0.75rem;color:var(--muted);margin-top:4px;">${escapeHtml(m.school || '')} &bull; ${escapeHtml(m.country || '')}</div>
+
+              <!-- Timing & Duration -->
+              <div style="margin-top:8px;padding:8px 10px;background:rgba(0,0,0,0.25);border:1px solid rgba(255,255,255,0.06);border-radius:6px;font-size:0.72rem;color:var(--silver-dark);line-height:1.5;">
+                ${isSubmitted ? `
+                  <div style="display:flex;justify-content:space-between;"><span>🕒 <strong>Started:</strong></span> <span style="color:var(--silver);font-family:Orbitron,monospace;font-size:0.7rem;">${fmtDateTime(sub.startedAt)}</span></div>
+                  <div style="display:flex;justify-content:space-between;"><span>🏁 <strong>Submitted:</strong></span> <span style="color:var(--silver);font-family:Orbitron,monospace;font-size:0.7rem;">${fmtDateTime(sub.submittedAt)}</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:2px;border-top:1px dashed rgba(255,255,255,0.08);padding-top:2px;"><span>⏱️ <strong>Duration:</strong></span> <span style="color:var(--cyan);font-weight:700;">${calcDuration(sub.startedAt, sub.submittedAt)}</span></div>
+                ` : (isInProgress ? `
+                  <div style="display:flex;justify-content:space-between;"><span>🕒 <strong>Started:</strong></span> <span style="color:var(--silver);font-family:Orbitron,monospace;font-size:0.7rem;">${fmtDateTime(sub.startedAt)}</span></div>
+                  <div style="display:flex;justify-content:space-between;margin-top:2px;border-top:1px dashed rgba(255,255,255,0.08);padding-top:2px;"><span>⏱️ <strong>Elapsed:</strong></span> <span style="color:var(--cyan);font-weight:700;">In Progress (${calcDuration(sub.startedAt, Date.now())})</span></div>
+                ` : `
+                  <div style="color:var(--muted);text-align:center;padding:2px 0;">💤 Candidate has not entered the exam</div>
+                `)}
+              </div>
+
+              <div style="margin-top:10px;display:flex;justify-content:space-between;align-items:center;">
+                <span style="font-size:0.8rem;color:var(--muted);">
+                  Score: <strong style="color:${isSubmitted ? (sub.score >= 80 ? 'var(--green)' : 'var(--cyan)') : 'var(--muted)'};font-family:Orbitron,monospace;font-size:0.95rem;">
+                    ${isSubmitted ? mScore : (isInProgress ? 'In Progress' : 'Not Entered')}
+                  </strong> 
+                  ${isSubmitted && sub.correctCount != null ? `<span style="font-size:0.75rem;color:var(--muted);">(${sub.correctCount}/20)</span>` : ''}
+                </span>
+                <span class="pill-badge ${severeCount > 0 ? 'ev-severe' : (totalEvents > 0 ? 'ev-warn' : '')}" style="font-size:0.68rem;">
+                  ${totalEvents} Events ${severeCount > 0 ? `(${severeCount} Severe)` : ''}
+                </span>
+              </div>
+
+              <div style="margin-top:12px;display:flex;gap:8px;align-items:center;">
+                <button class="btn-act btn-snap" style="flex:1;padding:6px 10px;font-size:0.75rem;min-height:30px;justify-content:center;" onclick="window.openSnapshots('${t.teamId}', '${sub ? sub.memberUid : m.uid || m.email}', '${escapeHtml(m.name || m.email).replace(/'/g, "\\'")}', '${m.role}')">
+                  📸 Photos
+                </button>
+                ${sub ? `
+                  <button class="btn-act btn-log" style="flex:1;padding:6px 10px;font-size:0.75rem;min-height:30px;justify-content:center;" onclick="window.openDetails('${sub.memberUid}')">
+                    📋 Log & Answers
+                  </button>
+                ` : `
+                  <button class="btn-act btn-log" style="flex:1;padding:6px 10px;font-size:0.75rem;min-height:30px;justify-content:center;opacity:0.5;" disabled>
+                    Not Entered
+                  </button>
+                `}
+              </div>
+            </div>
+          `;
+        });
+
+        html += `
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
     window.switchTab = (tabName) => {
       document.querySelectorAll('.top-tab-btn').forEach(b => b.classList.remove('active'));
       const btn = document.getElementById(`tab-btn-${tabName}`);
       if (btn) btn.classList.add('active');
 
-      const isSubmissionTab = tabName === 'all' || tabName === 'makeup';
-      if (isSubmissionTab) activeSubmissionView = tabName === 'makeup' ? 'makeup' : 'round1';
+      const isR16Tab = tabName === 'r16' || tabName === 'makeup';
+      const isAllSubTab = tabName === 'all';
 
-      document.getElementById('view-all-submissions').classList.toggle('hidden', !isSubmissionTab);
-      document.getElementById('view-team-leaderboard').classList.toggle('hidden', tabName !== 'teams');
-      document.getElementById('view-team-inspector').classList.toggle('hidden', tabName !== 'lookup');
-      document.getElementById('view-schedule-control').classList.toggle('hidden', tabName !== 'schedule');
+      document.getElementById('view-round16-teams')?.classList.toggle('hidden', !isR16Tab);
+      document.getElementById('view-all-submissions')?.classList.toggle('hidden', !isAllSubTab);
+      document.getElementById('view-team-leaderboard')?.classList.toggle('hidden', tabName !== 'teams');
+      document.getElementById('view-team-inspector')?.classList.toggle('hidden', tabName !== 'lookup');
+      document.getElementById('view-schedule-control')?.classList.toggle('hidden', tabName !== 'schedule');
 
-      if (isSubmissionTab) {
+      if (isR16Tab) {
+        activeSubmissionView = 'makeup';
+        renderRound16Teams();
+      } else if (isAllSubTab) {
+        activeSubmissionView = 'round1';
         refreshActiveSubmissionView();
       } else if (tabName === 'teams') {
         renderTeamLeaderboard();
@@ -1409,7 +1724,7 @@
         const list = [];
         snap.forEach(d => {
           const data = d.data();
-          if (data.status !== 'submitted') return;
+          if (data.status !== 'submitted' && data.status !== 'in-progress') return;
           const teamId = d.ref.parent.parent ? d.ref.parent.parent.id : 'unknown';
           const email = (data.memberEmail || '').toLowerCase().trim();
           const score = typeof data.score === 'number' ? data.score : (typeof data.examScore === 'number' ? data.examScore : 0);
@@ -1437,6 +1752,7 @@
           list.push({
             id: d.id,
             memberUid: d.id,
+            status: data.status || 'submitted',
             examType: data.examType || (d.id.endsWith('_makeup') ? 'round1-makeup' : 'round1'),
             teamId: teamId,
             teamName: regDoc.teamName || teamId,
@@ -1474,7 +1790,7 @@
         setLocalCache(allSubmissions);
         refreshActiveSubmissionView();
         updateCacheBadge(Date.now(), getActiveSubmissions().length, false);
-        showToast(`Synced ${round1Submissions.filter(s => s.hasAnswers !== false).length} Round 1 and ${makeupSubmissions.filter(s => s.hasAnswers !== false).length} make-up submissions.`);
+        showToast(`Synced ${makeupSubmissions.filter(s => s.hasAnswers !== false).length} Round of 16 and ${round1Submissions.filter(s => s.hasAnswers !== false).length} Round 1 submissions.`);
       } catch (err) {
         console.error('Error syncing submissions:', err);
         if (allSubmissions.length === 0) {
@@ -2235,8 +2551,9 @@
       const modal = document.getElementById('lightbox-modal');
       const thumbsBar = document.getElementById('lb-thumbs-bar');
       const titleEl = document.getElementById('lb-candidate-title');
+      const cleanTeamId = String(teamId || '').toUpperCase().trim();
 
-      titleEl.textContent = `Snapshots: ${memberName} (${teamId})`;
+      titleEl.textContent = `Snapshots: ${memberName || 'Candidate'} (${cleanTeamId})`;
       thumbsBar.innerHTML = '<div style="color:var(--muted);font-size:0.8rem;padding:20px;">Scanning Storage for candidate snapshots...</div>';
       modal.classList.remove('hidden');
 
@@ -2244,94 +2561,144 @@
       currentGalleryIndex = 0;
 
       try {
-        const sub = allSubmissions.find(s => s.memberUid === memberUid) || {};
+        const sub = allSubmissions.find(s => s.memberUid === memberUid || s.memberEmail === memberUid) || {};
         const memberRoleClean = (role || sub.memberRole || 'leader').toLowerCase().trim();
         const normRole = memberRoleClean.replace(/[^a-z0-9]/g, '');
         const normName = (memberName || sub.memberName || '').toLowerCase().replace(/[^a-z0-9]/g, '');
-        const normEmailPrefix = (sub.memberEmail || '').split('@')[0].toLowerCase().replace(/[^a-z0-9]/g, '');
+        const nameParts = (memberName || sub.memberName || '').toLowerCase().split(/\s+/).filter(p => p.length > 2);
 
-        // Discover candidate snapshots folder under snapshots/round1/{teamId}
-        const listRef = storageRef(storage, `snapshots/round1/${teamId}`);
-        const rootResult = await listAll(listRef);
+        // Fetch from both round16 and round1 directories using UPPERCASE cleanTeamId
+        const itemMap = new Map();
 
-        const foldersToScan = [];
-        rootResult.prefixes.forEach(p => {
-          const folderLower = p.name.toLowerCase();
-          const folderClean = folderLower.replace(/[^a-z0-9]/g, '');
-
-          // Check if folder belongs strictly to this member by role, name, or UID
-          let isMatch = false;
-
-          if (normRole === 'leader' && folderClean.includes('leader') && !folderClean.includes('member2') && !folderClean.includes('member3')) {
-            isMatch = true;
-          } else if (normRole === 'member2' && (folderClean.includes('member2') || folderClean.includes('member_2'))) {
-            isMatch = true;
-          } else if (normRole === 'member3' && (folderClean.includes('member3') || folderClean.includes('member_3'))) {
-            isMatch = true;
-          } else if (p.name === memberUid) {
-            isMatch = true;
-          } else if (normName && normName.length > 3 && folderClean.includes(normName)) {
-            // Ensure it doesn't match a different role
-            if (normRole && !folderClean.includes(normRole === 'leader' ? 'member' : 'leader')) {
-              isMatch = true;
-            }
+        // 1. Fetch round16 folder
+        let r16Url = 'https://firebasestorage.googleapis.com/v0/b/gaac-registration-2026.firebasestorage.app/o?prefix=' + encodeURIComponent(`snapshots/round16/${cleanTeamId}/`);
+        let pageToken = '';
+        do {
+          const res = await fetch(r16Url + (pageToken ? `&pageToken=${pageToken}` : ''));
+          const data = await res.json();
+          if (data.items) {
+            data.items.forEach(it => {
+              const filename = it.name.split('/').pop();
+              if (!itemMap.has(filename)) itemMap.set(filename, it);
+            });
           }
+          pageToken = data.nextPageToken || '';
+        } while (pageToken);
 
-          if (isMatch) {
-            foldersToScan.push(p);
+        // 2. Fetch round1 folder
+        let r1Url = 'https://firebasestorage.googleapis.com/v0/b/gaac-registration-2026.firebasestorage.app/o?prefix=' + encodeURIComponent(`snapshots/round1/${cleanTeamId}/`);
+        pageToken = '';
+        do {
+          const res = await fetch(r1Url + (pageToken ? `&pageToken=${pageToken}` : ''));
+          const data = await res.json();
+          if (data.items) {
+            data.items.forEach(it => {
+              const filename = it.name.split('/').pop();
+              if (!itemMap.has(filename)) itemMap.set(filename, it);
+            });
           }
+          pageToken = data.nextPageToken || '';
+        } while (pageToken);
+
+        const allItems = Array.from(itemMap.values());
+
+        // Match items belonging to this candidate
+        let matchedItems = allItems.filter(it => {
+          const pLower = it.name.toLowerCase();
+          if (normRole === 'leader' && pLower.includes('leader') && !pLower.includes('member2') && !pLower.includes('member3')) return true;
+          if (normRole === 'member2' && (pLower.includes('member2') || pLower.includes('member_2'))) return true;
+          if (normRole === 'member3' && (pLower.includes('member3') || pLower.includes('member_3'))) return true;
+          if (nameParts.length > 0 && nameParts.some(np => pLower.includes(np))) return true;
+          if (normName && normName.length > 3 && pLower.includes(normName)) return true;
+          if (memberUid && typeof memberUid === 'string' && memberUid.length > 5 && pLower.includes(memberUid.toLowerCase())) return true;
+          return false;
         });
 
-        if (foldersToScan.length === 0) {
-          thumbsBar.innerHTML = `<div style="color:var(--muted);font-size:0.85rem;padding:26px;">No individual snapshots recorded for ${escapeHtml(memberName)} (${escapeHtml(role)}).</div>`;
+        // Fallback to all items for this team if role filtering didn't match
+        if (matchedItems.length === 0) {
+          matchedItems = allItems;
+        }
+
+        if (matchedItems.length === 0) {
+          thumbsBar.innerHTML = `<div style="color:var(--muted);font-size:0.85rem;padding:26px;">No snapshots captured for ${escapeHtml(memberName || 'Candidate')} (${escapeHtml(role || 'member')}).</div>`;
           document.getElementById('lb-main-img').src = '';
           document.getElementById('lb-caption-bar').style.display = 'none';
           document.getElementById('lb-index-counter').textContent = '0 images';
           return;
         }
 
-        const imageItems = [];
-        for (const f of foldersToScan) {
-          const res = await listAll(f);
-          res.items.forEach(it => imageItems.push({ item: it, isAuto: false }));
-          const autoPrefix = res.prefixes.find(p => p.name.toLowerCase() === 'auto');
-          if (autoPrefix) {
-            const autoRes = await listAll(autoPrefix);
-            autoRes.items.forEach(it => imageItems.push({ item: it, isAuto: true }));
-          }
-        }
-
-        if (imageItems.length === 0) {
-          thumbsBar.innerHTML = `<div style="color:var(--muted);font-size:0.85rem;padding:26px;">No snapshots captured for ${escapeHtml(memberName)} (${escapeHtml(role)}).</div>`;
-          document.getElementById('lb-main-img').src = '';
-          document.getElementById('lb-caption-bar').style.display = 'none';
-          document.getElementById('lb-index-counter').textContent = '0 images';
-          return;
-        }
-
-        // Parse items and fetch URLs
-        const parsedList = await Promise.all(imageItems.map(async ({ item, isAuto }) => {
-          const url = await getDownloadURL(item);
-          const rawName = item.name.replace('.jpg', '');
-          const parts = rawName.split('_');
+        const parsedList = matchedItems.map(it => {
+          const url = `https://firebasestorage.googleapis.com/v0/b/gaac-registration-2026.firebasestorage.app/o/${encodeURIComponent(it.name)}?alt=media`;
+          const filename = it.name.split('/').pop().replace('.jpg', '');
+          const parts = filename.split('_');
           const ts = parseInt(parts[parts.length - 1]);
-          const date = isNaN(ts) ? new Date() : new Date(ts);
-          const violation = parts.length >= 2 ? parts.slice(0, -1).join(' ').replace(/-/g, ' ') : rawName;
+          const date = isNaN(ts) ? new Date(it.updated || Date.now()) : new Date(ts);
+          const isAuto = filename.startsWith('auto_') || it.name.includes('/auto/');
+          const violation = parts.length >= 2 ? parts.slice(0, -1).join(' ').replace(/-/g, ' ') : filename;
           return {
             url,
-            name: rawName,
-            isAuto: isAuto || rawName.startsWith('auto_'),
+            name: filename,
+            isAuto,
             violation: violation.toUpperCase(),
-            date: date
+            date,
+            ts: date.getTime()
           };
-        }));
+        });
 
-        parsedList.sort((a, b) => a.date - b.date);
-        currentGalleryImages = parsedList;
+        // Sort Chronologically (Start of exam -> End of exam)
+        parsedList.sort((a, b) => a.ts - b.ts);
+        window._allGalleryImages = parsedList;
+
+        // Round of 16 / Today list (Sept 12, 2026)
+        const todayList = parsedList.filter(img => {
+          const d = img.date;
+          return (d.getFullYear() === 2026 && d.getMonth() === 8 && d.getDate() === 12) || (img.ts >= 1789200000000);
+        });
+
+        window._todayGalleryImages = todayList;
+
+        const btnToday = document.getElementById('lb-filter-today-btn');
+        const btnAll = document.getElementById('lb-filter-all-btn');
+
+        if (btnToday) btnToday.textContent = `🌟 Round 16 / Today (${todayList.length})`;
+        if (btnAll) btnAll.textContent = `All Dates (${parsedList.length})`;
+
+        // Default to today if today's photos exist, otherwise show all
+        if (todayList.length > 0) {
+          currentGalleryImages = todayList;
+          if (btnToday) { btnToday.style.background = 'rgba(46,213,115,0.25)'; btnToday.style.border = '1px solid rgba(46,213,115,0.6)'; btnToday.style.color = '#2ed573'; }
+          if (btnAll) { btnAll.style.background = 'transparent'; btnAll.style.border = 'none'; btnAll.style.color = '#94a3b8'; }
+        } else {
+          currentGalleryImages = parsedList;
+          if (btnToday) { btnToday.style.background = 'transparent'; btnToday.style.border = 'none'; btnToday.style.color = '#94a3b8'; }
+          if (btnAll) { btnAll.style.background = 'rgba(0,210,255,0.2)'; btnAll.style.border = '1px solid rgba(0,210,255,0.5)'; btnAll.style.color = 'var(--cyan)'; }
+        }
+
         currentGalleryIndex = 0;
-
         renderGalleryThumbs();
         showGallerySlide(0);
+
+        // Date Filter Listeners
+        if (btnToday) {
+          btnToday.onclick = () => {
+            currentGalleryImages = window._todayGalleryImages.length > 0 ? window._todayGalleryImages : window._allGalleryImages;
+            btnToday.style.background = 'rgba(46,213,115,0.25)'; btnToday.style.border = '1px solid rgba(46,213,115,0.6)'; btnToday.style.color = '#2ed573';
+            btnAll.style.background = 'transparent'; btnAll.style.border = 'none'; btnAll.style.color = '#94a3b8';
+            currentGalleryIndex = 0;
+            renderGalleryThumbs();
+            showGallerySlide(0);
+          };
+        }
+        if (btnAll) {
+          btnAll.onclick = () => {
+            currentGalleryImages = window._allGalleryImages;
+            btnAll.style.background = 'rgba(0,210,255,0.2)'; btnAll.style.border = '1px solid rgba(0,210,255,0.5)'; btnAll.style.color = 'var(--cyan)';
+            btnToday.style.background = 'transparent'; btnToday.style.border = 'none'; btnToday.style.color = '#94a3b8';
+            currentGalleryIndex = 0;
+            renderGalleryThumbs();
+            showGallerySlide(0);
+          };
+        }
       } catch (e) {
         console.error('Error loading gallery:', e);
         thumbsBar.innerHTML = `<div style="color:var(--red);font-size:0.8rem;padding:20px;">Error loading snapshots: ${e.message}</div>`;
@@ -2343,10 +2710,10 @@
       thumbsBar.innerHTML = '';
       currentGalleryImages.forEach((img, idx) => {
         const div = document.createElement('div');
-        div.className = `thumb-item ${idx === 0 ? 'active' : ''}`;
+        div.className = `thumb-item ${idx === currentGalleryIndex ? 'active' : ''}`;
         div.id = `thumb-item-${idx}`;
         div.innerHTML = `
-          <img src="${img.url}" loading="lazy" />
+          <img src="${img.url}" loading="lazy" decoding="async" alt="" />
           <span class="thumb-tag" style="color:${img.isAuto ? 'var(--cyan)' : 'var(--red)'};">${img.isAuto ? 'AUTO' : 'EVENT'}</span>
         `;
         div.onclick = () => showGallerySlide(idx);
@@ -2382,7 +2749,9 @@
         srcEl.textContent = cur.violation.includes('FACE') || cur.violation.includes('CAMERA') ? '[Camera]' : '[Screen Share]';
       }
 
-      timeEl.textContent = cur.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      const dateStr = cur.date.toLocaleDateString([], { month: 'short', day: 'numeric', year: 'numeric' });
+      const timeStr = cur.date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+      timeEl.textContent = `${dateStr} ${timeStr}`;
 
       document.querySelectorAll('.thumb-item').forEach(t => t.classList.remove('active'));
       const activeThumb = document.getElementById(`thumb-item-${idx}`);
@@ -2763,7 +3132,7 @@
                   </button>
                 ` : ''}
               </div>
-              <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Make-up: <strong style="color:${makeupExam?.status === 'submitted' && hasSubmittedAnswers(makeupExam) ? 'var(--green)' : 'var(--muted)'};">${makeupExam?.status === 'submitted' && hasSubmittedAnswers(makeupExam) ? 'Submitted' : 'Not entered'}</strong></div>
+              <div style="margin-top:6px;font-size:0.72rem;color:var(--muted);">Round of 16: <strong style="color:${makeupExam?.status === 'submitted' && hasSubmittedAnswers(makeupExam) ? 'var(--green)' : (makeupExam?.status === 'in-progress' ? 'var(--cyan)' : 'var(--muted)')};">${makeupExam?.status === 'submitted' && hasSubmittedAnswers(makeupExam) ? ('Submitted (' + (makeupExam.score != null ? makeupExam.score + '%' : '') + ')') : (makeupExam?.status === 'in-progress' ? 'In Progress' : 'Not entered')}</strong></div>
             </div>
           `;
         });
@@ -2817,6 +3186,7 @@
     };
 
     // Search and Filter Listeners
+    document.getElementById('r16-search-input')?.addEventListener('input', renderRound16Teams);
     document.getElementById('search-input').addEventListener('input', renderSubmissions);
     document.getElementById('filter-status').addEventListener('change', renderSubmissions);
     document.getElementById('sort-order').addEventListener('change', renderSubmissions);

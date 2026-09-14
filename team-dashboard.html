@@ -152,6 +152,53 @@
     }
     .announce-title { margin: 0; font-size: 1rem; font-weight: 700; color: var(--silver); }
     .announce-body { margin: 0; color: var(--muted); font-size: 0.82rem; line-height: 1.7; }
+    .mock-pill.pill-semifinal {
+      background: rgba(34, 197, 94, 0.12);
+      border-color: rgba(34, 197, 94, 0.45);
+      color: #22c55e;
+    }
+    .mock-pill.pill-semifinal .dot {
+      background: #22c55e;
+      box-shadow: 0 0 8px #22c55e;
+    }
+    .mock-pill.pill-round8 {
+      background: rgba(245, 158, 11, 0.12);
+      border-color: rgba(245, 158, 11, 0.45);
+      color: #f59e0b;
+    }
+    .mock-pill.pill-round8 .dot {
+      background: #f59e0b;
+      box-shadow: 0 0 8px #f59e0b;
+    }
+    .mock-pill.pill-dq {
+      background: rgba(239, 68, 68, 0.12);
+      border-color: rgba(239, 68, 68, 0.45);
+      color: #ef4444;
+    }
+    .mock-pill.pill-dq .dot {
+      background: #ef4444;
+      box-shadow: 0 0 8px #ef4444;
+    }
+    .status-info-box {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      padding: 16px 18px;
+      margin: 16px 0;
+      text-align: left;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .status-info-row {
+      font-size: 0.85rem;
+      line-height: 1.5;
+      color: var(--silver);
+    }
+    .status-info-row strong {
+      color: #ffffff;
+      font-weight: 600;
+    }
     </style>
 </head>
 <body class="page-home">
@@ -309,7 +356,80 @@
           </div>
         </div>
 
-<div id="certificate-panel" class="competitions-panel hidden">
+          <!-- Semifinal Panel -->
+          <div id="semifinal-panel" class="competitions-panel hidden">
+            <div class="comp-head">
+              <h2><span class="text-blue">Semi-Finals Qualification</span></h2>
+              <p class="sub">Congratulations! Your team has qualified for the GAAC 2026 Semi-Finals.</p>
+            </div>
+            <div class="mock-card" style="border-color: rgba(34, 197, 94, 0.35); background: rgba(10, 24, 16, 0.55);">
+              <div class="mock-row">
+                <span class="mock-pill pill-semifinal"><span class="dot"></span><span>Qualified for Semi-Finals</span></span>
+              </div>
+              <div class="status-info-box">
+                <div class="status-info-row"><strong>Date:</strong> Wednesday, 15 September · 7:00 PM (GMT+3)</div>
+                <div class="status-info-row"><strong>Format:</strong> Via Zoom, strict proctoring with monitors, 10 non-MCQ questions, 1 hour, submit via dedicated form alongside PDF.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Round of 8 Panel -->
+          <div id="round8-panel" class="competitions-panel hidden">
+            <div class="comp-head">
+              <h2><span class="text-blue">Round of 8 — Last Chance Qualifier</span></h2>
+              <p class="sub">Competition window for Round of 8 (Places 5–8).</p>
+            </div>
+            <div class="mock-card" style="border-color: rgba(245, 158, 11, 0.35); background: rgba(24, 18, 10, 0.55);">
+              <div class="mock-row">
+                <span class="mock-pill pill-round8" id="r8-pill"><span class="dot"></span><span id="r8-status">Loading schedule...</span></span>
+              </div>
+              <div class="mock-count" id="r8-countdown-box">
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Hours</span>
+                  <span class="mock-cell-value" id="r8-hours">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Minutes</span>
+                  <span class="mock-cell-value" id="r8-minutes">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Seconds</span>
+                  <span class="mock-cell-value" id="r8-seconds">00</span>
+                </div>
+              </div>
+              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry opens Tuesday, 14 September at 7:00 PM (Cairo, GMT+3). Entry window is 10 minutes only (7:00 PM – 7:10 PM).</p>
+              <div class="status-info-box" style="margin-top:14px;">
+                <div class="status-info-row"><strong>Date &amp; Time:</strong> Tuesday, 14 September · 7:00 PM (GMT+3)</div>
+                <div class="status-info-row"><strong>Entry Window:</strong> 10 minutes only (7:00 PM – 7:10 PM GMT+3). Exam timer is 1 hour (60 minutes).</div>
+                <div class="status-info-row"><strong>Qualification Rule:</strong> Best team advances to semi-finals as 4th team, rest compete for places 5–8.</div>
+                <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Live Zoom proctoring. Strict ban on mobile phones (leads to permanent disqualification).</div>
+              </div>
+              <a href="round2.html" id="btn-enter-r8" class="button primary" style="width:100%;justify-content:center;text-decoration:none;display:none;margin-top:12px;font-weight:700;">Enter Round of 8 Exam</a>
+            </div>
+          </div>
+
+          <!-- Disqualified Panel -->
+          <div id="disqualified-panel" class="competitions-panel hidden">
+            <div class="comp-head">
+              <h2 style="color:#ff6b7a;">Disqualified</h2>
+              <p class="sub" style="color:rgba(255,107,122,0.85);">Important notice regarding your competition status in GAAC 2026.</p>
+            </div>
+            <div class="mock-card" style="border-color: rgba(239, 68, 68, 0.35); background: rgba(24, 10, 12, 0.55);">
+              <div class="mock-row">
+                <span class="mock-pill pill-dq"><span class="dot"></span><span>Disqualified</span></span>
+              </div>
+              <div class="status-info-box" style="border-color: rgba(239, 68, 68, 0.2);">
+                <div class="status-info-row" style="color:#ff9aa5;"><strong>Status:</strong> Disqualified</div>
+                <div class="status-info-row" style="color:#ff9aa5;"><strong>Certificates:</strong> No certificate (no participation cert, no final cert).</div>
+                <div class="status-info-row" style="color:#ff9aa5;"><strong>Rankings:</strong> Excluded from all rankings and certificate distributions.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Default Certificate Panel -->
+          <div id="certificate-panel" class="competitions-panel hidden">
             <div class="comp-head">
               <h2><span class="text-blue">Round 1 Certificates</span></h2>
               <p class="sub">Thank you for participating in GAAC 2026. Round 1 is complete.</p>
@@ -321,40 +441,8 @@
               </p>
             </div>
           </div>
-
-          <div id="competitions-panel" class="competitions-panel hidden">
-            <div class="comp-head">
-              <h2><span class="text-blue">Round 2 — Round of 16 Qualifier</span></h2>
-              <p class="sub">Round 2 takes place on <strong>Saturday, 12 September 2026 at <span id="r1-local-open-time">7:00 PM</span> in your own local time <span id="r1-local-start">(your region)</span></strong> | set to your country's time zone (7:00 PM – 7:30 PM Cairo time). Entry closes at <strong id="r1-local-close-time">7:30 PM</strong> in your local time. 20 questions with a <strong>30-minute</strong> duration.</p>
-              <p class="sub" style="color:#26b7ff;">This stage is reserved strictly for the 16 qualified teams from Round 1. All devices count down in sync.</p>
-            </div>
-            <div id="mock-card" class="mock-card">
-              <div class="mock-row">
-                <span class="mock-pill" id="mock-pill"><span class="dot"></span><span id="mock-status">Loading schedule…</span></span>
-              </div>
-              <div class="mock-count">
-                <div class="mock-cell">
-                  <span class="mock-cell-label">Hours</span>
-                  <span class="mock-cell-value" id="mock-hours">00</span>
-                </div>
-                <span class="mock-cell-sep">:</span>
-                <div class="mock-cell">
-                  <span class="mock-cell-label">Minutes</span>
-                  <span class="mock-cell-value" id="mock-minutes">00</span>
-                </div>
-                <span class="mock-cell-sep">:</span>
-                <div class="mock-cell">
-                  <span class="mock-cell-label">Seconds</span>
-                  <span class="mock-cell-value" id="mock-seconds">00</span>
-                </div>
-              </div>
-              <p class="mock-sub" id="mock-schedule-note">Loading Round of 16 schedule…</p>
-              <button type="button" class="button primary" id="btn-enter-mock" style="display:none;width:100%;justify-content:center;">Enter Round of 16</button>
-            </div>
-          </div>
         </div>
 
-          </div>
       </div>
     </div>
   </main>
@@ -701,6 +789,9 @@ const app = initializeApp(firebaseConfig);
 
       // Delete/withdraw control (top-right icon) — removed for GAAC 2026.
 
+      // Show the correct competition status panel based on user email
+      applyCompetitionStatus(user && user.email);
+
       loadingState.classList.add('hidden');
       dashContent.classList.remove('hidden');
     }
@@ -789,57 +880,100 @@ const app = initializeApp(firebaseConfig);
       set('mock-hours', h); set('mock-minutes', m); set('mock-seconds', s);
     }
 
-    function r1CardTick() {
-      const compPanel = document.getElementById('competitions-panel');
-      const certPanel = document.getElementById('certificate-panel');
-      const pill = document.getElementById('mock-pill');
-      const statusEl = document.getElementById('mock-status');
-      const noteEl = document.getElementById('mock-schedule-note');
-      const btn = document.getElementById('btn-enter-mock');
+    // --- Competition status email lists ---
+    const SEMIFINAL_EMAILS = new Set([
+      'mralbakk@gmail.com','ramyramadan0120@gmail.com','vlad.toncu224@gmail.com',
+      'mihai.tesileanu2@gmail.com','matei.butnaru@yahoo.com','badr.e.h.edu@gmail.com'
+    ]);
+    const ROUND8_EMAILS = new Set([
+      'jinenustegegn0@gmail.com','basaksayan55@gmail.com','shadenzanati1@gmail.com',
+      'nagutavictoria@gmail.com','adityarajsamantray446@gmail.com','rofaydatarek13@gmail.com'
+    ]);
+    const DQ_EMAILS = new Set([
+      'riteshkumarmohapatra11902@gmail.com','african.young.leader.haile@gmail.com',
+      'gbelayhassbs@gmail.com','wawzed90@gmail.com','sarthakgupta1324@gmail.com',
+      '2311prt@gmail.com','emmanueldogbe13@gmail.com','frederickadjavorsowalo@gmail.com',
+      'doedeladem99@gmail.com','hhna65127@gmail.com','mitchgeem@gmail.com','sanhany573@gmail.com'
+    ]);
 
-      loadMakeupEligibility();
-
-      if (!makeupEligibilityLoaded) {
-        if (compPanel) compPanel.classList.add('hidden');
-        if (certPanel) certPanel.classList.add('hidden');
-        return;
-      }
-
-      const qualified = makeupEligible === true;
-      if (!qualified) {
-        if (compPanel) compPanel.classList.add('hidden');
-        if (certPanel) certPanel.classList.remove('hidden');
-        return;
-      }
-
-      if (certPanel) certPanel.classList.add('hidden');
-      if (compPanel) compPanel.classList.remove('hidden');
-
-      if (!statusEl || !noteEl || !pill) return;
-      const now = Date.now() + r1ServerOffsetMs;
-      const { r1OpenAt, r1CloseAt } = r1Schedule;
-      if (now < r1OpenAt) {
-        pill.classList.remove('cc-open', 'cc-closed');
-        statusEl.textContent = 'Opens';
-        const { h, m, s } = fmtCountdown(r1OpenAt - now);
-        setMockCells(h, m, s);
-        noteEl.textContent = `Round 2 — Round of 16 opens at ${cairoClock(r1OpenAt)} (Cairo, GMT+3). All devices count down in sync.`;
-        if (btn) btn.style.display = 'none';
-      } else if (now < r1CloseAt) {
-        pill.classList.add('cc-open');
-        pill.classList.remove('cc-closed');
-        statusEl.textContent = 'Open \u00b7 Closes ' + cairoClock(r1CloseAt);
-        const { h, m, s } = fmtCountdown(r1CloseAt - now);
-        setMockCells(h, m, s);
-        noteEl.textContent = `Enter Round of 16 anytime until ${cairoClock(r1CloseAt)} (Cairo, GMT+3). Your 30-minute timer starts once you approve the requirements.`;
-        if (btn) btn.style.display = 'inline-flex';
+    function applyCompetitionStatus(userEmail) {
+      const e = (userEmail || '').toLowerCase().trim();
+      const semifinalPanel = document.getElementById('semifinal-panel');
+      const round8Panel    = document.getElementById('round8-panel');
+      const dqPanel        = document.getElementById('disqualified-panel');
+      const certPanel      = document.getElementById('certificate-panel');
+      // hide all first
+      [semifinalPanel, round8Panel, dqPanel, certPanel].forEach(p => p && p.classList.add('hidden'));
+      if (SEMIFINAL_EMAILS.has(e)) {
+        if (semifinalPanel) semifinalPanel.classList.remove('hidden');
+      } else if (ROUND8_EMAILS.has(e)) {
+        if (round8Panel) round8Panel.classList.remove('hidden');
+      } else if (DQ_EMAILS.has(e)) {
+        if (dqPanel) dqPanel.classList.remove('hidden');
       } else {
-        pill.classList.remove('cc-open');
-        pill.classList.add('cc-closed');
-        statusEl.textContent = 'Closed';
-        setMockCells('00', '00', '00');
-        noteEl.textContent = 'The Round 2 — Round of 16 entry window has closed.';
-        if (btn) btn.style.display = 'none';
+        if (certPanel) certPanel.classList.remove('hidden');
+      }
+    }
+
+    const R8_SCHEDULE = {
+      openAt: Date.UTC(2026, 8, 14, 16, 0, 0),   // 7:00 PM Cairo (Sept 14)
+      closeAt: Date.UTC(2026, 8, 14, 16, 10, 0)  // 7:10 PM Cairo (Sept 14) — 10 min window!
+    };
+
+    function updateR8Countdown() {
+      if (!auth.currentUser) return;
+      const email = (auth.currentUser.email || '').toLowerCase().trim();
+      if (!ROUND8_EMAILS.has(email)) return;
+
+      const pill = document.getElementById('r8-pill');
+      const statusEl = document.getElementById('r8-status');
+      const noteEl = document.getElementById('r8-schedule-note');
+      const btn = document.getElementById('btn-enter-r8');
+      const hEl = document.getElementById('r8-hours');
+      const mEl = document.getElementById('r8-minutes');
+      const sEl = document.getElementById('r8-seconds');
+
+      if (!statusEl || !btn) return;
+
+      const now = Date.now() + r1ServerOffsetMs;
+      const { openAt, closeAt } = R8_SCHEDULE;
+
+      if (now < openAt) {
+        if (pill) { pill.classList.remove('cc-open', 'cc-closed'); }
+        statusEl.textContent = 'Opens in';
+        const diff = openAt - now;
+        const { h, m, s } = fmtCountdown(diff);
+        if (hEl) hEl.textContent = h;
+        if (mEl) mEl.textContent = m;
+        if (sEl) sEl.textContent = s;
+        if (noteEl) noteEl.textContent = `Entry opens Tuesday, 14 September at ${cairoClock(openAt)} (Cairo, GMT+3). 10-minute entry window.`;
+        btn.style.display = 'none';
+      } else if (now < closeAt) {
+        if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
+        statusEl.textContent = 'Window Open \u00b7 Closes Soon';
+        const diff = closeAt - now;
+        const { h, m, s } = fmtCountdown(diff);
+        if (hEl) hEl.textContent = h;
+        if (mEl) mEl.textContent = m;
+        if (sEl) sEl.textContent = s;
+        if (noteEl) noteEl.textContent = `Entry window is open until ${cairoClock(closeAt)} (Cairo, GMT+3). Click below to start your 1-hour exam.`;
+        btn.style.display = 'inline-flex';
+        btn.href = `round2.html?team=${encodeURIComponent(currentTeamId || '')}&stage=r8`;
+      } else {
+        if (pill) { pill.classList.remove('cc-open'); pill.classList.add('cc-closed'); }
+        statusEl.textContent = 'Entry Window Closed';
+        if (hEl) hEl.textContent = '00';
+        if (mEl) mEl.textContent = '00';
+        if (sEl) sEl.textContent = '00';
+        if (noteEl) noteEl.textContent = 'The 10-minute entry window for the Round of 8 has closed.';
+        btn.style.display = 'none';
+      }
+    }
+
+    function r1CardTick() {
+      if (auth.currentUser) {
+        applyCompetitionStatus(auth.currentUser.email);
+        updateR8Countdown();
       }
     }
     setInterval(r1CardTick, 1000);

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en" translate="no">
 <head>
   <meta charset="UTF-8" />
@@ -129,7 +129,7 @@
       <div class="progress-text"><span id="answered-count">0</span> / <span id="total-count">0</span> submitted</div>
     </div>
     <span class="team-info" id="team-info"></span>
-    <button class="lang-toggle" id="btn-lang-toggle">EN</button>
+    <a href="team-dashboard.html" class="lang-toggle" style="text-decoration:none;">Dashboard</a>
   </div>
 
   <div class="r2-layout">
@@ -152,6 +152,51 @@
     <p id="gate-msg">The current round has not started yet.</p>
     <div class="gate-timer" id="gate-timer"></div>
     <p id="gate-sub"></p>
+    <a href="team-dashboard" class="button secondary" style="margin-top: 16px; text-decoration: none;">Back to Dashboard</a>
+  </div>
+
+  <div id="rules-gate" class="r2-gate hidden">
+    <div style="max-width: 620px; width: 100%; background: rgba(10, 14, 23, 0.92); border: 1px solid rgba(38,183,255,0.25); border-radius: 16px; padding: 32px 28px; text-align: left; box-shadow: 0 16px 48px rgba(0,0,0,0.6); backdrop-filter: blur(16px);">
+      <div style="text-align:center; margin-bottom: 20px;">
+        <img src="images/GAAC_Final_logo_without_BG-removebg-preview.png" alt="GAAC" style="height: 52px; margin-bottom: 8px;" />
+        <h1 style="font-size: 1.35rem; margin: 0; color: #ffffff;">Round of 8 — <span style="color:#26b7ff;">Last Chance Qualifier</span></h1>
+        <p style="color: #94a3b8; font-size: 0.85rem; margin-top: 4px;">GAAC 2026 Knockout Stage (Places 5–8)</p>
+      </div>
+
+      <div style="background: rgba(255, 71, 87, 0.08); border: 1px solid rgba(255, 71, 87, 0.35); border-radius: 12px; padding: 14px 16px; margin-bottom: 18px;">
+        <div style="color: #ff6b7a; font-weight: 700; font-size: 0.88rem; display: flex; align-items: center; gap: 8px;">
+          STRICT BAN ON MOBILE PHONES
+        </div>
+        <p style="color: #fda4af; font-size: 0.8rem; margin: 6px 0 0; line-height: 1.5;">
+          The use of mobile phones or auxiliary communication devices during the exam is strictly prohibited. Any unauthorized device usage detected by Zoom proctors will result in <strong>immediate and permanent disqualification</strong>.
+        </p>
+      </div>
+
+      <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.08); border-radius: 12px; padding: 16px; margin-bottom: 20px; font-size: 0.84rem; color: #cbd5e1; line-height: 1.7;">
+        <div><strong>Duration:</strong> 1 Hour (60:00 minutes) synchronized timer.</div>
+        <div><strong>Questions:</strong> 10 numerical questions based on the question paper.</div>
+        <div><strong>Units:</strong> Input your answer in the specified unit indicated for each question.</div>
+        <div><strong>One Attempt Only:</strong> Answers once locked cannot be modified. No scores or correctness are shown.</div>
+        <div><strong>Live Proctoring:</strong> Supervised live via Zoom. Keep your camera on throughout the exam.</div>
+      </div>
+
+      <label style="display: flex; align-items: flex-start; gap: 10px; font-size: 0.82rem; color: #e2e8f0; cursor: pointer; margin-bottom: 22px; user-select: none;">
+        <input type="checkbox" id="rules-agree-cb" style="margin-top: 3px; cursor: pointer; accent-color: #26b7ff; width: 16px; height: 16px;" />
+        <span>I have read, understood, and agreed to all competition rules and declare I am ready to begin.</span>
+      </label>
+
+      <button type="button" id="btn-start-exam" class="button primary" style="width: 100%; justify-content: center; padding: 13px; font-weight: 700; font-size: 0.95rem; opacity: 0.4; cursor: not-allowed;" disabled>
+        Start 1-Hour Exam
+      </button>
+    </div>
+  </div>
+
+  <div id="completed-gate" class="r2-gate hidden">
+    <div style="max-width: 500px; width: 100%; background: rgba(10, 14, 23, 0.92); border: 1px solid rgba(34,197,94,0.3); border-radius: 16px; padding: 36px 28px; text-align: center; box-shadow: 0 16px 48px rgba(0,0,0,0.6);">
+      <h1 style="font-size: 1.4rem; color: #22c55e; margin: 0 0 8px;">Exam Completed</h1>
+      <p style="color: #94a3b8; font-size: 0.88rem; line-height: 1.6; margin: 0 0 24px;">Your Round of 8 answers have been successfully submitted and recorded. Evaluation is conducted by the GAAC academic committee.</p>
+      <a href="team-dashboard" class="button primary" style="justify-content: center; text-decoration: none; display: inline-flex;">Return to Dashboard</a>
+    </div>
   </div>
 
   <div class="exam-toast" id="toast">
@@ -165,11 +210,10 @@
       <div class="r2-confirm-qnum" id="confirm-qnum">Q-</div>
       <div class="r2-confirm-value" id="confirm-value">-</div>
       <div class="r2-confirm-unit" id="confirm-unit"></div>
-      <div class="r2-confirm-warning">This answer will be permanently locked for your team. It cannot be changed after submission.</div>
+      <div class="r2-confirm-warning">This answer will be permanently saved and locked for your team. It cannot be changed after submission.</div>
       <div class="r2-confirm-actions">
         <button class="r2-confirm-cancel" id="btn-confirm-no">Cancel</button>
-        <button class="r2-confirm-submit" id="btn-confirm-yes">Lock Answer</button>
-
+        <button class="r2-confirm-submit" id="btn-confirm-yes">Confirm &amp; Lock</button>
       </div>
     </div>
   </div>
