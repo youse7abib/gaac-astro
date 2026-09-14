@@ -7,6 +7,9 @@ import { ref as storageRef, getBytes, getDownloadURL } from "https://www.gstatic
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 let teamId = null;
+let stageKey = 'r8'; // 'r8' or 'sf'
+let stageName = 'ROUND OF 8 (5th–8th)';
+let pdfStoragePath = 'round2/r8/questions.pdf';
 let currentUser = null;
 let memberName = '';
 let memberEmail = '';
@@ -23,6 +26,15 @@ const ROUND8_EMAILS = new Set([
   'nagutavictoria@gmail.com',
   'adityarajsamantray446@gmail.com',
   'rofaydatarek13@gmail.com'
+].map(e => e.toLowerCase().trim()));
+
+const SEMIFINAL_EMAILS = new Set([
+  'mralbakk@gmail.com',
+  'ramyramadan0120@gmail.com',
+  'vlad.toncu224@gmail.com',
+  'mihai.tesileanu2@gmail.com',
+  'matei.butnaru@yahoo.com',
+  'badr.e.h.edu@gmail.com'
 ].map(e => e.toLowerCase().trim()));
 
 const ADMIN_EMAILS = new Set([
@@ -122,6 +134,99 @@ const R8_QUESTIONS = [
   }
 ];
 
+const SF_QUESTIONS = [
+  {
+    id: "sf_q1",
+    order: 1,
+    title: "Question 11: The Photograph with No Distance",
+    topic: "Observational Astronomy",
+    unit: "parsecs (pc)",
+    note: "Infer the distance to Sable One in parsecs.",
+    placeholder: "e.g. 174"
+  },
+  {
+    id: "sf_q2",
+    order: 2,
+    title: "Question 12: The Blue Line of the Prisoner",
+    topic: "Observational Astronomy",
+    unit: "km/s",
+    note: "Separate the star's own motion: what is its radial recession velocity in km s⁻¹?",
+    placeholder: "e.g. 91.7"
+  },
+  {
+    id: "sf_q3",
+    order: 3,
+    title: "Question 13: The Road Between Worlds",
+    topic: "Orbital Mechanics",
+    unit: "km/s",
+    note: "Determine the total Δv required for the transfer in km s⁻¹.",
+    placeholder: "e.g. 10.41"
+  },
+  {
+    id: "sf_q4",
+    order: 4,
+    title: "Question 14: The White Star's Hidden Weight",
+    topic: "Astrophysics",
+    unit: "nanometres (nm)",
+    note: "Estimate the increase in wavelength, Δλ, in nanometres.",
+    placeholder: "e.g. 0.106"
+  },
+  {
+    id: "sf_q5",
+    order: 5,
+    title: "Question 15: The Furnace with No Flame",
+    topic: "Astrophysics",
+    unit: "Solar radii (R_Sun)",
+    note: "Extract the star's radius in solar radii (R☉).",
+    placeholder: "e.g. 2.00"
+  },
+  {
+    id: "sf_q6",
+    order: 6,
+    title: "Question 16: The Engine Beneath Hades",
+    topic: "Astrophysics",
+    unit: "kg/s",
+    note: "Resolve the corresponding mass accretion rate in kg s⁻¹.",
+    placeholder: "e.g. 6.98e22"
+  },
+  {
+    id: "sf_q7",
+    order: 7,
+    title: "Question 17: The Pulse that Spent a Century",
+    topic: "Astrophysics",
+    unit: "watts (W)",
+    note: "Establish the average rotational energy loss rate in watts.",
+    placeholder: "e.g. 1.23e31"
+  },
+  {
+    id: "sf_q8",
+    order: 8,
+    title: "Question 18: The Moon that Refused the Dark",
+    topic: "Planetology",
+    unit: "kelvin (K)",
+    note: "Assess the equilibrium temperature of the moon in kelvin.",
+    placeholder: "e.g. 518"
+  },
+  {
+    id: "sf_q9",
+    order: 9,
+    title: "Question 19: The Weight of the Empty Universe",
+    topic: "Cosmology",
+    unit: "kg/m³",
+    note: "Weigh the present matter density in kg m⁻³.",
+    placeholder: "e.g. 2.76e-27"
+  },
+  {
+    id: "sf_q10",
+    order: 10,
+    title: "Question 20: The Hourglass at the Edge",
+    topic: "Cosmology",
+    unit: "billion years (Gyr)",
+    note: "Find the time remaining from today until the Big Rip, in billions of years.",
+    placeholder: "e.g. 18.6"
+  }
+];
+
 let r2Questions = R8_QUESTIONS;
 let activeQid = 'r8_q1';
 
@@ -136,7 +241,7 @@ const showToast = (msg, severity = 'warning') => {
   void toast.offsetWidth;
   if (severity === 'success') toast.classList.add('success');
   toast.classList.add('show');
-  setTimeout(() => toast.classList.remove('show', 'success'), 5000);
+  setTimeout(() => toast.classList.remove('show', 'success'), 4000);
 };
 
 const ensureTeamMembership = async () => {
@@ -164,13 +269,14 @@ const init = async () => {
   try {
     const params = new URLSearchParams(window.location.search);
     teamId = params.get('team');
+    const explicitStage = (params.get('stage') || '').toLowerCase().trim();
 
     if (isDemo) {
       teamId = teamId || 'GAAC-2026-DEMO';
       currentUser = { uid: 'demo-uid', email: 'demo@gaac.local' };
       memberName = 'Demo Participant';
       memberEmail = 'demo@gaac.local';
-      setupExamEnvironment();
+      setupStageEnvironment(explicitStage || 'r8');
       return;
     }
 
@@ -190,7 +296,20 @@ const init = async () => {
     currentUser = user;
 
     const emailClean = (currentUser.email || '').toLowerCase().trim();
-    const isAllowed = ROUND8_EMAILS.has(emailClean) || ADMIN_EMAILS.has(emailClean);
+
+    // Determine stage
+    let chosenStage = explicitStage;
+    if (!chosenStage) {
+      if (SEMIFINAL_EMAILS.has(emailClean)) {
+        chosenStage = 'sf';
+      } else {
+        chosenStage = 'r8';
+      }
+    }
+
+    setupStageEnvironment(chosenStage);
+
+    const isAllowed = (chosenStage === 'sf' ? SEMIFINAL_EMAILS.has(emailClean) : ROUND8_EMAILS.has(emailClean)) || ADMIN_EMAILS.has(emailClean);
 
     if (!isAllowed) {
       showGate('unauthorized');
@@ -234,9 +353,25 @@ const init = async () => {
   }
 };
 
+const setupStageEnvironment = (stage) => {
+  if (stage === 'sf' || stage === 'semifinals' || stage === 'semis') {
+    stageKey = 'sf';
+    stageName = 'SEMI-FINALS';
+    pdfStoragePath = 'round2/sf/questions.pdf';
+    r2Questions = SF_QUESTIONS;
+    activeQid = 'sf_q1';
+  } else {
+    stageKey = 'r8';
+    stageName = 'ROUND OF 8 (5th–8th)';
+    pdfStoragePath = 'round2/r8/questions.pdf';
+    r2Questions = R8_QUESTIONS;
+    activeQid = 'r8_q1';
+  }
+};
+
 const setupExamEnvironment = () => {
   document.getElementById('team-info').textContent = `${teamId} · ${memberName}`;
-  document.getElementById('round-badge').textContent = 'ROUND OF 8 (5th–8th)';
+  document.getElementById('round-badge').textContent = stageName;
   document.getElementById('total-count').textContent = r2Questions.length;
 
   blockInteractions();
@@ -285,7 +420,7 @@ const startExam = () => {
   if (examBar) examBar.classList.remove('hidden');
 
   // Check stored start time or set fresh 60-min timer
-  const storageKey = `gaac_r8_start_${teamId}`;
+  const storageKey = `gaac_${stageKey}_start_${teamId}`;
   let storedStart = localStorage.getItem(storageKey);
   let startMs = storedStart ? Number(storedStart) : Date.now();
   if (!storedStart) {
@@ -302,8 +437,42 @@ const startExam = () => {
   }
 };
 
-const showGate = (reason) => {
+const startTimer = () => {
+  const display = document.getElementById('timer-display');
+  if (timerInterval) clearInterval(timerInterval);
+
+  const update = () => {
+    const now = Date.now();
+    const remaining = Math.max(0, Math.floor((examEndTime - now) / 1000));
+    const m = Math.floor(remaining / 60);
+    const s = remaining % 60;
+    if (display) {
+      display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+      if (remaining <= 300) display.classList.add('warning');
+    }
+    if (remaining <= 0) {
+      clearInterval(timerInterval);
+      finishExam();
+    }
+  };
+
+  update();
+  timerInterval = setInterval(update, 1000);
+};
+
+const finishExam = () => {
+  document.querySelectorAll('.r2-q-input, .r2-q-submit').forEach((el) => {
+    el.disabled = true;
+  });
+  showGate('finished');
+};
+
+const showGate = (mode) => {
   const gate = document.getElementById('gate-screen');
+  const title = document.getElementById('gate-title');
+  const msg = document.getElementById('gate-msg');
+  const sub = document.getElementById('gate-sub');
+  const timer = document.getElementById('gate-timer');
   const rulesGate = document.getElementById('rules-gate');
   const examLayout = document.querySelector('.r2-layout');
   const examBar = document.querySelector('.exam-bar');
@@ -313,130 +482,102 @@ const showGate = (reason) => {
   if (examBar) examBar.classList.add('hidden');
   if (gate) gate.classList.remove('hidden');
 
-  const title = document.getElementById('gate-title');
-  const msg = document.getElementById('gate-msg');
-  const sub = document.getElementById('gate-sub');
-
-  if (reason === 'unauthorized') {
-    title.innerHTML = 'Access <span class="text-blue">Denied</span>';
-    msg.textContent = 'This exam stage is reserved strictly for qualified Round of 8 teams.';
-    sub.textContent = 'Please return to your team dashboard.';
-  } else {
-    title.innerHTML = 'Round Not <span class="text-blue">Available</span>';
-    msg.textContent = 'The competition stage is currently inactive.';
-    sub.textContent = '';
+  if (mode === 'unauthorized') {
+    if (title) title.innerHTML = 'Not <span class="text-blue">Authorized</span>';
+    if (msg) msg.textContent = 'Your account is not registered for this stage of GAAC Round 2.';
+    if (sub) sub.textContent = 'Please return to your team dashboard.';
+    if (timer) timer.textContent = '';
+  } else if (mode === 'finished') {
+    if (title) title.innerHTML = 'Exam <span class="text-blue">Completed</span>';
+    if (msg) msg.textContent = 'Your 1-hour exam session has ended and your answers have been recorded.';
+    if (sub) sub.textContent = 'Thank you for participating! Results will be announced soon.';
+    if (timer) timer.textContent = '00:00';
   }
-};
-
-const startTimer = () => {
-  if (timerInterval) clearInterval(timerInterval);
-  const display = document.getElementById('timer-display');
-
-  const tick = () => {
-    const diff = examEndTime - Date.now();
-    if (diff <= 0) {
-      display.textContent = '00:00';
-      display.classList.add('warning');
-      document.querySelectorAll('.r2-q-input').forEach(i => i.disabled = true);
-      document.querySelectorAll('.r2-q-submit').forEach(b => b.disabled = true);
-      clearInterval(timerInterval);
-      showToast('Exam time has ended. Answers are locked.', 'warning');
-      return;
-    }
-    const m = Math.floor(diff / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    display.textContent = `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-    if (diff < 300000) display.classList.add('warning');
-  };
-
-  tick();
-  timerInterval = setInterval(tick, 1000);
-};
-
-const updateProgressFill = () => {
-  const total = r2Questions.length;
-  const done = Object.keys(answersMap).length;
-  const fill = document.getElementById('progress-fill');
-  if (fill && total > 0) fill.style.width = `${Math.round((done / total) * 100)}%`;
-  const answeredEl = document.getElementById('answered-count');
-  if (answeredEl) answeredEl.textContent = done;
 };
 
 const renderQuestions = () => {
+  const tabsHeader = document.getElementById('tabs-header');
   const container = document.getElementById('questions-container');
-  const tabBar = document.getElementById('tabs-header');
-  if (!container) return;
+  if (!tabsHeader || !container) return;
+
+  tabsHeader.innerHTML = '';
+  container.innerHTML = '';
+
+  r2Questions.forEach((q) => {
+    const isAnswered = Boolean(answersMap[q.id]);
+    const isActive = q.id === activeQid;
+
+    const tabBtn = document.createElement('button');
+    tabBtn.className = `r2-tab-btn ${isActive ? 'active' : ''} ${isAnswered ? 'tab-done' : ''}`;
+    tabBtn.innerHTML = `<span class="tab-dot"></span>Q${q.order}`;
+    tabBtn.addEventListener('click', () => {
+      activeQid = q.id;
+      renderQuestions();
+    });
+    tabsHeader.appendChild(tabBtn);
+
+    const card = document.createElement('div');
+    card.className = `r2-q-card ${isActive ? 'active' : ''}`;
+    card.id = `card-${q.id}`;
+
+    let inputAreaHtml = '';
+    if (isAnswered) {
+      const a = answersMap[q.id];
+      inputAreaHtml = `
+        <div class="r2-q-locked">
+          <span class="r2-q-locked-label">Submitted &amp; Locked</span>
+          <span class="r2-q-locked-value">${escapeHtml(a.value)} <span style="font-size:0.75rem;color:#26b7ff;">${escapeHtml(a.unit || q.unit || '')}</span></span>
+          <span class="r2-q-locked-by">Submitted by ${escapeHtml(a.memberName || 'team member')}</span>
+        </div>
+      `;
+    } else {
+      inputAreaHtml = `
+        <div class="r2-q-input-row">
+          <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="${escapeHtml(q.placeholder || 'Enter value')}" autocomplete="off" spellcheck="false" />
+          <button class="r2-q-submit" id="submit-${q.id}">Submit</button>
+        </div>
+      `;
+    }
+
+    card.innerHTML = `
+      <div class="r2-q-header">
+        <span class="r2-q-number">${escapeHtml(q.title)}</span>
+        <div class="r2-q-badges">
+          <span class="r2-q-badge unit">Unit: ${escapeHtml(q.unit || 'Standard')}</span>
+          <span class="r2-q-badge tol">${escapeHtml(q.topic || '')}</span>
+        </div>
+      </div>
+      <div class="r2-q-note">${escapeHtml(q.note || '')}</div>
+      ${inputAreaHtml}
+    `;
+
+    container.appendChild(card);
+
+    if (!isAnswered) {
+      const btn = card.querySelector(`#submit-${q.id}`);
+      const inp = card.querySelector(`#input-${q.id}`);
+      if (btn && inp) {
+        btn.addEventListener('click', () => submitAnswer(q.id, q, inp));
+        inp.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+            e.preventDefault();
+            submitAnswer(q.id, q, inp);
+          }
+        });
+      }
+    }
+  });
 
   updateProgressFill();
+};
 
-  if (tabBar) {
-    tabBar.innerHTML = '';
-    r2Questions.forEach((q) => {
-      const isDone = !!answersMap[q.id];
-      const tab = document.createElement('button');
-      tab.type = 'button';
-      tab.className = 'r2-tab-btn' + (isDone ? ' tab-done' : '') + (q.id === activeQid ? ' active' : '');
-      tab.id = `tab-${q.id}`;
-      tab.innerHTML = `<span class="tab-dot"></span>Q${q.order}`;
-      tab.addEventListener('click', () => {
-        if (activeQid === q.id) return;
-        activeQid = q.id;
-        renderQuestions();
-      });
-      tabBar.appendChild(tab);
-    });
-  }
-
-  container.innerHTML = '';
-  const q = r2Questions.find((qq) => qq.id === activeQid);
-  if (!q) return;
-  const existing = answersMap[q.id];
-  const isLocked = !!existing;
-
-  const card = document.createElement('div');
-  card.className = 'r2-q-card active';
-  card.id = `qcard-${q.id}`;
-
-  const noteHtml = q.note ? `<div class="r2-q-note">${escapeHtml(q.note)}</div>` : '';
-
-  card.innerHTML = `
-    <div class="r2-q-header">
-      <span class="r2-q-number">Q${q.order} · ${escapeHtml(q.title)}</span>
-      <div class="r2-q-badges">
-        ${q.topic ? `<span class="r2-q-badge tol">${escapeHtml(q.topic)}</span>` : ''}
-        ${q.unit ? `<span class="r2-q-badge unit">Unit: ${escapeHtml(q.unit)}</span>` : ''}
-      </div>
-    </div>
-    ${noteHtml}
-    ${isLocked
-      ? `<div class="r2-q-locked">
-           <div class="r2-q-locked-label">Submitted &amp; Locked</div>
-           <div class="r2-q-locked-value">${escapeHtml(existing.value)} <span style="font-size:0.8rem;color:#26b7ff;font-weight:600;">${escapeHtml(existing.unit || q.unit || '')}</span></div>
-           <div class="r2-q-locked-by">Locked by ${escapeHtml(existing.memberName || existing.memberEmail || 'Team Member')}</div>
-         </div>`
-      : `<div style="display:flex;flex-direction:column;gap:8px;">
-           <div style="font-size:0.75rem;color:#94a3b8;">Required submission unit: <strong style="color:#26b7ff;">${escapeHtml(q.unit || 'Standard')}</strong></div>
-           <div class="r2-q-input-row">
-             <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="${escapeHtml(q.placeholder || 'e.g. 1.25')}" autocomplete="off" inputmode="decimal" spellcheck="false" />
-             <button class="r2-q-submit" id="submit-${q.id}">Lock Answer</button>
-           </div>
-         </div>`
-    }
-  `;
-
-  if (!isLocked) {
-    const submitBtn = card.querySelector(`#submit-${q.id}`);
-    const inputEl = card.querySelector(`#input-${q.id}`);
-    if (submitBtn && inputEl) {
-      submitBtn.addEventListener('click', () => submitAnswer(q.id, q, inputEl));
-      inputEl.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') submitAnswer(q.id, q, inputEl);
-      });
-      requestAnimationFrame(() => inputEl.focus());
-    }
-  }
-
-  container.appendChild(card);
+const updateProgressFill = () => {
+  const answered = Object.keys(answersMap).length;
+  const total = r2Questions.length;
+  const fill = document.getElementById('progress-fill');
+  const countEl = document.getElementById('answered-count');
+  if (fill) fill.style.width = `${Math.min(100, Math.round((answered / total) * 100))}%`;
+  if (countEl) countEl.textContent = answered;
 };
 
 const submitAnswer = async (qid, q, inputEl) => {
@@ -462,7 +603,6 @@ const submitAnswer = async (qid, q, inputEl) => {
       value: raw,
       numericValue,
       unit: q.unit || '',
-      memberUid: 'demo-uid',
       memberName: 'Demo Participant',
       memberEmail: 'demo@gaac.local',
       submittedAt: new Date().toISOString(),
@@ -483,7 +623,7 @@ const submitAnswer = async (qid, q, inputEl) => {
       numericValue: numericValue,
       unit: q.unit || '',
       tolerancePct: 0,
-      lockKey: `${teamId}|r8|${qid}`,
+      lockKey: `${teamId}|${stageKey}|${qid}`,
       memberUid: currentUser.uid,
       memberName: memberName,
       memberEmail: memberEmail,
@@ -492,25 +632,40 @@ const submitAnswer = async (qid, q, inputEl) => {
       locked: true
     };
 
-    // 1. Save question doc in subcollection
-    await setDoc(doc(db, 'teams', teamId, 'round2', 'r8', 'answers', qid), answerData);
+    // 1. Write answer in registrations/{teamId}/round2/{stageKey}/answers/{qid}
+    try {
+      await setDoc(doc(db, 'registrations', teamId, 'round2', stageKey, 'answers', qid), answerData);
+    } catch (e1) {
+      console.warn('[round2] Primary answers write notice:', e1);
+    }
 
-    // 2. Also record in user exam doc for tracking
-    await setDoc(doc(db, 'registrations', teamId, 'exam', `${currentUser.uid}_round2`), {
-      examType: 'round2_r8',
-      stage: 'r8',
-      memberUid: currentUser.uid,
-      memberEmail: memberEmail,
-      memberName: memberName,
-      status: (Object.keys(answersMap).length + 1 >= r2Questions.length) ? 'submitted' : 'in-progress',
-      answersCount: Object.keys(answersMap).length + 1,
-      lastSubmittedAt: serverTimestamp()
-    }, { merge: true });
+    // 2. Also write in teams/{teamId}/round2/{stageKey}/answers/{qid}
+    try {
+      await setDoc(doc(db, 'teams', teamId, 'round2', stageKey, 'answers', qid), answerData);
+    } catch (e2) {
+      console.warn('[round2] Secondary answers write notice:', e2);
+    }
+
+    // 3. User exam progress doc
+    try {
+      await setDoc(doc(db, 'registrations', teamId, 'exam', `${currentUser.uid}_round2`), {
+        examType: `round2_${stageKey}`,
+        stage: stageKey,
+        memberUid: currentUser.uid,
+        memberEmail: memberEmail,
+        memberName: memberName,
+        status: (Object.keys(answersMap).length + 1 >= r2Questions.length) ? 'submitted' : 'in-progress',
+        answersCount: Object.keys(answersMap).length + 1,
+        lastSubmittedAt: serverTimestamp()
+      }, { merge: true });
+    } catch (e3) {
+      console.warn('[round2] Exam progress doc notice:', e3);
+    }
 
     answersMap[qid] = answerData;
     advanceToNextQuestion();
     renderQuestions();
-    showToast('Answer submitted and permanently locked.', 'success');
+    showToast('Answer submitted and locked successfully.', 'success');
   } catch (e) {
     console.error('[round2] Submit error:', e);
     showToast('Submission error. Please check your network and retry.', 'warning');
@@ -559,7 +714,7 @@ const loadAnswersRealtime = () => {
   if (!teamId) return;
   try {
     const q = query(
-      collection(db, 'teams', teamId, 'round2', 'r8', 'answers')
+      collection(db, 'registrations', teamId, 'round2', stageKey, 'answers')
     );
     onSnapshot(q, (snap) => {
       let count = 0;
@@ -571,8 +726,22 @@ const loadAnswersRealtime = () => {
       updateProgressFill();
       renderQuestions();
     }, (err) => {
-      console.warn('[round2] Realtime listener notice:', err);
+      console.warn('[round2] Primary listener notice:', err);
     });
+
+    // Also fallback listener
+    const qFallback = query(
+      collection(db, 'teams', teamId, 'round2', stageKey, 'answers')
+    );
+    onSnapshot(qFallback, (snap) => {
+      snap.forEach((d) => {
+        if (!answersMap[d.id]) {
+          answersMap[d.id] = d.data();
+        }
+      });
+      updateProgressFill();
+      renderQuestions();
+    }, () => {});
   } catch (e) {
     console.warn('[round2] Realtime setup error:', e);
   }
@@ -592,7 +761,7 @@ const loadPdf = async () => {
     if (loading) loading.textContent = 'Fetching question paper...';
 
     let pdfData = null;
-    const pdfRef = storageRef(storage, 'round2/r8/questions.pdf');
+    const pdfRef = storageRef(storage, pdfStoragePath);
 
     // Attempt 1: getBytes
     try {
@@ -619,26 +788,31 @@ const loadPdf = async () => {
       return;
     }
 
-    if (loading) loading.textContent = 'Rendering question paper...';
+    if (loading) loading.textContent = 'Rendering question paper in high resolution...';
 
     const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
     if (loading) loading.classList.add('hidden');
 
     panel.innerHTML = '';
 
+    // Calculate ultra-crisp high-DPI resolution
+    const dpr = window.devicePixelRatio || 1;
+    const renderScale = Math.max(dpr * 1.5, 2.0);
+
     for (let i = 1; i <= pdf.numPages; i++) {
       const page = await pdf.getPage(i);
-      const scale = 1.35;
-      const viewport = page.getViewport({ scale });
+      const viewport = page.getViewport({ scale: renderScale });
 
       const pageDiv = document.createElement('div');
       pageDiv.className = 'r2-pdf-page';
-      pageDiv.style.position = 'relative';
+      pageDiv.style.cssText = 'position:relative; width:100%; max-width:850px; display:flex; justify-content:center; margin-bottom:16px;';
 
       const canvas = document.createElement('canvas');
-      const ctx = canvas.getContext('2d');
+      const ctx = canvas.getContext('2d', { alpha: false });
       canvas.width = viewport.width;
       canvas.height = viewport.height;
+      canvas.style.cssText = 'width:100%; height:auto; display:block; border-radius:10px; box-shadow:0 4px 24px rgba(0,0,0,0.5); border:1px solid rgba(255,255,255,0.06);';
+
       await page.render({ canvasContext: ctx, viewport }).promise;
 
       const overlay = document.createElement('div');
@@ -688,4 +862,3 @@ const escapeHtml = (str) => {
 };
 
 init();
-

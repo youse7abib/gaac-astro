@@ -376,12 +376,32 @@
             </div>
             <div class="mock-card" style="border-color: rgba(34, 197, 94, 0.35); background: rgba(10, 24, 16, 0.55);">
               <div class="mock-row">
-                <span class="mock-pill pill-semifinal"><span class="dot"></span><span>Qualified for Semi-Finals</span></span>
+                <span class="mock-pill pill-semifinal" id="sf-pill"><span class="dot"></span><span id="sf-status">Qualified for Semi-Finals</span></span>
               </div>
-              <div class="status-info-box">
-                <div class="status-info-row"><strong>Date:</strong> Tuesday, 15 September · 7:00 PM (GMT+3)</div>
-                <div class="status-info-row"><strong>Format:</strong> Via Zoom, strict proctoring with monitors, 10 non-MCQ questions, 1 hour, submit via dedicated form alongside PDF.</div>
+              <div class="mock-count" id="sf-countdown-box">
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Hours</span>
+                  <span class="mock-cell-value" id="sf-hours">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Minutes</span>
+                  <span class="mock-cell-value" id="sf-minutes">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Seconds</span>
+                  <span class="mock-cell-value" id="sf-seconds">00</span>
+                </div>
               </div>
+              <p class="mock-sub" id="sf-schedule-note" style="margin-top:10px;">Entry opens Tuesday, 15 September at 7:00 PM (Cairo, GMT+3).</p>
+              <div class="status-info-box" style="margin-top:14px;">
+                <div class="status-info-row"><strong>Date &amp; Time:</strong> Tuesday, 15 September · 7:00 PM (GMT+3)</div>
+                <div class="status-info-row"><strong>Entry Window:</strong> 7:00 PM – 8:00 PM (GMT+3). Exam timer is 1 hour (60 minutes).</div>
+                <div class="status-info-row"><strong>Format:</strong> 10 questions, strict proctoring with monitors, PDF question paper with dedicated online submission form.</div>
+                <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Live Zoom proctoring. Strict ban on mobile phones.</div>
+              </div>
+              <a href="round2.html" id="btn-enter-sf" class="button primary" style="width:100%;justify-content:center;text-decoration:none;display:none;margin-top:12px;font-weight:700;background:#22c55e;">Enter Semi-Finals Exam</a>
             </div>
           </div>
 
@@ -932,6 +952,11 @@ const app = initializeApp(firebaseConfig);
       closeAt: Date.UTC(2026, 8, 14, 17, 0, 0)   // 8:00 PM Cairo (Sept 14)
     };
 
+    const SF_SCHEDULE = {
+      openAt: Date.UTC(2026, 8, 15, 16, 0, 0),   // 7:00 PM Cairo (Sept 15)
+      closeAt: Date.UTC(2026, 8, 15, 17, 0, 0)   // 8:00 PM Cairo (Sept 15)
+    };
+
     function updateR8Countdown() {
       if (!auth.currentUser) return;
       const email = (auth.currentUser.email || '').toLowerCase().trim();
@@ -982,10 +1007,61 @@ const app = initializeApp(firebaseConfig);
       }
     }
 
+    function updateSfCountdown() {
+      if (!auth.currentUser) return;
+      const email = (auth.currentUser.email || '').toLowerCase().trim();
+      if (!SEMIFINAL_EMAILS.has(email)) return;
+
+      const pill = document.getElementById('sf-pill');
+      const statusEl = document.getElementById('sf-status');
+      const noteEl = document.getElementById('sf-schedule-note');
+      const btn = document.getElementById('btn-enter-sf');
+      const hEl = document.getElementById('sf-hours');
+      const mEl = document.getElementById('sf-minutes');
+      const sEl = document.getElementById('sf-seconds');
+
+      if (!statusEl || !btn) return;
+
+      const now = Date.now() + r1ServerOffsetMs;
+      const { openAt, closeAt } = SF_SCHEDULE;
+
+      if (now < openAt) {
+        if (pill) { pill.classList.remove('cc-open', 'cc-closed'); }
+        statusEl.textContent = 'Opens in';
+        const diff = openAt - now;
+        const { h, m, s } = fmtCountdown(diff);
+        if (hEl) hEl.textContent = h;
+        if (mEl) mEl.textContent = m;
+        if (sEl) sEl.textContent = s;
+        if (noteEl) noteEl.textContent = `Entry opens Tuesday, 15 September at ${cairoClock(openAt)} (Cairo, GMT+3).`;
+        btn.style.display = 'none';
+      } else if (now < closeAt) {
+        if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
+        statusEl.textContent = 'Window Open \u00b7 Semi-Finals';
+        const diff = closeAt - now;
+        const { h, m, s } = fmtCountdown(diff);
+        if (hEl) hEl.textContent = h;
+        if (mEl) mEl.textContent = m;
+        if (sEl) sEl.textContent = s;
+        if (noteEl) noteEl.textContent = `Entry window is open until ${cairoClock(closeAt)} (Cairo, GMT+3). Click below to start your 1-hour exam.`;
+        btn.style.display = 'inline-flex';
+        btn.href = `round2.html?team=${encodeURIComponent(currentTeamId || '')}&stage=sf`;
+      } else {
+        if (pill) { pill.classList.remove('cc-open'); pill.classList.add('cc-closed'); }
+        statusEl.textContent = 'Entry Window Closed';
+        if (hEl) hEl.textContent = '00';
+        if (mEl) mEl.textContent = '00';
+        if (sEl) sEl.textContent = '00';
+        if (noteEl) noteEl.textContent = 'The entry window for the Semi-Finals has closed.';
+        btn.style.display = 'none';
+      }
+    }
+
     function r1CardTick() {
       if (auth.currentUser) {
         applyCompetitionStatus(auth.currentUser.email);
         updateR8Countdown();
+        updateSfCountdown();
       }
     }
     setInterval(r1CardTick, 1000);

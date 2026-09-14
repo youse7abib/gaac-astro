@@ -327,7 +327,7 @@ service cloud.firestore {
                 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
                 'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo',
-                'answersCount', 'lastSubmittedAt', 'stage'
+                'answersCount', 'lastSubmittedAt', 'stage', 'memberName'
               ])
               && (!request.resource.data.keys().hasAny(['memberUid'])
                   || request.resource.data.memberUid == request.auth.uid)
@@ -347,7 +347,7 @@ service cloud.firestore {
                 'status', 'memberUid', 'memberEmail', 'memberRole',
                 'answers', 'flagged', 'questionOrder', 'pausedRemaining',
                 'submittedAt', 'eventCount', 'severeEventCount', 'deviceInfo',
-                'answersCount', 'lastSubmittedAt', 'stage'
+                'answersCount', 'lastSubmittedAt', 'stage', 'memberName'
               ])
               && (!request.resource.data.keys().hasAny(['memberUid'])
                   || request.resource.data.memberUid == request.auth.uid)
@@ -419,7 +419,7 @@ allow delete: if isAdmin();
     // round window via the round2IsOpen helper. Admin may read/repair.
     match /round2/{roundKey}/answers/{questionId} {
       allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
-      allow create: if isAuthenticated() && isTeamMember(teamId)
+      allow create, update: if isAuthenticated() && (isTeamMember(teamId) || isAdmin())
         && request.resource.data.keys().hasOnly([
           'memberUid', 'memberName', 'memberEmail',
           'value', 'numericValue', 'unit', 'tolerancePct',
@@ -429,9 +429,15 @@ allow delete: if isAdmin();
         && request.resource.data.memberUid == request.auth.uid
         && request.resource.data.questionId == questionId
         && request.resource.data.locked == true;
-      allow update: if isAdmin();
       allow delete: if isAdmin();
     }
+  }
+
+  // Also support /teams/{teamId}/round2/... collection path
+  match /teams/{teamId}/round2/{roundKey}/answers/{questionId} {
+    allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
+    allow create, update: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
+    allow delete: if isAdmin();
   }
 
     // ================================================================
