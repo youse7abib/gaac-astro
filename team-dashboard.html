@@ -367,7 +367,7 @@
                 <span class="mock-pill pill-semifinal"><span class="dot"></span><span>Qualified for Semi-Finals</span></span>
               </div>
               <div class="status-info-box">
-                <div class="status-info-row"><strong>Date:</strong> Wednesday, 15 September · 7:00 PM (GMT+3)</div>
+                <div class="status-info-row"><strong>Date:</strong> Tuesday, 15 September · 7:00 PM (GMT+3)</div>
                 <div class="status-info-row"><strong>Format:</strong> Via Zoom, strict proctoring with monitors, 10 non-MCQ questions, 1 hour, submit via dedicated form alongside PDF.</div>
               </div>
             </div>
@@ -399,9 +399,9 @@
                   <span class="mock-cell-value" id="r8-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry opens Tuesday, 14 September at 7:00 PM (Cairo, GMT+3). Entry window is 10 minutes only (7:00 PM – 7:10 PM).</p>
+              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry opens Monday, 14 September at 7:00 PM (Cairo, GMT+3). Entry window is 10 minutes only (7:00 PM – 7:10 PM).</p>
               <div class="status-info-box" style="margin-top:14px;">
-                <div class="status-info-row"><strong>Date &amp; Time:</strong> Tuesday, 14 September · 7:00 PM (GMT+3)</div>
+                <div class="status-info-row"><strong>Date &amp; Time:</strong> Monday, 14 September · 7:00 PM (GMT+3)</div>
                 <div class="status-info-row"><strong>Entry Window:</strong> 10 minutes only (7:00 PM – 7:10 PM GMT+3). Exam timer is 1 hour (60 minutes).</div>
                 <div class="status-info-row"><strong>Qualification Rule:</strong> Best team advances to semi-finals as 4th team, rest compete for places 5–8.</div>
                 <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Live Zoom proctoring. Strict ban on mobile phones (leads to permanent disqualification).</div>
@@ -946,7 +946,7 @@ const app = initializeApp(firebaseConfig);
         if (hEl) hEl.textContent = h;
         if (mEl) mEl.textContent = m;
         if (sEl) sEl.textContent = s;
-        if (noteEl) noteEl.textContent = `Entry opens Tuesday, 14 September at ${cairoClock(openAt)} (Cairo, GMT+3). 10-minute entry window.`;
+        if (noteEl) noteEl.textContent = `Entry opens Monday, 14 September at ${cairoClock(openAt)} (Cairo, GMT+3). 10-minute entry window.`;
         btn.style.display = 'none';
       } else if (now < closeAt) {
         if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
