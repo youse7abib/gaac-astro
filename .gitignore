@@ -35,3 +35,10 @@ scratch_*.json
 firebase-debug.log
 
 
+
+pdf/Round2*
+pdf/questions*
+Round2*
+*Round2*
+outputs/
+

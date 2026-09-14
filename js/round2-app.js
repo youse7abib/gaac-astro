@@ -591,24 +591,16 @@ const loadPdf = async () => {
 
     let pdfData = null;
 
-    // Load from project PDF path
+    // Load strictly from secured Firebase Storage
     try {
-      const resp = await fetch('pdf/Round2_Stage1_Best5th_8th.pdf');
-      if (resp.ok) {
-        pdfData = await resp.arrayBuffer();
-      }
-    } catch (_) {}
-
-    // Fallback to storage if needed
-    if (!pdfData) {
-      try {
-        const pdfRef = storageRef(storage, 'round2/r8/questions.pdf');
-        pdfData = await getBytes(pdfRef);
-      } catch (_) {}
+      const pdfRef = storageRef(storage, 'round2/r8/questions.pdf');
+      pdfData = await getBytes(pdfRef);
+    } catch (err) {
+      console.warn('[round2] Storage PDF fetch error:', err);
     }
 
     if (!pdfData) {
-      if (loading) loading.textContent = 'Question paper could not be fetched.';
+      if (loading) loading.textContent = 'Question paper could not be loaded from secure storage. Please ensure you are authenticated.';
       return;
     }
 
