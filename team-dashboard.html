@@ -399,10 +399,10 @@
                   <span class="mock-cell-value" id="r8-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry opens Monday, 14 September at 7:00 PM (Cairo, GMT+3). Entry window is 10 minutes only (7:00 PM – 7:10 PM).</p>
+              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry open Monday, 14 September (7:00 PM – 7:35 PM Cairo, GMT+3).</p>
               <div class="status-info-box" style="margin-top:14px;">
                 <div class="status-info-row"><strong>Date &amp; Time:</strong> Monday, 14 September · 7:00 PM (GMT+3)</div>
-                <div class="status-info-row"><strong>Entry Window:</strong> 10 minutes only (7:00 PM – 7:10 PM GMT+3). Exam timer is 1 hour (60 minutes).</div>
+                <div class="status-info-row"><strong>Entry Window:</strong> 7:00 PM – 7:35 PM (GMT+3). Exam timer is 1 hour (60 minutes).</div>
                 <div class="status-info-row"><strong>Qualification Rule:</strong> Best team advances to semi-finals as 4th team, rest compete for places 5–8.</div>
                 <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Live Zoom proctoring. Strict ban on mobile phones (leads to permanent disqualification).</div>
               </div>
@@ -917,7 +917,7 @@ const app = initializeApp(firebaseConfig);
 
     const R8_SCHEDULE = {
       openAt: Date.UTC(2026, 8, 14, 16, 0, 0),   // 7:00 PM Cairo (Sept 14)
-      closeAt: Date.UTC(2026, 8, 14, 16, 10, 0)  // 7:10 PM Cairo (Sept 14) — 10 min window!
+      closeAt: Date.UTC(2026, 8, 14, 16, 35, 0)  // 7:35 PM Cairo (Sept 14)
     };
 
     function updateR8Countdown() {
@@ -946,7 +946,7 @@ const app = initializeApp(firebaseConfig);
         if (hEl) hEl.textContent = h;
         if (mEl) mEl.textContent = m;
         if (sEl) sEl.textContent = s;
-        if (noteEl) noteEl.textContent = `Entry opens Monday, 14 September at ${cairoClock(openAt)} (Cairo, GMT+3). 10-minute entry window.`;
+        if (noteEl) noteEl.textContent = `Entry opens Monday, 14 September at ${cairoClock(openAt)} (Cairo, GMT+3).`;
         btn.style.display = 'none';
       } else if (now < closeAt) {
         if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
@@ -965,7 +965,7 @@ const app = initializeApp(firebaseConfig);
         if (hEl) hEl.textContent = '00';
         if (mEl) mEl.textContent = '00';
         if (sEl) sEl.textContent = '00';
-        if (noteEl) noteEl.textContent = 'The 10-minute entry window for the Round of 8 has closed.';
+        if (noteEl) noteEl.textContent = 'The entry window for the Round of 8 has closed.';
         btn.style.display = 'none';
       }
     }
