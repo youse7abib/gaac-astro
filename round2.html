@@ -115,8 +115,35 @@
     .r2-confirm-submit:hover{background:#4dc8ff;}
     .r2-confirm-submit:active{transform:scale(0.97);}
 
-    @media(max-width:1024px){.r2-layout{flex-direction:column;}.r2-pdf-panel{height:50vh;border-right:none;border-bottom:1px solid rgba(255,255,255,0.05);}.r2-questions-panel{width:100%;height:50vh;}}
-    @media(max-width:640px){.exam-bar{padding:0 14px;height:56px;gap:10px;}.exam-bar .logo-sm{height:30px;}#timer-display{font-size:1.1rem;}.team-info{display:none;}}
+    @media(max-width:1024px){
+      .r2-layout{flex-direction:column;}
+      .r2-pdf-panel{height:50vh;border-right:none;border-bottom:1px solid rgba(255,255,255,0.05);}
+      .r2-questions-panel{width:100%;height:50vh;}
+    }
+    @media(max-width:768px){
+      .exam-bar{padding:0 12px;height:56px;gap:8px;}
+      .exam-bar .logo-sm{height:28px;}
+      .round-badge{font-size:0.55rem;padding:4px 8px;}
+      #timer-display{font-size:1.15rem;}
+      .progress-text{font-size:0.65rem;}
+      .team-info{display:none;}
+      .lang-toggle{padding:4px 10px;font-size:0.68rem;}
+      .r2-layout{margin-top:56px;height:calc(100vh - 56px);}
+      .r2-pdf-panel{height:46vh;padding:12px 8px;}
+      .r2-questions-panel{height:54vh;}
+      .r2-tabs-header{padding:8px 8px 0;overflow-x:auto;flex-wrap:nowrap;-webkit-overflow-scrolling:touch;}
+      .r2-tab-btn{min-width:32px;padding:6px 2px 8px;font-size:0.55rem;flex-shrink:0;}
+      .r2-tab-body{padding:14px 12px;}
+      .r2-q-header{flex-wrap:wrap;gap:6px;}
+      .r2-q-input-row{gap:8px;}
+      .r2-q-input{padding:10px 12px;font-size:0.85rem;}
+      .r2-q-submit{padding:10px 14px;font-size:0.75rem;}
+      .r2-gate{padding:20px 12px;}
+      .r2-gate > div{padding:20px 14px !important;}
+      .r2-gate h1{font-size:1.35rem;}
+      .r2-confirm-box{padding:22px 16px;max-width:92%;}
+      .r2-confirm-value{font-size:1.25rem;}
+    }
   </style>
 </head>
 <body>

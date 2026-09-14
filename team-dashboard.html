@@ -199,6 +199,18 @@
       color: #ffffff;
       font-weight: 600;
     }
+    @media (max-width: 600px) {
+      .td-wrapper { padding: 20px 10px; }
+      .td-card { padding: 24px 14px; max-width: 100%; }
+      .team-banner { padding: 18px 12px; }
+      .mock-card { padding: 18px 12px; }
+      .mock-count { gap: 6px; }
+      .mock-cell { min-width: 48px; padding: 8px 6px; }
+      .mock-cell-value { font-size: 1.25rem; }
+      .mock-cell-sep { font-size: 1.1rem; }
+      .status-info-box { padding: 12px 10px; font-size: 0.8rem; }
+      .status-info-row { font-size: 0.78rem; line-height: 1.5; }
+    }
     </style>
 </head>
 <body class="page-home">
@@ -399,10 +411,10 @@
                   <span class="mock-cell-value" id="r8-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry open Monday, 14 September (7:00 PM – 7:35 PM Cairo, GMT+3).</p>
+              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry open Monday, 14 September (7:00 PM – 8:00 PM Cairo, GMT+3).</p>
               <div class="status-info-box" style="margin-top:14px;">
                 <div class="status-info-row"><strong>Date &amp; Time:</strong> Monday, 14 September · 7:00 PM (GMT+3)</div>
-                <div class="status-info-row"><strong>Entry Window:</strong> 7:00 PM – 7:35 PM (GMT+3). Exam timer is 1 hour (60 minutes).</div>
+                <div class="status-info-row"><strong>Entry Window:</strong> 7:00 PM – 8:00 PM (GMT+3). Exam timer is 1 hour (60 minutes).</div>
                 <div class="status-info-row"><strong>Qualification Rule:</strong> Best team advances to semi-finals as 4th team, rest compete for places 5–8.</div>
                 <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Live Zoom proctoring. Strict ban on mobile phones (leads to permanent disqualification).</div>
               </div>
@@ -917,7 +929,7 @@ const app = initializeApp(firebaseConfig);
 
     const R8_SCHEDULE = {
       openAt: Date.UTC(2026, 8, 14, 16, 0, 0),   // 7:00 PM Cairo (Sept 14)
-      closeAt: Date.UTC(2026, 8, 14, 16, 35, 0)  // 7:35 PM Cairo (Sept 14)
+      closeAt: Date.UTC(2026, 8, 14, 17, 0, 0)   // 8:00 PM Cairo (Sept 14)
     };
 
     function updateR8Countdown() {
