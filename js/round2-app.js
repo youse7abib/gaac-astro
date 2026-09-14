@@ -3,7 +3,7 @@ import {
   doc, getDoc, setDoc, serverTimestamp,
   collection, query, orderBy as orderByFS, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
-import { ref as storageRef, getBytes } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
+import { ref as storageRef, getBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
 import { onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
 
 let teamId = null;
@@ -584,25 +584,42 @@ const loadPdf = async () => {
 
   try {
     if (typeof pdfjsLib === 'undefined') {
-      if (loading) loading.textContent = 'PDF viewer library failed to load.';
+      if (loading) loading.textContent = 'PDF viewer library failed to load. Please refresh.';
       return;
     }
     pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.worker.min.js';
 
-    let pdfData = null;
+    if (loading) loading.textContent = 'Fetching question paper...';
 
-    // Load strictly from secured Firebase Storage
+    let pdfData = null;
+    const pdfRef = storageRef(storage, 'round2/r8/questions.pdf');
+
+    // Attempt 1: getBytes
     try {
-      const pdfRef = storageRef(storage, 'round2/r8/questions.pdf');
       pdfData = await getBytes(pdfRef);
     } catch (err) {
-      console.warn('[round2] Storage PDF fetch error:', err);
+      console.warn('[round2] getBytes error, trying getDownloadURL fallback:', err);
+    }
+
+    // Attempt 2: getDownloadURL
+    if (!pdfData) {
+      try {
+        const url = await getDownloadURL(pdfRef);
+        const resp = await fetch(url);
+        if (resp.ok) {
+          pdfData = await resp.arrayBuffer();
+        }
+      } catch (err2) {
+        console.warn('[round2] getDownloadURL fallback error:', err2);
+      }
     }
 
     if (!pdfData) {
-      if (loading) loading.textContent = 'Question paper could not be loaded from secure storage. Please ensure you are authenticated.';
+      if (loading) loading.innerHTML = 'Question paper could not be loaded from secure storage.<br><button onclick="window.location.reload()" style="margin-top:10px;padding:6px 14px;background:#26b7ff;border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">Retry</button>';
       return;
     }
+
+    if (loading) loading.textContent = 'Rendering question paper...';
 
     const pdf = await pdfjsLib.getDocument({ data: pdfData }).promise;
     if (loading) loading.classList.add('hidden');
@@ -634,7 +651,7 @@ const loadPdf = async () => {
     }
   } catch (e) {
     console.error('[round2] PDF rendering error:', e);
-    if (loading) loading.textContent = 'Failed to load question paper.';
+    if (loading) loading.innerHTML = `Failed to render question paper (${e.message || 'error'}).<br><button onclick="window.location.reload()" style="margin-top:10px;padding:6px 14px;background:#26b7ff;border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">Retry</button>`;
   }
 };
 
