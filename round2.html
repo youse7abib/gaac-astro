@@ -144,6 +144,13 @@
       .r2-confirm-box{padding:22px 16px;max-width:92%;}
       .r2-confirm-value{font-size:1.25rem;}
     }
+
+    .r2-q-input-tip{font-size:0.74rem;color:#94a3b8;line-height:1.5;background:rgba(38,183,255,0.04);border:1px solid rgba(38,183,255,0.12);border-radius:8px;padding:8px 12px;box-sizing:border-box;}
+    .hl-code{font-family:'Courier New',monospace;background:rgba(38,183,255,0.14);color:#38bdf8;padding:2px 6px;border-radius:4px;font-weight:700;font-size:0.8rem;}
+    .r2-format-guide{margin-top:16px;padding:14px 16px;background:rgba(15,23,42,0.65);border:1px solid rgba(255,255,255,0.07);border-radius:12px;font-size:0.78rem;color:#94a3b8;line-height:1.6;}
+    .r2-format-guide-title{font-size:0.8rem;font-weight:700;color:#e2e8f0;margin-bottom:6px;display:flex;align-items:center;gap:6px;}
+    .r2-format-guide-body{display:flex;flex-direction:column;gap:4px;}
+
   </style>
 </head>
 <body>
@@ -171,6 +178,17 @@
           <div class="r2-progress-fill" id="progress-fill" style="width:0%"></div>
         </div>
         <div id="questions-container"></div>
+        <div class="r2-format-guide">
+          <div class="r2-format-guide-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#26b7ff" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="16" x2="12" y2="12"></line><line x1="12" y1="8" x2="12.01" y2="8"></line></svg>
+            Numerical Format &amp; Precision Guide
+          </div>
+          <div class="r2-format-guide-body">
+            <div>&bull; <strong>Scientific Notation:</strong> For large or small powers of 10, write in standard exponential notation: e.g. <strong>2.335 &times; 10²²</strong> &rarr; <code class="hl-code">2.335e22</code> (or <strong>1.5 &times; 10⁻⁴</strong> &rarr; <code class="hl-code">1.5e-4</code>).</div>
+            <div>&bull; <strong>Significant Figures &amp; Tolerance:</strong> Standard significant figures and rounding are evaluated automatically within the <strong>&plusmn;1% error tolerance</strong>.</div>
+            <div>&bull; <strong>Pure Numbers:</strong> Do not type unit strings (e.g. <code>km/s</code>) into the input box — units are fixed per question.</div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -204,6 +222,7 @@
         <div><strong>Duration:</strong> 1 Hour (60:00 minutes) synchronized timer.</div>
         <div><strong>Questions:</strong> 10 numerical questions based on the question paper.</div>
         <div><strong>Units:</strong> Input your answer in the specified unit indicated for each question.</div>
+        <div><strong>Scientific Notation:</strong> Use exponential format for powers of 10 (e.g. <code>2.335e22</code>). Sig figures within &plusmn;1% tolerance are accepted.</div>
         <div><strong>One Attempt Only:</strong> Answers once locked cannot be modified. No scores or correctness are shown.</div>
         <div><strong>Live Proctoring:</strong> Supervised live via Zoom. Keep your camera on throughout the exam.</div>
       </div>

@@ -20,7 +20,6 @@ let examDurationSec = 60 * 60; // 1 Hour (60 minutes)
 let examEndTime = 0;
 
 const ROUND8_EMAILS = new Set([
-  'jinenustegegn0@gmail.com',
   'basaksayan55@gmail.com',
   'shadenzanati1@gmail.com',
   'nagutavictoria@gmail.com',
@@ -29,6 +28,7 @@ const ROUND8_EMAILS = new Set([
 ].map(e => e.toLowerCase().trim()));
 
 const SEMIFINAL_EMAILS = new Set([
+  'jinenustegegn0@gmail.com',
   'mralbakk@gmail.com',
   'ramyramadan0120@gmail.com',
   'vlad.toncu224@gmail.com',
@@ -611,8 +611,11 @@ const renderQuestions = () => {
       `;
     } else {
       inputAreaHtml = `
+        <div class="r2-q-input-tip">
+          <span style="color:#26b7ff;font-weight:700;">Format tip:</span> For large numbers like 2.335 &times; 10²², write <code class="hl-code">2.335e22</code>. Sig-figures within &plusmn;${q.tolerancePct || 1}% tolerance are accepted.
+        </div>
         <div class="r2-q-input-row">
-          <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="${escapeHtml(q.placeholder || 'Enter value')}" autocomplete="off" spellcheck="false" />
+          <input type="text" class="r2-q-input" id="input-${q.id}" placeholder="${escapeHtml(q.placeholder || 'Enter your answer...')}" autocomplete="off" spellcheck="false" />
           <button class="r2-q-submit" id="submit-${q.id}">Submit</button>
         </div>
       `;
