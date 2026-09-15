@@ -910,7 +910,7 @@
       <!-- Top Navigation Tabs -->
       <div class="top-tabs">
         <button class="top-tab-btn active" id="tab-btn-fin" onclick="window.switchTab('fin')">
-          🏆 Grand Final (Championship)
+          Grand Final (Championship)
         </button>
         <button class="top-tab-btn" id="tab-btn-sf" onclick="window.switchTab('sf')">
           Semi-Finals (Round 2)
@@ -957,7 +957,7 @@
         <!-- Controls bar -->
         <div class="controls-bar" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
           <div style="font-size:0.95rem;font-weight:700;color:#ffd700;display:flex;align-items:center;gap:8px;">
-            <span>🏆 Grand Final Live Matchup: Suceava Lovers 224 vs Where are you going</span>
+            <span>Grand Final Matchup: Suceava Lovers 224 vs Where are you going</span>
           </div>
           <div style="display:flex;gap:10px;align-items:center;">
             <button class="btn-cache-sync" onclick="window.syncFinalsData(true)">🔄 Force Sync Finals</button>
@@ -3595,6 +3595,353 @@
                     return `
                       <tr style="border-bottom:1px solid rgba(255,255,255,0.04);background:${evalRes.isCorrect ? 'rgba(34,197,94,0.03)' : 'rgba(239,68,68,0.03)'};">
                         <td style="padding:10px 12px;font-weight:700;color:#38bdf8;font-family:'Orbitron',monospace;">Q${key.order}</td>
+                        <td style="padding:10px 12px;color:#e2e8f0;font-weight:600;">${escapeHtml(key.title)}</td>
+                        <td style="padding:10px 12px;font-family:'Courier New',monospace;font-weight:700;color:${evalRes.isCorrect ? '#22c55e' : '#ef4444'};">
+                          ${escapeHtml(ans.value)} <span style="font-size:0.75rem;color:#94a3b8;">${escapeHtml(ans.unit || key.unit)}</span>
+                        </td>
+                        <td style="padding:10px 12px;font-family:'Courier New',monospace;color:#94a3b8;">
+                          ${key.accepted} <span style="font-size:0.75rem;color:#64748b;">${escapeHtml(key.unit)}</span>
+                        </td>
+                        <td style="padding:10px 12px;font-family:'Courier New',monospace;font-size:0.75rem;color:${evalRes.diffPct <= 1 ? '#22c55e' : '#ef4444'};">
+                          ${evalRes.diffPct != null ? evalRes.diffPct + '%' : '—'}
+                        </td>
+                        <td style="padding:10px 12px;">
+                          ${evalRes.isCorrect 
+                            ? `<span style="font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(34,197,94,0.15);color:#22c55e;border:1px solid rgba(34,197,94,0.3);">✓ Correct</span>`
+                            : `<span style="font-size:0.7rem;font-weight:700;padding:3px 8px;border-radius:6px;background:rgba(239,68,68,0.15);color:#ef4444;border:1px solid rgba(239,68,68,0.3);">✗ Incorrect</span>`
+                          }
+                        </td>
+                        <td style="padding:10px 12px;color:#cbd5e1;">
+                          <div style="font-weight:600;">${escapeHtml(ans.memberName || 'Member')}</div>
+                          <div style="font-size:0.7rem;color:#64748b;">${escapeHtml(ans.memberEmail || '')}</div>
+                        </td>
+                        <td style="padding:10px 12px;color:#94a3b8;font-size:0.75rem;white-space:nowrap;">
+                          ${timeStr}
+                        </td>
+                      </tr>
+                    `;
+                  }).join('')}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        `;
+      });
+
+      container.innerHTML = html;
+    }
+
+  
+    // ==========================================
+    // GRAND FINAL (ROUND 2) LIVE MONITOR & EVALUATION
+    // ==========================================
+    const FINAL_PARTICIPANT_EMAILS = new Set([
+      'vlad.toncu224@gmail.com',
+      'mihai.tesileanu2@gmail.com',
+      'matei.butnaru@yahoo.com',
+      'badr.e.h.edu@gmail.com'
+    ].map(e => e.toLowerCase().trim()));
+
+    const FINAL_TEAM_IDS = ['GAAC-2026-1883', 'GAAC-2026-0457'];
+
+    const FIN_ANSWER_KEYS = {
+      fin_q1:  { order: 1,  title: "Q21: The Needle in the Radio Sky",      unit: "km",         accepted: 109,       tolPct: 1 },
+      fin_q2:  { order: 2,  title: "Q22: The Orbit beneath the Iron Star",   unit: "rad/orbit",  accepted: 3.38e-5,   tolPct: 1 },
+      fin_q3:  { order: 3,  title: "Q23: The One-Second Shadow",            unit: "cm",         accepted: 0.0157,    tolPct: 1 },
+      fin_q4:  { order: 4,  title: "Q24: The Neutron Star's Lost Century",   unit: "J",          accepted: 2.59e46,   tolPct: 1 },
+      fin_q5:  { order: 5,  title: "Q25: The Black Hole Candle",             unit: "kg",         accepted: 2.24e20,   tolPct: 1 },
+      fin_q6:  { order: 6,  title: "Q26: The Radio Ghost of Cygnus",         unit: "TeV",        accepted: 0.0115,    tolPct: 1 },
+      fin_q7:  { order: 7,  title: "Q27: The White Dwarf's Broken Rule",     unit: "M☉",         accepted: 1.23,      tolPct: 1 },
+      fin_q8:  { order: 8,  title: "Q28: The Planet that Burned Its Path",   unit: "J",          accepted: 2.11e33,   tolPct: 1 },
+      fin_q9:  { order: 9,  title: "Q29: The Universe in the Mirror",        unit: "K",          accepted: 9080,      tolPct: 1 },
+      fin_q10: { order: 10, title: "Q30: The Last Horizon",                  unit: "c/H₀",       accepted: 1.912,     tolPct: 1 }
+    };
+
+    let finUnsubscribers = [];
+
+    window.syncFinalsData = async (force) => {
+      const container = document.getElementById('finals-container');
+      if (!container) return;
+
+      container.innerHTML = '<div class="empty-placeholder">Querying Grand Final submissions from Firestore...</div>';
+
+      if (registrationCache.size === 0) {
+        try {
+          const regSnap = await getDocs(collection(db, 'registrations'));
+          regSnap.forEach(d => {
+            registrationCache.set(d.id.toLowerCase().trim(), d.data());
+            registrationCache.set(d.id.toUpperCase().trim(), d.data());
+          });
+        } catch(e) {
+          console.warn('[Finals] Registrations fetch notice:', e);
+        }
+      }
+
+      const finTeamsMap = new Map();
+
+      // Pre-seed known 2 finalist teams
+      for (const tId of FINAL_TEAM_IDS) {
+        let reg = registrationCache.get(tId) || registrationCache.get(tId.toLowerCase());
+        if (!reg) {
+          try {
+            const snap1 = await getDoc(doc(db, 'registrations', tId));
+            if (snap1.exists()) reg = snap1.data();
+            else {
+              const snap2 = await getDoc(doc(db, 'registrations', tId.toLowerCase()));
+              if (snap2.exists()) reg = snap2.data();
+            }
+          } catch(e) {}
+        }
+        reg = reg || { teamName: (tId === 'GAAC-2026-1883' ? 'Suceava Lovers 224' : 'Where are you going') };
+        const members = [
+          reg.leader ? { ...reg.leader, role: 'leader', label: 'Leader' } : null,
+          reg.member2 ? { ...reg.member2, role: 'member2', label: 'Member 2' } : null,
+          reg.member3 ? { ...reg.member3, role: 'member3', label: 'Member 3' } : null
+        ].filter(Boolean);
+        finTeamsMap.set(tId, { teamId: tId, reg, members, answers: {} });
+      }
+
+      // Clean up previous listeners
+      finUnsubscribers.forEach(unsub => { try { unsub(); } catch(e){} });
+      finUnsubscribers = [];
+
+      // Query collectionGroup('answers') for answers starting with fin_
+      try {
+        const groupSnap = await getDocs(collectionGroup(db, 'answers'));
+        groupSnap.forEach(docSnap => {
+          const data = docSnap.data();
+          const qid = data.questionId || docSnap.id;
+          if (!qid || !qid.startsWith('fin_')) return;
+
+          let targetTeamId = (data.teamId || '').toUpperCase().trim();
+          if (!targetTeamId) {
+            const parts = docSnap.ref.path.split('/');
+            if (parts.length >= 2) targetTeamId = parts[1].toUpperCase().trim();
+          }
+
+          if (!targetTeamId) return;
+
+          if (!finTeamsMap.has(targetTeamId)) {
+            const reg = registrationCache.get(targetTeamId) || registrationCache.get(targetTeamId.toLowerCase()) || {};
+            const members = [
+              reg.leader ? { ...reg.leader, role: 'leader', label: 'Leader' } : null,
+              reg.member2 ? { ...reg.member2, role: 'member2', label: 'Member 2' } : null,
+              reg.member3 ? { ...reg.member3, role: 'member3', label: 'Member 3' } : null
+            ].filter(Boolean);
+            finTeamsMap.set(targetTeamId, { teamId: targetTeamId, reg, members, answers: {} });
+          }
+
+          const teamObj = finTeamsMap.get(targetTeamId);
+          if (teamObj) {
+            teamObj.answers[qid] = data;
+          }
+        });
+      } catch(cgErr) {
+        console.warn('[Finals] CollectionGroup query notice:', cgErr);
+      }
+
+      const finTeamsList = Array.from(finTeamsMap.values());
+
+      // Direct subcollection reads & real-time listener on both teams
+      const fetchFinalTeamAnswers = async (team) => {
+        const pathsToTry = [
+          ['registrations', team.teamId, 'round2', 'fin', 'answers'],
+          ['teams', team.teamId, 'round2', 'fin', 'answers'],
+          ['registrations', team.teamId.toLowerCase(), 'round2', 'fin', 'answers'],
+          ['teams', team.teamId.toLowerCase(), 'round2', 'fin', 'answers']
+        ];
+
+        for (const p of pathsToTry) {
+          try {
+            const qSnap = await getDocs(collection(db, ...p));
+            qSnap.forEach(docSnap => {
+              const qid = docSnap.id;
+              if (qid.startsWith('fin_') || FIN_ANSWER_KEYS[qid]) {
+                team.answers[qid] = docSnap.data();
+              }
+            });
+
+            const unsub = onSnapshot(collection(db, ...p), (snapshot) => {
+              snapshot.forEach(docSnap => {
+                const qid = docSnap.id;
+                if (qid.startsWith('fin_') || FIN_ANSWER_KEYS[qid]) {
+                  team.answers[qid] = docSnap.data();
+                }
+              });
+              renderFinalsView(finTeamsList);
+            });
+            finUnsubscribers.push(unsub);
+          } catch(e) {}
+        }
+      };
+
+      await Promise.all(finTeamsList.map(fetchFinalTeamAnswers));
+      renderFinalsView(finTeamsList);
+    };
+
+    function renderFinalsView(teamsList) {
+      const container = document.getElementById('finals-container');
+      if (!container) return;
+
+      // Calculate stats for each team
+      teamsList.forEach(t => {
+        let submittedCount = 0;
+        let correctCount = 0;
+        let latestTime = 0;
+
+        Object.keys(FIN_ANSWER_KEYS).forEach(qid => {
+          const ans = t.answers[qid];
+          if (ans) {
+            submittedCount++;
+            const numVal = ans.numericValue != null ? ans.numericValue : parseFloat(ans.value);
+            const evalRes = evaluateAnswer(numVal, FIN_ANSWER_KEYS[qid]);
+            if (evalRes.isCorrect) correctCount++;
+            
+            if (ans.submittedAt) {
+              const ts = ans.submittedAt.seconds ? ans.submittedAt.seconds * 1000 : (ans.submittedAt.toDate ? ans.submittedAt.toDate().getTime() : new Date(ans.submittedAt).getTime());
+              if (ts > latestTime) latestTime = ts;
+            }
+          }
+        });
+
+        t.submittedCount = submittedCount;
+        t.correctCount = correctCount;
+        t.scorePct = Math.round((correctCount / 10) * 100);
+        t.latestTime = latestTime;
+      });
+
+      // Sort by Correct Count desc, then submitted count desc, then earliest latest submission time
+      teamsList.sort((a, b) => {
+        if (b.correctCount !== a.correctCount) return b.correctCount - a.correctCount;
+        if (b.submittedCount !== a.submittedCount) return b.submittedCount - a.submittedCount;
+        if (a.latestTime && b.latestTime) return a.latestTime - b.latestTime;
+        return a.teamId.localeCompare(b.teamId);
+      });
+
+      // Global Stats
+      let totalSubmittedAll = 0;
+      let totalCorrectAll = 0;
+      teamsList.forEach(t => {
+        totalSubmittedAll += t.submittedCount;
+        totalCorrectAll += t.correctCount;
+      });
+
+      const statTeams = document.getElementById('fin-stat-teams');
+      const statSub = document.getElementById('fin-stat-submitted');
+      const statCor = document.getElementById('fin-stat-correct');
+      const statLead = document.getElementById('fin-stat-leading');
+
+      if (statTeams) statTeams.textContent = teamsList.length;
+      if (statSub) statSub.textContent = `${totalSubmittedAll} / ${teamsList.length * 10}`;
+      if (statCor) statCor.textContent = `${totalCorrectAll} (${totalSubmittedAll > 0 ? Math.round((totalCorrectAll / totalSubmittedAll)*100) : 0}%)`;
+      if (statLead) statLead.textContent = teamsList[0] ? `${teamsList[0].reg.teamName || teamsList[0].teamId} (${teamsList[0].correctCount}/10)` : '--';
+
+      if (teamsList.length === 0) {
+        container.innerHTML = '<div class="empty-placeholder">No Grand Final teams found.</div>';
+        return;
+      }
+
+      let html = '';
+      teamsList.forEach((t, idx) => {
+        const rank = idx + 1;
+        const rankClass = rank === 1 ? 'rank-1' : 'rank-2';
+        const reg = t.reg || {};
+        const titleBadge = rank === 1 ? '1st Place (Champion)' : '2nd Place (Runner-Up)';
+
+        html += `
+          <div class="sub-card" style="margin-bottom:24px;border:1px solid ${rank === 1 ? 'rgba(255,215,0,0.45)' : 'rgba(38,183,255,0.25)'};background:rgba(2,8,22,0.92);box-shadow:0 8px 32px rgba(0,0,0,0.5);">
+            <div class="card-top" style="align-items:flex-start;border-bottom:1px solid rgba(255,255,255,0.06);padding-bottom:16px;">
+              <div class="card-identity">
+                <div class="rank-badge ${rankClass}">#${rank}</div>
+                <div>
+                  <h3 class="candidate-name" style="font-size:1.25rem;color:#fff;display:flex;align-items:center;gap:8px;">
+                    ${escapeHtml(reg.teamName || t.teamId)}
+                    <span style="font-size:0.75rem;padding:2px 8px;border-radius:6px;background:${rank === 1 ? 'rgba(255,215,0,0.15)' : 'rgba(38,183,255,0.12)'};color:${rank === 1 ? '#ffd700' : '#38bdf8'};font-weight:700;">${t.teamId}</span>
+                    <span style="font-size:0.72rem;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,0.05);color:#cbd5e1;">${titleBadge}</span>
+                  </h3>
+                  <div class="candidate-sub" style="margin-top:4px;">
+                    <span>📍 ${escapeHtml(reg.leader?.country || reg.country || 'Global')}</span> &bull; 
+                    <span>🏫 ${escapeHtml(reg.leader?.school || reg.school || 'Team')}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;justify-content:flex-end;">
+                <div style="text-align:right;">
+                  <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Correct Answers</div>
+                  <div style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:800;color:#22c55e;">
+                    ${t.correctCount} <span style="font-size:0.85rem;color:#94a3b8;">/ 10</span>
+                  </div>
+                </div>
+                <div style="text-align:right;border-left:1px solid rgba(255,255,255,0.08);padding-left:12px;">
+                  <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Submitted</div>
+                  <div style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:800;color:#ffd700;">
+                    ${t.submittedCount} <span style="font-size:0.85rem;color:#94a3b8;">/ 10</span>
+                  </div>
+                </div>
+                <div style="text-align:right;border-left:1px solid rgba(255,255,255,0.08);padding-left:12px;">
+                  <div style="font-size:0.7rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;">Accuracy</div>
+                  <div style="font-family:'Orbitron',monospace;font-size:1.4rem;font-weight:800;color:${t.scorePct >= 70 ? '#22c55e' : (t.scorePct >= 40 ? '#f59e0b' : '#ef4444')};">
+                    ${t.scorePct}%
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Team Roster -->
+            <div style="display:flex;gap:10px;flex-wrap:wrap;margin:14px 0 16px;">
+              ${t.members.map(m => `
+                <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(255,255,255,0.07);border-radius:8px;padding:8px 12px;font-size:0.78rem;display:flex;align-items:center;gap:8px;">
+                  <span class="role-badge role-${m.role}" style="font-size:0.58rem;">${m.label}</span>
+                  <span style="font-weight:700;color:#e2e8f0;">${escapeHtml(m.name || 'Member')}</span>
+                  <span style="color:#64748b;font-size:0.72rem;">(${escapeHtml(m.email || '')})</span>
+                </div>
+              `).join('')}
+            </div>
+
+            <!-- 10 Questions Grid / Table -->
+            <div style="overflow-x:auto;margin-top:10px;border-radius:10px;border:1px solid rgba(255,255,255,0.07);">
+              <table style="width:100%;border-collapse:collapse;font-size:0.8rem;text-align:left;">
+                <thead>
+                  <tr style="background:rgba(15,23,42,0.85);color:#94a3b8;border-bottom:1px solid rgba(255,255,255,0.08);">
+                    <th style="padding:10px 12px;font-weight:700;width:55px;">#</th>
+                    <th style="padding:10px 12px;font-weight:700;">Question</th>
+                    <th style="padding:10px 12px;font-weight:700;">Submitted Value</th>
+                    <th style="padding:10px 12px;font-weight:700;">Official Key (±1%)</th>
+                    <th style="padding:10px 12px;font-weight:700;">Deviation</th>
+                    <th style="padding:10px 12px;font-weight:700;">Status</th>
+                    <th style="padding:10px 12px;font-weight:700;">Submitted By</th>
+                    <th style="padding:10px 12px;font-weight:700;">Time</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${Object.keys(FIN_ANSWER_KEYS).map(qid => {
+                    const key = FIN_ANSWER_KEYS[qid];
+                    const ans = t.answers[qid];
+                    if (!ans) {
+                      return `
+                        <tr style="border-bottom:1px solid rgba(255,255,255,0.04);background:rgba(0,0,0,0.15);">
+                          <td style="padding:10px 12px;color:#64748b;font-family:'Orbitron',monospace;">Q${key.order + 20}</td>
+                          <td style="padding:10px 12px;color:#94a3b8;">${escapeHtml(key.title)}</td>
+                          <td style="padding:10px 12px;color:#64748b;font-style:italic;">Not submitted</td>
+                          <td style="padding:10px 12px;color:#64748b;">${key.accepted} ${escapeHtml(key.unit)}</td>
+                          <td style="padding:10px 12px;color:#64748b;">—</td>
+                          <td style="padding:10px 12px;">
+                            <span style="font-size:0.68rem;padding:3px 8px;border-radius:6px;background:rgba(255,255,255,0.04);color:#64748b;border:1px solid rgba(255,255,255,0.06);">Pending</span>
+                          </td>
+                          <td style="padding:10px 12px;color:#64748b;">—</td>
+                          <td style="padding:10px 12px;color:#64748b;">—</td>
+                        </tr>
+                      `;
+                    }
+
+                    const numVal = ans.numericValue != null ? ans.numericValue : parseFloat(ans.value);
+                    const evalRes = evaluateAnswer(numVal, key);
+                    const timeStr = fmtDateTime(ans.submittedAt);
+
+                    return `
+                      <tr style="border-bottom:1px solid rgba(255,255,255,0.04);background:${evalRes.isCorrect ? 'rgba(34,197,94,0.03)' : 'rgba(239,68,68,0.03)'};">
+                        <td style="padding:10px 12px;font-weight:700;color:#ffd700;font-family:'Orbitron',monospace;">Q${key.order + 20}</td>
                         <td style="padding:10px 12px;color:#e2e8f0;font-weight:600;">${escapeHtml(key.title)}</td>
                         <td style="padding:10px 12px;font-family:'Courier New',monospace;font-weight:700;color:${evalRes.isCorrect ? '#22c55e' : '#ef4444'};">
                           ${escapeHtml(ans.value)} <span style="font-size:0.75rem;color:#94a3b8;">${escapeHtml(ans.unit || key.unit)}</span>
