@@ -394,10 +394,10 @@
                   <span class="mock-cell-value" id="sf-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="sf-schedule-note" style="margin-top:10px;">Entry opens Tuesday, 15 September at 7:00 PM (Cairo, GMT+3).</p>
+              <p class="mock-sub" id="sf-schedule-note" style="margin-top:10px;">Entry opens Tuesday, 15 September at 7:00 PM (Cairo, GMT+3). 30-minute entry window.</p>
               <div class="status-info-box" style="margin-top:14px;">
                 <div class="status-info-row"><strong>Date &amp; Time:</strong> Tuesday, 15 September · 7:00 PM (GMT+3)</div>
-                <div class="status-info-row"><strong>Entry Window:</strong> 7:00 PM – 8:00 PM (GMT+3). Exam timer is 1 hour (60 minutes).</div>
+                <div class="status-info-row"><strong>Entry Window:</strong> 30 minutes (7:00 PM – 7:30 PM GMT+3). Exam timer is 1 hour (60 minutes).</div>
                 <div class="status-info-row"><strong>Format:</strong> 10 questions, strict proctoring with monitors, PDF question paper with dedicated online submission form.</div>
                 <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Live Zoom proctoring. Strict ban on mobile phones.</div>
               </div>
@@ -431,10 +431,10 @@
                   <span class="mock-cell-value" id="r8-seconds">00</span>
                 </div>
               </div>
-              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry open Monday, 14 September (7:00 PM – 8:00 PM Cairo, GMT+3).</p>
+              <p class="mock-sub" id="r8-schedule-note" style="margin-top:10px;">Entry open Monday, 14 September (7:00 PM – 7:30 PM Cairo, GMT+3).</p>
               <div class="status-info-box" style="margin-top:14px;">
                 <div class="status-info-row"><strong>Date &amp; Time:</strong> Monday, 14 September · 7:00 PM (GMT+3)</div>
-                <div class="status-info-row"><strong>Entry Window:</strong> 7:00 PM – 8:00 PM (GMT+3). Exam timer is 1 hour (60 minutes).</div>
+                <div class="status-info-row"><strong>Entry Window:</strong> 30 minutes (7:00 PM – 7:30 PM GMT+3). Exam timer is 1 hour (60 minutes).</div>
                 <div class="status-info-row"><strong>Qualification Rule:</strong> Best team advances to semi-finals as 4th team, rest compete for places 5–8.</div>
                 <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Live Zoom proctoring. Strict ban on mobile phones (leads to permanent disqualification).</div>
               </div>
@@ -928,6 +928,8 @@ const app = initializeApp(firebaseConfig);
       'doedeladem99@gmail.com','hhna65127@gmail.com','mitchgeem@gmail.com','sanhany573@gmail.com'
     ]);
 
+    const ADMIN_EMAILS = new Set(['astronomyclub64@gmail.com']);
+
     function applyCompetitionStatus(userEmail) {
       const e = (userEmail || '').toLowerCase().trim();
       const semifinalPanel = document.getElementById('semifinal-panel');
@@ -936,7 +938,11 @@ const app = initializeApp(firebaseConfig);
       const certPanel      = document.getElementById('certificate-panel');
       // hide all first
       [semifinalPanel, round8Panel, dqPanel, certPanel].forEach(p => p && p.classList.add('hidden'));
-      if (SEMIFINAL_EMAILS.has(e)) {
+
+      if (ADMIN_EMAILS.has(e)) {
+        if (semifinalPanel) semifinalPanel.classList.remove('hidden');
+        if (round8Panel) round8Panel.classList.remove('hidden');
+      } else if (SEMIFINAL_EMAILS.has(e)) {
         if (semifinalPanel) semifinalPanel.classList.remove('hidden');
       } else if (ROUND8_EMAILS.has(e)) {
         if (round8Panel) round8Panel.classList.remove('hidden');
@@ -949,18 +955,18 @@ const app = initializeApp(firebaseConfig);
 
     const R8_SCHEDULE = {
       openAt: Date.UTC(2026, 8, 14, 16, 0, 0),   // 7:00 PM Cairo (Sept 14)
-      closeAt: Date.UTC(2026, 8, 14, 17, 0, 0)   // 8:00 PM Cairo (Sept 14)
+      closeAt: Date.UTC(2026, 8, 14, 16, 30, 0)  // 7:30 PM Cairo (Sept 14)
     };
 
     const SF_SCHEDULE = {
       openAt: Date.UTC(2026, 8, 15, 16, 0, 0),   // 7:00 PM Cairo (Sept 15)
-      closeAt: Date.UTC(2026, 8, 15, 17, 0, 0)   // 8:00 PM Cairo (Sept 15)
+      closeAt: Date.UTC(2026, 8, 15, 16, 30, 0)  // 7:30 PM Cairo (Sept 15)
     };
 
     function updateR8Countdown() {
       if (!auth.currentUser) return;
       const email = (auth.currentUser.email || '').toLowerCase().trim();
-      if (!ROUND8_EMAILS.has(email)) return;
+      if (!ROUND8_EMAILS.has(email) && !ADMIN_EMAILS.has(email)) return;
 
       const pill = document.getElementById('r8-pill');
       const statusEl = document.getElementById('r8-status');
@@ -971,6 +977,16 @@ const app = initializeApp(firebaseConfig);
       const sEl = document.getElementById('r8-seconds');
 
       if (!statusEl || !btn) return;
+
+      if (ADMIN_EMAILS.has(email)) {
+        if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
+        statusEl.textContent = 'Admin Mode \u00b7 Always Open';
+        btn.style.display = 'inline-flex';
+        btn.textContent = 'Enter Round of 8 (Admin)';
+        btn.href = `round2.html?team=${encodeURIComponent(currentTeamId || 'GAAC-ADMIN')}&stage=r8`;
+        if (noteEl) noteEl.textContent = 'Admin Access: You can enter and test the exam at any time.';
+        return;
+      }
 
       const now = Date.now() + r1ServerOffsetMs;
       const { openAt, closeAt } = R8_SCHEDULE;
@@ -983,7 +999,7 @@ const app = initializeApp(firebaseConfig);
         if (hEl) hEl.textContent = h;
         if (mEl) mEl.textContent = m;
         if (sEl) sEl.textContent = s;
-        if (noteEl) noteEl.textContent = `Entry opens Monday, 14 September at ${cairoClock(openAt)} (Cairo, GMT+3).`;
+        if (noteEl) noteEl.textContent = `Entry opens Monday, 14 September at ${cairoClock(openAt)} (Cairo, GMT+3). 30-minute entry window.`;
         btn.style.display = 'none';
       } else if (now < closeAt) {
         if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
@@ -1010,7 +1026,7 @@ const app = initializeApp(firebaseConfig);
     function updateSfCountdown() {
       if (!auth.currentUser) return;
       const email = (auth.currentUser.email || '').toLowerCase().trim();
-      if (!SEMIFINAL_EMAILS.has(email)) return;
+      if (!SEMIFINAL_EMAILS.has(email) && !ADMIN_EMAILS.has(email)) return;
 
       const pill = document.getElementById('sf-pill');
       const statusEl = document.getElementById('sf-status');
@@ -1021,6 +1037,16 @@ const app = initializeApp(firebaseConfig);
       const sEl = document.getElementById('sf-seconds');
 
       if (!statusEl || !btn) return;
+
+      if (ADMIN_EMAILS.has(email)) {
+        if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
+        statusEl.textContent = 'Admin Mode \u00b7 Always Open';
+        btn.style.display = 'inline-flex';
+        btn.textContent = 'Enter Semi-Finals (Admin)';
+        btn.href = `round2.html?team=${encodeURIComponent(currentTeamId || 'GAAC-ADMIN')}&stage=sf`;
+        if (noteEl) noteEl.textContent = 'Admin Access: You can enter and test the exam at any time.';
+        return;
+      }
 
       const now = Date.now() + r1ServerOffsetMs;
       const { openAt, closeAt } = SF_SCHEDULE;
@@ -1033,7 +1059,7 @@ const app = initializeApp(firebaseConfig);
         if (hEl) hEl.textContent = h;
         if (mEl) mEl.textContent = m;
         if (sEl) sEl.textContent = s;
-        if (noteEl) noteEl.textContent = `Entry opens Tuesday, 15 September at ${cairoClock(openAt)} (Cairo, GMT+3).`;
+        if (noteEl) noteEl.textContent = `Entry opens Tuesday, 15 September at ${cairoClock(openAt)} (Cairo, GMT+3). 30-minute entry window.`;
         btn.style.display = 'none';
       } else if (now < closeAt) {
         if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }

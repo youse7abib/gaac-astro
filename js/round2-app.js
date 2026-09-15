@@ -1,6 +1,6 @@
 import { auth, db, storage } from './exam-shared.js';
 import {
-  doc, getDoc, setDoc, serverTimestamp,
+  doc, getDoc, setDoc, deleteDoc, serverTimestamp,
   collection, query, orderBy as orderByFS, onSnapshot
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 import { ref as storageRef, getBytes, getDownloadURL } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-storage.js";
@@ -276,12 +276,8 @@ const init = async () => {
       currentUser = { uid: 'demo-uid', email: 'demo@gaac.local' };
       memberName = 'Demo Participant';
       memberEmail = 'demo@gaac.local';
-      setupStageEnvironment(explicitStage || 'r8');
-      return;
-    }
-
-    if (!teamId) {
-      window.location.href = 'team-dashboard.html';
+      setupStageEnvironment(explicitStage || 'sf');
+      setupExamEnvironment();
       return;
     }
 
@@ -296,6 +292,16 @@ const init = async () => {
     currentUser = user;
 
     const emailClean = (currentUser.email || '').toLowerCase().trim();
+    const isAdmin = ADMIN_EMAILS.has(emailClean);
+
+    if (!teamId) {
+      if (isAdmin) {
+        teamId = 'GAAC-ADMIN';
+      } else {
+        window.location.href = 'team-dashboard.html';
+        return;
+      }
+    }
 
     // Determine stage
     let chosenStage = explicitStage;
@@ -309,7 +315,7 @@ const init = async () => {
 
     setupStageEnvironment(chosenStage);
 
-    const isAllowed = (chosenStage === 'sf' ? SEMIFINAL_EMAILS.has(emailClean) : ROUND8_EMAILS.has(emailClean)) || ADMIN_EMAILS.has(emailClean);
+    const isAllowed = (chosenStage === 'sf' ? SEMIFINAL_EMAILS.has(emailClean) : ROUND8_EMAILS.has(emailClean)) || isAdmin;
 
     if (!isAllowed) {
       showGate('unauthorized');
@@ -376,6 +382,59 @@ const setupExamEnvironment = () => {
 
   blockInteractions();
   showRulesGate();
+
+  const emailClean = (currentUser.email || '').toLowerCase().trim();
+  if (ADMIN_EMAILS.has(emailClean) || isDemo) {
+    setupAdminReset();
+  }
+};
+
+const setupAdminReset = () => {
+  const resetBtn = document.getElementById('btn-admin-reset');
+  if (!resetBtn) return;
+  resetBtn.style.display = 'inline-flex';
+
+  resetBtn.addEventListener('click', async () => {
+    const confirmReset = window.confirm('Reset this exam session? This will clear all submitted answers for this stage, reset the 1-hour timer, and unlock all questions.');
+    if (!confirmReset) return;
+
+    resetBtn.disabled = true;
+    resetBtn.textContent = 'Resetting...';
+
+    try {
+      // 1. Clear localStorage timer
+      const storageKey = `gaac_${stageKey}_start_${teamId}`;
+      localStorage.removeItem(storageKey);
+
+      // 2. Delete all answers from Firestore
+      const deletePromises = [];
+      r2Questions.forEach((q) => {
+        deletePromises.push(deleteDoc(doc(db, 'registrations', teamId, 'round2', stageKey, 'answers', q.id)).catch(() => {}));
+        deletePromises.push(deleteDoc(doc(db, 'teams', teamId, 'round2', stageKey, 'answers', q.id)).catch(() => {}));
+      });
+      deletePromises.push(deleteDoc(doc(db, 'registrations', teamId, 'exam', `${currentUser.uid}_round2`)).catch(() => {}));
+
+      await Promise.all(deletePromises);
+
+      // 3. Reset local state
+      answersMap = {};
+      const newStartMs = Date.now();
+      localStorage.setItem(storageKey, String(newStartMs));
+      examEndTime = newStartMs + (examDurationSec * 1000);
+
+      activeQid = r2Questions[0].id;
+      renderQuestions();
+      startTimer();
+
+      showToast('Exam reset successfully! You can test from the beginning.', 'success');
+    } catch (err) {
+      console.error('[round2] Reset error:', err);
+      showToast('Reset completed with notice.', 'success');
+    } finally {
+      resetBtn.disabled = false;
+      resetBtn.textContent = 'Reset Exam (Admin)';
+    }
+  });
 };
 
 const showRulesGate = () => {
