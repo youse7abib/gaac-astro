@@ -380,18 +380,25 @@ const init = async () => {
 };
 
 const setupStageEnvironment = (stage) => {
+  const rulesTitle = document.getElementById('rules-gate-title');
+  const rulesSub = document.getElementById('rules-gate-sub');
+
   if (stage === 'sf' || stage === 'semifinals' || stage === 'semis') {
     stageKey = 'sf';
     stageName = 'SEMI-FINALS';
     pdfStoragePath = 'round2/sf/questions.pdf';
     r2Questions = SF_QUESTIONS;
     activeQid = 'sf_q1';
+    if (rulesTitle) rulesTitle.innerHTML = 'Semi-Finals — <span style="color:#26b7ff;">Round 2 (Final Four)</span>';
+    if (rulesSub) rulesSub.textContent = 'GAAC 2026 Knockout Stage (Places 1–4)';
   } else {
     stageKey = 'r8';
     stageName = 'ROUND OF 8 (5th–8th)';
     pdfStoragePath = 'round2/r8/questions.pdf';
     r2Questions = R8_QUESTIONS;
     activeQid = 'r8_q1';
+    if (rulesTitle) rulesTitle.innerHTML = 'Round of 8 — <span style="color:#26b7ff;">Last Chance Qualifier</span>';
+    if (rulesSub) rulesSub.textContent = 'GAAC 2026 Knockout Stage (Places 5–8)';
   }
 };
 

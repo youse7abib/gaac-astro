@@ -909,7 +909,10 @@
     <div id="admin-dashboard" class="hidden">
       <!-- Top Navigation Tabs -->
       <div class="top-tabs">
-        <button class="top-tab-btn active" id="tab-btn-r16" onclick="window.switchTab('r16')">
+        <button class="top-tab-btn active" id="tab-btn-sf" onclick="window.switchTab('sf')">
+          Semi-Finals (Round 2)
+        </button>
+        <button class="top-tab-btn" id="tab-btn-r16" onclick="window.switchTab('r16')">
           Round of 16 Teams
         </button>
         <button class="top-tab-btn" id="tab-btn-all" onclick="window.switchTab('all')">
@@ -924,6 +927,43 @@
         <button class="top-tab-btn" id="tab-btn-schedule" onclick="window.switchTab('schedule')">
           Schedule Control
         </button>
+      </div>
+
+      <!-- TAB: SEMI-FINALS (ROUND 2) -->
+      <div id="view-semifinals">
+        <!-- SF Stats summary -->
+        <div class="stats-bar" id="sf-stats-bar">
+          <div class="stat-box">
+            <div class="num" id="sf-stat-teams" style="color:var(--cyan);">4</div>
+            <div class="label">Semi-Final Teams</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="sf-stat-submitted" style="color:var(--green);">0 / 40</div>
+            <div class="label">Answers Submitted</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="sf-stat-correct" style="color:#38bdf8;">0</div>
+            <div class="label">Correct Answers</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="sf-stat-leading" style="color:var(--silver-bright);font-size:1.1rem;">--</div>
+            <div class="label">Current Leader</div>
+          </div>
+        </div>
+
+        <!-- Controls bar -->
+        <div class="controls-bar" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div style="font-size:0.95rem;font-weight:700;color:#26b7ff;display:flex;align-items:center;gap:8px;">
+            <span>⚡ Semi-Finals Live Evaluation &amp; Submission Dossier</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn-cache-sync" onclick="window.syncSemiFinalsData(true)">🔄 Force Sync SF</button>
+          </div>
+        </div>
+
+        <div id="semifinals-container">
+          <div class="empty-placeholder">Loading Semi-Finals teams and answers from Firestore...</div>
+        </div>
       </div>
 
       <!-- TAB: ROUND OF 16 TEAMS -->
@@ -1523,16 +1563,20 @@
       const btn = document.getElementById(`tab-btn-${tabName}`);
       if (btn) btn.classList.add('active');
 
+      const isSfTab = tabName === 'sf' || tabName === 'semifinals';
       const isR16Tab = tabName === 'r16' || tabName === 'makeup';
       const isAllSubTab = tabName === 'all';
 
+      document.getElementById('view-semifinals')?.classList.toggle('hidden', !isSfTab);
       document.getElementById('view-round16-teams')?.classList.toggle('hidden', !isR16Tab);
       document.getElementById('view-all-submissions')?.classList.toggle('hidden', !isAllSubTab);
       document.getElementById('view-team-leaderboard')?.classList.toggle('hidden', tabName !== 'teams');
       document.getElementById('view-team-inspector')?.classList.toggle('hidden', tabName !== 'lookup');
       document.getElementById('view-schedule-control')?.classList.toggle('hidden', tabName !== 'schedule');
 
-      if (isR16Tab) {
+      if (isSfTab) {
+        window.syncSemiFinalsData();
+      } else if (isR16Tab) {
         activeSubmissionView = 'makeup';
         renderRound16Teams();
       } else if (isAllSubTab) {
