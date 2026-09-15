@@ -17,8 +17,11 @@ service cloud.firestore {
 
     function isAdmin() {
       return isAuthenticated()
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid))
-        && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true;
+        && (
+          request.auth.token.email == 'astronomyclub64@gmail.com'
+          || (exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+              && get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.isAdmin == true)
+        );
     }
 
     function isTeamMember(teamId) {
@@ -438,6 +441,11 @@ allow delete: if isAdmin();
     allow read: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
     allow create, update: if isAuthenticated() && (isTeamMember(teamId) || isAdmin());
     allow delete: if isAdmin();
+  }
+
+  // Allow admins to query answers via collectionGroup
+  match /{path=**}/answers/{questionId} {
+    allow read: if isAuthenticated() && isAdmin();
   }
 
     // ================================================================
