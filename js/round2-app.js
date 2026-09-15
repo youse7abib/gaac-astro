@@ -48,8 +48,9 @@ const R8_QUESTIONS = [
     title: "Question 1: The North That Moved",
     topic: "Observational Astronomy",
     unit: "degrees (°)",
+    tolerancePct: 1,
     note: "Find the new maximum altitude of the simulated Polaris above the northern horizon in degrees.",
-    placeholder: "e.g. 33.8"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q2",
@@ -57,8 +58,9 @@ const R8_QUESTIONS = [
     title: "Question 2: The Silent Eclipse",
     topic: "Observational Astronomy",
     unit: "Earth radii (R_Earth)",
+    tolerancePct: 1,
     note: "Work out the radius of the transiting object in Earth radii (R⊕).",
-    placeholder: "e.g. 11.77"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q3",
@@ -66,8 +68,9 @@ const R8_QUESTIONS = [
     title: "Question 3: The Courier at Periapsis",
     topic: "Orbital Mechanics",
     unit: "km/s",
+    tolerancePct: 1,
     note: "Deduce the courier's orbital speed at periapsis in km s⁻¹.",
-    placeholder: "e.g. 36.5"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q4",
@@ -75,8 +78,9 @@ const R8_QUESTIONS = [
     title: "Question 4: The Star Behind the Glass",
     topic: "Astrophysics",
     unit: "ratio (R2 / R1)",
+    tolerancePct: 1,
     note: "What is the ratio of the new radius to the original radius (dimensionless)?",
-    placeholder: "e.g. 1.60"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q5",
@@ -84,8 +88,9 @@ const R8_QUESTIONS = [
     title: "Question 5: The World That Fell Through",
     topic: "Planetology",
     unit: "m/s²",
+    tolerancePct: 1,
     note: "Uncover the surface gravitational acceleration of the Fallen World in m s⁻².",
-    placeholder: "e.g. 9.66"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q6",
@@ -93,8 +98,9 @@ const R8_QUESTIONS = [
     title: "Question 6: The Red Thread",
     topic: "Observational Astronomy",
     unit: "km/s",
+    tolerancePct: 1,
     note: "Read off the source's radial recession speed in km s⁻¹.",
-    placeholder: "e.g. 398"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q7",
@@ -102,8 +108,9 @@ const R8_QUESTIONS = [
     title: "Question 7: The Ledger of Two Suns",
     topic: "Astrophysics",
     unit: "Solar masses (M_Sun)",
+    tolerancePct: 1,
     note: "Recover the total mass of the binary system in solar masses (M☉).",
-    placeholder: "e.g. 5.69"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q8",
@@ -111,8 +118,9 @@ const R8_QUESTIONS = [
     title: "Question 8: The Radius of the Invisible Furnace",
     topic: "Astrophysics",
     unit: "Solar masses (M_Sun)",
+    tolerancePct: 1,
     note: "Reconstruct the mass of the black hole in solar masses (M☉).",
-    placeholder: "e.g. 10.1"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q9",
@@ -120,8 +128,9 @@ const R8_QUESTIONS = [
     title: "Question 9: The Age Written in Red",
     topic: "Cosmology",
     unit: "billion years (Gyr)",
+    tolerancePct: 1,
     note: "How old was the universe, in billions of years (Gyr), when the light began its journey?",
-    placeholder: "e.g. 3.49"
+    placeholder: "Enter your answer..."
   },
   {
     id: "r8_q10",
@@ -129,8 +138,9 @@ const R8_QUESTIONS = [
     title: "Question 10: The Clock with Two Histories",
     topic: "Cosmology",
     unit: "billion years (Gyr)",
+    tolerancePct: 1,
     note: "Pin down the cosmic age, in billions of years (Gyr), at which the signal was emitted.",
-    placeholder: "e.g. 0.510"
+    placeholder: "Enter your answer..."
   }
 ];
 
@@ -141,8 +151,9 @@ const SF_QUESTIONS = [
     title: "Question 11: The Photograph with No Distance",
     topic: "Observational Astronomy",
     unit: "parsecs (pc)",
+    tolerancePct: 1,
     note: "Infer the distance to Sable One in parsecs.",
-    placeholder: "e.g. 174"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q2",
@@ -150,8 +161,9 @@ const SF_QUESTIONS = [
     title: "Question 12: The Blue Line of the Prisoner",
     topic: "Observational Astronomy",
     unit: "km/s",
+    tolerancePct: 1,
     note: "Separate the star's own motion: what is its radial recession velocity in km s⁻¹?",
-    placeholder: "e.g. 91.7"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q3",
@@ -159,8 +171,9 @@ const SF_QUESTIONS = [
     title: "Question 13: The Road Between Worlds",
     topic: "Orbital Mechanics",
     unit: "km/s",
+    tolerancePct: 1,
     note: "Determine the total Δv required for the transfer in km s⁻¹.",
-    placeholder: "e.g. 10.41"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q4",
@@ -168,8 +181,9 @@ const SF_QUESTIONS = [
     title: "Question 14: The White Star's Hidden Weight",
     topic: "Astrophysics",
     unit: "nanometres (nm)",
+    tolerancePct: 1,
     note: "Estimate the increase in wavelength, Δλ, in nanometres.",
-    placeholder: "e.g. 0.106"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q5",
@@ -177,8 +191,9 @@ const SF_QUESTIONS = [
     title: "Question 15: The Furnace with No Flame",
     topic: "Astrophysics",
     unit: "Solar radii (R_Sun)",
+    tolerancePct: 1,
     note: "Extract the star's radius in solar radii (R☉).",
-    placeholder: "e.g. 2.00"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q6",
@@ -186,8 +201,9 @@ const SF_QUESTIONS = [
     title: "Question 16: The Engine Beneath Hades",
     topic: "Astrophysics",
     unit: "kg/s",
+    tolerancePct: 1,
     note: "Resolve the corresponding mass accretion rate in kg s⁻¹.",
-    placeholder: "e.g. 6.98e22"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q7",
@@ -195,8 +211,9 @@ const SF_QUESTIONS = [
     title: "Question 17: The Pulse that Spent a Century",
     topic: "Astrophysics",
     unit: "watts (W)",
+    tolerancePct: 1,
     note: "Establish the average rotational energy loss rate in watts.",
-    placeholder: "e.g. 1.23e31"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q8",
@@ -204,8 +221,9 @@ const SF_QUESTIONS = [
     title: "Question 18: The Moon that Refused the Dark",
     topic: "Planetology",
     unit: "kelvin (K)",
+    tolerancePct: 1,
     note: "Assess the equilibrium temperature of the moon in kelvin.",
-    placeholder: "e.g. 518"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q9",
@@ -213,8 +231,9 @@ const SF_QUESTIONS = [
     title: "Question 19: The Weight of the Empty Universe",
     topic: "Cosmology",
     unit: "kg/m³",
+    tolerancePct: 1,
     note: "Weigh the present matter density in kg m⁻³.",
-    placeholder: "e.g. 2.76e-27"
+    placeholder: "Enter your answer..."
   },
   {
     id: "sf_q10",
@@ -222,8 +241,9 @@ const SF_QUESTIONS = [
     title: "Question 20: The Hourglass at the Edge",
     topic: "Cosmology",
     unit: "billion years (Gyr)",
+    tolerancePct: 1,
     note: "Find the time remaining from today until the Big Rip, in billions of years.",
-    placeholder: "e.g. 18.6"
+    placeholder: "Enter your answer..."
   }
 ];
 
@@ -603,6 +623,7 @@ const renderQuestions = () => {
         <span class="r2-q-number">${escapeHtml(q.title)}</span>
         <div class="r2-q-badges">
           <span class="r2-q-badge unit">Unit: ${escapeHtml(q.unit || 'Standard')}</span>
+          <span class="r2-q-badge unit" style="border-color:rgba(38,183,255,0.4);color:#8be9fd;">Tolerance: ±${q.tolerancePct || 1}%</span>
           <span class="r2-q-badge tol">${escapeHtml(q.topic || '')}</span>
         </div>
       </div>
@@ -681,7 +702,7 @@ const submitAnswer = async (qid, q, inputEl) => {
       value: raw,
       numericValue: numericValue,
       unit: q.unit || '',
-      tolerancePct: 0,
+      tolerancePct: q.tolerancePct != null ? q.tolerancePct : 1,
       lockKey: `${teamId}|${stageKey}|${qid}`,
       memberUid: currentUser.uid,
       memberName: memberName,
