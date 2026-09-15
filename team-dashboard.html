@@ -368,6 +368,79 @@
           </div>
         </div>
 
+                    <!-- Grand Final Panel -->
+          <div id="final-panel" class="competitions-panel hidden">
+            <div class="comp-head">
+              <h2><span style="color:#ffd700;">🏆 Grand Final — Championship Match</span></h2>
+              <p class="sub">Congratulations! Your team has qualified for the Grand Final Championship (Places 1–2).</p>
+            </div>
+            <div class="mock-card" style="border-color: rgba(255, 215, 0, 0.45); background: rgba(28, 22, 10, 0.65);">
+              <div class="mock-row">
+                <span class="mock-pill pill-semifinal" id="fin-pill" style="border-color:rgba(255,215,0,0.6);color:#ffd700;"><span class="dot" style="background:#ffd700;"></span><span id="fin-status">Grand Finalists</span></span>
+              </div>
+              <div class="mock-count" id="fin-countdown-box">
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Hours</span>
+                  <span class="mock-cell-value" id="fin-hours">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Minutes</span>
+                  <span class="mock-cell-value" id="fin-minutes">00</span>
+                </div>
+                <span class="mock-cell-sep">:</span>
+                <div class="mock-cell">
+                  <span class="mock-cell-label">Seconds</span>
+                  <span class="mock-cell-value" id="fin-seconds">00</span>
+                </div>
+              </div>
+              <p class="mock-sub" id="fin-schedule-note" style="margin-top:10px;">Entry opens Tuesday, 15 September at 9:00 PM (Cairo, GMT+3). 30-minute entry window.</p>
+              <div class="status-info-box" style="margin-top:14px;border-color:rgba(255,215,0,0.2);">
+                <div class="status-info-row"><strong>Date &amp; Time:</strong> Tuesday, 15 September · 9:00 PM (GMT+3)</div>
+                <div class="status-info-row"><strong>Entry Window:</strong> 30 minutes (9:00 PM – 9:30 PM GMT+3). Exam timer is 1 hour (60 minutes).</div>
+                <div class="status-info-row"><strong>Matchup:</strong> Suceava Lovers 224 vs Where are you going (Championship Trophy).</div>
+                <div class="status-info-row"><strong>Proctoring &amp; Rules:</strong> Supervised live via Zoom. Strict ban on mobile devices.</div>
+              </div>
+              <a href="round2.html?stage=fin" id="btn-enter-fin" class="button primary" style="width:100%;justify-content:center;text-decoration:none;display:none;margin-top:12px;font-weight:700;background:linear-gradient(135deg,#eab308,#ca8a04);color:#000;">Enter Grand Final Exam</a>
+            </div>
+          </div>
+
+          <!-- 3rd Place Panel (Celestia) -->
+          <div id="third-place-panel" class="competitions-panel hidden">
+            <div class="comp-head">
+              <h2><span style="color:#cd7f32;">🥉 3rd Place — GAAC 2026 National Finalist</span></h2>
+              <p class="sub">Congratulations to Team Celestia on achieving 3rd Place overall in GAAC 2026!</p>
+            </div>
+            <div class="mock-card" style="border-color: rgba(205, 127, 50, 0.45); background: rgba(24, 18, 14, 0.65);">
+              <div class="mock-row">
+                <span class="mock-pill" style="background:rgba(205,127,50,0.15);color:#cd7f32;border:1px solid rgba(205,127,50,0.4);"><span class="dot" style="background:#cd7f32;"></span><span>3rd Place Finish</span></span>
+              </div>
+              <div class="status-info-box" style="margin-top:14px;border-color:rgba(205,127,50,0.2);">
+                <div class="status-info-row"><strong>Final Position:</strong> 3rd Place (Bronze Award)</div>
+                <div class="status-info-row"><strong>Achievement:</strong> Reached Semi-Finals and concluded the championship in the Top 3.</div>
+                <div class="status-info-row"><strong>Certificate:</strong> Official 3rd Place Laureate Certificate will be available in your dashboard soon.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- 4th Place Panel (AXION) -->
+          <div id="fourth-place-panel" class="competitions-panel hidden">
+            <div class="comp-head">
+              <h2><span style="color:#38bdf8;">🌟 4th Place — GAAC 2026 National Finalist</span></h2>
+              <p class="sub">Congratulations to Team AXION on reaching the Semi-Finals and achieving 4th Place overall in GAAC 2026!</p>
+            </div>
+            <div class="mock-card" style="border-color: rgba(56, 189, 248, 0.35); background: rgba(10, 20, 32, 0.65);">
+              <div class="mock-row">
+                <span class="mock-pill" style="background:rgba(56,189,248,0.15);color:#38bdf8;border:1px solid rgba(56,189,248,0.4);"><span class="dot" style="background:#38bdf8;"></span><span>4th Place Finish</span></span>
+              </div>
+              <div class="status-info-box" style="margin-top:14px;border-color:rgba(56,189,248,0.2);">
+                <div class="status-info-row"><strong>Final Position:</strong> 4th Place (Final Four Laureate)</div>
+                <div class="status-info-row"><strong>Achievement:</strong> Top 4 Worldwide Finalist in GAAC 2026 Knockout Stage.</div>
+                <div class="status-info-row"><strong>Certificate:</strong> Official Semi-Finals Top 4 Certificate will be available in your dashboard soon.</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Semifinal Panel -->
           <div id="semifinal-panel" class="competitions-panel hidden">
             <div class="comp-head">
@@ -931,18 +1004,46 @@ const app = initializeApp(firebaseConfig);
 
     const ADMIN_EMAILS = new Set(['astronomyclub64@gmail.com']);
 
+    const FINALIST_EMAILS = new Set([
+      'vlad.toncu224@gmail.com',
+      'mihai.tesileanu2@gmail.com',
+      'matei.butnaru@yahoo.com',
+      'badr.e.h.edu@gmail.com'
+    ]);
+    const THIRD_PLACE_EMAILS = new Set([
+      'ramyramadan0120@gmail.com'
+    ]);
+    const FOURTH_PLACE_EMAILS = new Set([
+      'mralbakk@gmail.com',
+      'jinenustegegn0@gmail.com'
+    ]);
+
     function applyCompetitionStatus(userEmail) {
       const e = (userEmail || '').toLowerCase().trim();
+      const finalPanel     = document.getElementById('final-panel');
+      const thirdPanel     = document.getElementById('third-place-panel');
+      const fourthPanel    = document.getElementById('fourth-place-panel');
       const semifinalPanel = document.getElementById('semifinal-panel');
       const round8Panel    = document.getElementById('round8-panel');
       const dqPanel        = document.getElementById('disqualified-panel');
       const certPanel      = document.getElementById('certificate-panel');
+
       // hide all first
-      [semifinalPanel, round8Panel, dqPanel, certPanel].forEach(p => p && p.classList.add('hidden'));
+      [finalPanel, thirdPanel, fourthPanel, semifinalPanel, round8Panel, dqPanel, certPanel].forEach(p => p && p.classList.add('hidden'));
+
+      const teamUpper = (currentTeamId || '').toUpperCase().trim();
+      const teamNameLower = (currentRegData?.teamName || '').toLowerCase().trim();
 
       if (ADMIN_EMAILS.has(e)) {
+        if (finalPanel) finalPanel.classList.remove('hidden');
         if (semifinalPanel) semifinalPanel.classList.remove('hidden');
         if (round8Panel) round8Panel.classList.remove('hidden');
+      } else if (FINALIST_EMAILS.has(e) || teamUpper === 'GAAC-2026-1883' || teamUpper === 'GAAC-2026-0457' || teamNameLower.includes('suceava') || teamNameLower.includes('where are you going')) {
+        if (finalPanel) finalPanel.classList.remove('hidden');
+      } else if (THIRD_PLACE_EMAILS.has(e) || teamNameLower.includes('clestia') || teamNameLower.includes('celestia')) {
+        if (thirdPanel) thirdPanel.classList.remove('hidden');
+      } else if (FOURTH_PLACE_EMAILS.has(e) || teamNameLower.includes('axion')) {
+        if (fourthPanel) fourthPanel.classList.remove('hidden');
       } else if (SEMIFINAL_EMAILS.has(e)) {
         if (semifinalPanel) semifinalPanel.classList.remove('hidden');
       } else if (ROUND8_EMAILS.has(e)) {
@@ -958,6 +1059,73 @@ const app = initializeApp(firebaseConfig);
       openAt: Date.UTC(2026, 8, 14, 16, 0, 0),   // 7:00 PM Cairo (Sept 14)
       closeAt: Date.UTC(2026, 8, 14, 16, 30, 0)  // 7:30 PM Cairo (Sept 14)
     };
+
+        const FINAL_SCHEDULE = {
+      openAt: Date.UTC(2026, 8, 15, 18, 0, 0),   // 9:00 PM Cairo (Sept 15)
+      closeAt: Date.UTC(2026, 8, 15, 18, 30, 0)  // 9:30 PM Cairo (Sept 15)
+    };
+
+    function updateFinalCountdown() {
+      if (!auth.currentUser) return;
+      const email = (auth.currentUser.email || '').toLowerCase().trim();
+      const teamUpper = (currentTeamId || '').toUpperCase().trim();
+      const isFinalist = FINALIST_EMAILS.has(email) || ADMIN_EMAILS.has(email) || teamUpper === 'GAAC-2026-1883' || teamUpper === 'GAAC-2026-0457';
+      if (!isFinalist) return;
+
+      const pill = document.getElementById('fin-pill');
+      const statusEl = document.getElementById('fin-status');
+      const noteEl = document.getElementById('fin-schedule-note');
+      const btn = document.getElementById('btn-enter-fin');
+      const hEl = document.getElementById('fin-hours');
+      const mEl = document.getElementById('fin-minutes');
+      const sEl = document.getElementById('fin-seconds');
+
+      if (!statusEl || !btn) return;
+
+      if (ADMIN_EMAILS.has(email)) {
+        if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
+        statusEl.textContent = 'Admin Mode · Always Open';
+        btn.style.display = 'inline-flex';
+        btn.textContent = 'Enter Grand Final (Admin)';
+        btn.href = `round2.html?team=${encodeURIComponent(currentTeamId || 'GAAC-ADMIN')}&stage=fin`;
+        if (noteEl) noteEl.textContent = 'Admin Access: You can enter and test the Grand Final exam at any time.';
+        return;
+      }
+
+      const now = Date.now() + r1ServerOffsetMs;
+      const { openAt, closeAt } = FINAL_SCHEDULE;
+
+      if (now < openAt) {
+        if (pill) { pill.classList.remove('cc-open', 'cc-closed'); }
+        statusEl.textContent = 'Opens in';
+        const diff = openAt - now;
+        const { h, m, s } = fmtCountdown(diff);
+        if (hEl) hEl.textContent = h;
+        if (mEl) mEl.textContent = m;
+        if (sEl) sEl.textContent = s;
+        if (noteEl) noteEl.textContent = `Entry opens Tuesday, 15 September at ${cairoClock(openAt)} (Cairo, GMT+3). 30-minute entry window.`;
+        btn.style.display = 'none';
+      } else if (now < closeAt) {
+        if (pill) { pill.classList.add('cc-open'); pill.classList.remove('cc-closed'); }
+        statusEl.textContent = 'Grand Final Window Open';
+        const diff = closeAt - now;
+        const { h, m, s } = fmtCountdown(diff);
+        if (hEl) hEl.textContent = h;
+        if (mEl) mEl.textContent = m;
+        if (sEl) sEl.textContent = s;
+        if (noteEl) noteEl.textContent = `Entry window is open until ${cairoClock(closeAt)} (Cairo, GMT+3). Click below to start your 1-hour championship exam.`;
+        btn.style.display = 'inline-flex';
+        btn.href = `round2.html?team=${encodeURIComponent(currentTeamId || '')}&stage=fin`;
+      } else {
+        if (pill) { pill.classList.remove('cc-open'); pill.classList.add('cc-closed'); }
+        statusEl.textContent = 'Entry Window Closed';
+        if (hEl) hEl.textContent = '00';
+        if (mEl) mEl.textContent = '00';
+        if (sEl) sEl.textContent = '00';
+        if (noteEl) noteEl.textContent = 'The Grand Final entry window has closed. All submitted answers are being evaluated.';
+        btn.style.display = 'none';
+      }
+    }
 
     const SF_SCHEDULE = {
       openAt: Date.UTC(2026, 8, 15, 16, 0, 0),   // 7:00 PM Cairo (Sept 15)

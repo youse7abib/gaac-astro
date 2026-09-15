@@ -909,7 +909,10 @@
     <div id="admin-dashboard" class="hidden">
       <!-- Top Navigation Tabs -->
       <div class="top-tabs">
-        <button class="top-tab-btn active" id="tab-btn-sf" onclick="window.switchTab('sf')">
+        <button class="top-tab-btn active" id="tab-btn-fin" onclick="window.switchTab('fin')">
+          🏆 Grand Final (Championship)
+        </button>
+        <button class="top-tab-btn" id="tab-btn-sf" onclick="window.switchTab('sf')">
           Semi-Finals (Round 2)
         </button>
         <button class="top-tab-btn" id="tab-btn-r16" onclick="window.switchTab('r16')">
@@ -929,8 +932,45 @@
         </button>
       </div>
 
+      <!-- TAB: GRAND FINAL (CHAMPIONSHIP) -->
+      <div id="view-finals">
+        <!-- Finals Stats summary -->
+        <div class="stats-bar" id="fin-stats-bar">
+          <div class="stat-box">
+            <div class="num" id="fin-stat-teams" style="color:#ffd700;">2</div>
+            <div class="label">Championship Finalists</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="fin-stat-submitted" style="color:var(--green);">0 / 20</div>
+            <div class="label">Answers Submitted</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="fin-stat-correct" style="color:#38bdf8;">0</div>
+            <div class="label">Correct Answers</div>
+          </div>
+          <div class="stat-box">
+            <div class="num" id="fin-stat-leading" style="color:#ffd700;font-size:1.1rem;">--</div>
+            <div class="label">Championship Leader</div>
+          </div>
+        </div>
+
+        <!-- Controls bar -->
+        <div class="controls-bar" style="margin-bottom:20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;">
+          <div style="font-size:0.95rem;font-weight:700;color:#ffd700;display:flex;align-items:center;gap:8px;">
+            <span>🏆 Grand Final Live Matchup: Suceava Lovers 224 vs Where are you going</span>
+          </div>
+          <div style="display:flex;gap:10px;align-items:center;">
+            <button class="btn-cache-sync" onclick="window.syncFinalsData(true)">🔄 Force Sync Finals</button>
+          </div>
+        </div>
+
+        <div id="finals-container">
+          <div class="empty-placeholder">Loading Grand Final teams and answers from Firestore...</div>
+        </div>
+      </div>
+
       <!-- TAB: SEMI-FINALS (ROUND 2) -->
-      <div id="view-semifinals">
+      <div id="view-semifinals" class="hidden">
         <!-- SF Stats summary -->
         <div class="stats-bar" id="sf-stats-bar">
           <div class="stat-box">
@@ -1563,10 +1603,12 @@
       const btn = document.getElementById(`tab-btn-${tabName}`);
       if (btn) btn.classList.add('active');
 
+      const isFinTab = tabName === 'fin' || tabName === 'finals';
       const isSfTab = tabName === 'sf' || tabName === 'semifinals';
       const isR16Tab = tabName === 'r16' || tabName === 'makeup';
       const isAllSubTab = tabName === 'all';
 
+      document.getElementById('view-finals')?.classList.toggle('hidden', !isFinTab);
       document.getElementById('view-semifinals')?.classList.toggle('hidden', !isSfTab);
       document.getElementById('view-round16-teams')?.classList.toggle('hidden', !isR16Tab);
       document.getElementById('view-all-submissions')?.classList.toggle('hidden', !isAllSubTab);
@@ -1574,8 +1616,11 @@
       document.getElementById('view-team-inspector')?.classList.toggle('hidden', tabName !== 'lookup');
       document.getElementById('view-schedule-control')?.classList.toggle('hidden', tabName !== 'schedule');
 
-      if (isSfTab) {
-        window.syncSemiFinalsData();
+      if (isFinTab) {
+        window.syncFinalsData();
+      } else if (isSfTab) {
+        window.syncFinalsData();
+      window.syncSemiFinalsData();
       } else if (isR16Tab) {
         activeSubmissionView = 'makeup';
         renderRound16Teams();

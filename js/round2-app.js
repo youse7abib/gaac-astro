@@ -37,6 +37,14 @@ const SEMIFINAL_EMAILS = new Set([
   'badr.e.h.edu@gmail.com'
 ].map(e => e.toLowerCase().trim()));
 
+const FINALIST_TEAMS = new Set(['GAAC-2026-1883', 'GAAC-2026-0457']);
+const FINALIST_EMAILS = new Set([
+  'vlad.toncu224@gmail.com',
+  'mihai.tesileanu2@gmail.com',
+  'matei.butnaru@yahoo.com',
+  'badr.e.h.edu@gmail.com'
+].map(e => e.toLowerCase().trim()));
+
 const ADMIN_EMAILS = new Set([
   'astronomyclub64@gmail.com'
 ]);
@@ -140,6 +148,109 @@ const R8_QUESTIONS = [
     unit: "billion years (Gyr)",
     tolerancePct: 1,
     note: "Pin down the cosmic age, in billions of years (Gyr), at which the signal was emitted.",
+    placeholder: "Enter your answer..."
+  }
+];
+
+const FIN_QUESTIONS = [
+  {
+    id: "fin_q1",
+    order: 1,
+    title: "Question 21: The Needle in the Radio Sky",
+    topic: "Observational Astronomy",
+    unit: "kilometres (km)",
+    tolerancePct: 1,
+    note: "How long must the baseline be, in kilometres, to barely resolve the two sources?",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q2",
+    order: 2,
+    title: "Question 22: The Orbit beneath the Iron Star",
+    topic: "Orbital Mechanics",
+    unit: "radians per orbit (rad)",
+    tolerancePct: 1,
+    note: "Evaluate the periapsis advance per orbit in radians.",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q3",
+    order: 3,
+    title: "Question 23: The One-Second Shadow",
+    topic: "Observational Astronomy",
+    unit: "centimetres (cm)",
+    tolerancePct: 1,
+    note: "Identify the longest usable wavelength in centimetres.",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q4",
+    order: 4,
+    title: "Question 24: The Neutron Star's Lost Century",
+    topic: "Astrophysics",
+    unit: "joules (J)",
+    tolerancePct: 1,
+    note: "Track the neutrino energy in joules.",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q5",
+    order: 5,
+    title: "Question 25: The Black Hole Candle",
+    topic: "Astrophysics",
+    unit: "kilograms (kg)",
+    tolerancePct: 1,
+    note: "Retrieve the mass of the black hole in kilograms.",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q6",
+    order: 6,
+    title: "Question 26: The Radio Ghost of Cygnus",
+    topic: "Astrophysics",
+    unit: "teraelectronvolts (TeV)",
+    tolerancePct: 1,
+    note: "Obtain the characteristic energy of the emitting electrons in teraelectronvolts (TeV).",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q7",
+    order: 7,
+    title: "Question 27: The White Dwarf's Broken Rule",
+    topic: "Astrophysics",
+    unit: "Solar masses (M_Sun)",
+    tolerancePct: 1,
+    note: "Settle the new maximum supported mass in solar masses (M☉).",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q8",
+    order: 8,
+    title: "Question 28: The Planet that Burned Its Path",
+    topic: "Planetology",
+    unit: "joules (J)",
+    tolerancePct: 1,
+    note: "Account for the orbital energy dissipated in the disk in joules.",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q9",
+    order: 9,
+    title: "Question 29: The Universe in the Mirror",
+    topic: "Cosmology",
+    unit: "kelvin (K)",
+    tolerancePct: 1,
+    note: "Travel back to equality: what was the CMB temperature in kelvin?",
+    placeholder: "Enter your answer..."
+  },
+  {
+    id: "fin_q10",
+    order: 10,
+    title: "Question 30: The Last Horizon",
+    topic: "Cosmology",
+    unit: "multiple of c/H_0",
+    tolerancePct: 1,
+    note: "Express the present particle-horizon distance as a multiple of c/H₀.",
     placeholder: "Enter your answer..."
   }
 ];
@@ -335,7 +446,8 @@ const init = async () => {
 
     setupStageEnvironment(chosenStage);
 
-    const isAllowed = (chosenStage === 'sf' ? SEMIFINAL_EMAILS.has(emailClean) : ROUND8_EMAILS.has(emailClean)) || isAdmin;
+    const isFinalStage = chosenStage === 'fin' || chosenStage === 'final' || chosenStage === 'finals';
+    const isAllowed = isAdmin || (isFinalStage ? (FINALIST_EMAILS.has(emailClean) || FINALIST_TEAMS.has((teamId || '').toUpperCase())) : (chosenStage === 'sf' ? SEMIFINAL_EMAILS.has(emailClean) : ROUND8_EMAILS.has(emailClean)));
 
     if (!isAllowed) {
       showGate('unauthorized');
@@ -379,14 +491,26 @@ const init = async () => {
   }
 };
 
+let localPdfFallback = 'round2-fin-questions.pdf';
+
 const setupStageEnvironment = (stage) => {
   const rulesTitle = document.getElementById('rules-gate-title');
   const rulesSub = document.getElementById('rules-gate-sub');
 
-  if (stage === 'sf' || stage === 'semifinals' || stage === 'semis') {
+  if (stage === 'fin' || stage === 'final' || stage === 'finals' || stage === 'grandfinal') {
+    stageKey = 'fin';
+    stageName = 'GRAND FINAL (1st–2nd)';
+    pdfStoragePath = 'round2/fin/questions.pdf';
+    localPdfFallback = 'round2-fin-questions.pdf';
+    r2Questions = FIN_QUESTIONS;
+    activeQid = 'fin_q1';
+    if (rulesTitle) rulesTitle.innerHTML = 'Grand Final — <span style="color:#26b7ff;">Championship Match</span>';
+    if (rulesSub) rulesSub.textContent = 'GAAC 2026 Championship Stage (Places 1–2)';
+  } else if (stage === 'sf' || stage === 'semifinals' || stage === 'semis') {
     stageKey = 'sf';
     stageName = 'SEMI-FINALS';
     pdfStoragePath = 'round2/sf/questions.pdf';
+    localPdfFallback = 'round2-sf-questions.pdf';
     r2Questions = SF_QUESTIONS;
     activeQid = 'sf_q1';
     if (rulesTitle) rulesTitle.innerHTML = 'Semi-Finals — <span style="color:#26b7ff;">Round 2 (Final Four)</span>';
@@ -395,6 +519,7 @@ const setupStageEnvironment = (stage) => {
     stageKey = 'r8';
     stageName = 'ROUND OF 8 (5th–8th)';
     pdfStoragePath = 'round2/r8/questions.pdf';
+    localPdfFallback = 'round2-r8-questions.pdf';
     r2Questions = R8_QUESTIONS;
     activeQid = 'r8_q1';
     if (rulesTitle) rulesTitle.innerHTML = 'Round of 8 — <span style="color:#26b7ff;">Last Chance Qualifier</span>';
@@ -874,7 +999,18 @@ const loadPdf = async () => {
     }
 
     if (!pdfData) {
-      if (loading) loading.innerHTML = 'Question paper could not be loaded from secure storage.<br><button onclick="window.location.reload()" style="margin-top:10px;padding:6px 14px;background:#26b7ff;border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">Retry</button>';
+      try {
+        const localResp = await fetch(localPdfFallback);
+        if (localResp.ok) {
+          pdfData = await localResp.arrayBuffer();
+        }
+      } catch (locErr) {
+        console.warn('[round2] Local PDF fallback notice:', locErr);
+      }
+    }
+
+    if (!pdfData) {
+      if (loading) loading.innerHTML = 'Question paper could not be loaded.<br><button onclick="window.location.reload()" style="margin-top:10px;padding:6px 14px;background:#26b7ff;border:none;border-radius:8px;color:#000;font-weight:700;cursor:pointer;">Retry</button>';
       return;
     }
 
