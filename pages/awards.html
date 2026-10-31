@@ -18,6 +18,7 @@
       .prize-pool {
         font-family: var(--font-orbitron); font-size: 1.15rem; font-weight: 800;
         letter-spacing: 0.06em; color: var(--silver); margin: 0 0 6px;
+        font-variant-numeric: lining-nums tabular-nums;
       }
       .prize-pool .text-blue {
         display: inline-block;
@@ -187,32 +188,6 @@
         background: linear-gradient(90deg, transparent, rgba(38,183,255,0.3), transparent);
       }
 
-      /* Astronaut decoration behind panel */
-      .awards-astronaut {
-        position: absolute; top: 80px; right: -140px;
-        width: 220px; height: 300px;
-        background: url('images/Astonaut.png') no-repeat center top / contain;
-        z-index: 2; pointer-events: none;
-        animation: float 4s ease-in-out infinite, glow 3s ease-in-out infinite alternate;
-        filter: drop-shadow(0 0 20px rgba(38,183,255,0.12));
-      }
-      @keyframes float {
-        0%, 100% { transform: translateY(0) rotate(0deg); }
-        50% { transform: translateY(-8px) rotate(0.5deg); }
-      }
-      @keyframes glow {
-        0% { filter: drop-shadow(0 0 10px rgba(38,183,255,0.08)) brightness(1); }
-        100% { filter: drop-shadow(0 0 30px rgba(38,183,255,0.2)) brightness(1.05); }
-      }
-      @media (max-width: 800px) {
-        .awards-astronaut { width: 140px; height: 190px; top: 60px; right: -80px; }
-      }
-      @media (max-width: 500px) {
-        .awards-astronaut { display: none; }
-      }
-
-
-
       /* Tier accent colors */
       .tier-gold .awards-panel-inner::before { background: linear-gradient(90deg, transparent, #f0b429, transparent); opacity: 0.6; }
       .tier-silver .awards-panel-inner::before { background: linear-gradient(90deg, transparent, #94a3b8, transparent); opacity: 0.5; }
@@ -253,11 +228,10 @@
 
     <main>
       <section class="page-shell compact" style="position:relative;">
-        <div class="awards-astronaut"></div>
         <div class="awards-section-heading reveal">
           <p class="eyebrow">Awards</p>
           <h1>Competition <span class="text-blue">Prizes</span>.</h1>
-          <p class="prize-pool"><span class="text-blue">$130,000</span> Prize Pool</p>
+          <p class="prize-pool"><span class="text-blue">$460,120</span> Total Sponsorship · 2026 Season</p>
           <p>GAAC 2026 offers prizes from leading astronomy and educational software companies, recognizing outstanding teams and participants throughout every stage of the competition.</p>
         </div>
 
