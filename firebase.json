@@ -2,6 +2,31 @@
   "hosting": {
     "public": ".",
     "cleanUrls": true,
+    "rewrites": [
+      { "source": "/register", "destination": "/pages/register.html" },
+      { "source": "/team-dashboard", "destination": "/pages/team-dashboard.html" },
+      { "source": "/leaderboard", "destination": "/pages/leaderboard.html" },
+      { "source": "/awards", "destination": "/pages/awards.html" },
+      { "source": "/syllabus", "destination": "/pages/syllabus.html" },
+      { "source": "/timeline", "destination": "/pages/timeline.html" },
+      { "source": "/partners", "destination": "/pages/partners.html" },
+      { "source": "/ambassador", "destination": "/pages/ambassador.html" },
+      { "source": "/ambassador-login", "destination": "/pages/ambassador-login.html" },
+      { "source": "/ambassador-register", "destination": "/pages/ambassador-register.html" },
+      { "source": "/ambassador-dashboard", "destination": "/pages/ambassador-dashboard.html" },
+      { "source": "/ambassador-certificate", "destination": "/pages/ambassador-certificate.html" },
+      { "source": "/ambassador-change-password", "destination": "/pages/ambassador-change-password.html" },
+      { "source": "/certificate", "destination": "/pages/certificate.html" },
+      { "source": "/certificate-view", "destination": "/pages/certificate-view.html" },
+      { "source": "/exam", "destination": "/pages/exam.html" },
+      { "source": "/mock-exam", "destination": "/pages/mock-exam.html" },
+      { "source": "/round2", "destination": "/pages/round2.html" },
+      { "source": "/change-password", "destination": "/pages/change-password.html" },
+      { "source": "/admin-tools", "destination": "/pages/admin-tools.html" },
+      { "source": "/admin-exam", "destination": "/pages/admin-exam.html" },
+      { "source": "/reset-exam", "destination": "/pages/reset-exam.html" },
+      { "source": "/index", "destination": "/index.html" }
+    ],
     "headers": [
       {
         "source": "**/*.@(html|js)",
